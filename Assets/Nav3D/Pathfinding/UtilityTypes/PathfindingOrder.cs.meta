@@ -1,0 +1,10 @@
+﻿fileFormatVersion: 2
+guid: df7a897d989d48648bb79cd478468f56
+timeCreated: 1742049237
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Pathfinding/UtilityTypes/PathfindingOrder.cs
+  uploadId: 765713

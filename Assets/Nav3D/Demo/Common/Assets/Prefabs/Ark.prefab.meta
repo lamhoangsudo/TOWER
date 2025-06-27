@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 8d3ffc34ab11f4045b713d3df7e12097
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/Common/Assets/Prefabs/Ark.prefab
+  uploadId: 765713

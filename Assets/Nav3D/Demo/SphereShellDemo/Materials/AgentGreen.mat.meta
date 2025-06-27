@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 999bfe0a9e9684518b35d7db2406bec3
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SphereShellDemo/Materials/AgentGreen.mat
+  uploadId: 765713

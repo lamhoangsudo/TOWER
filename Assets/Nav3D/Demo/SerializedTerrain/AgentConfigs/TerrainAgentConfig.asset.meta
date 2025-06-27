@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: bf38956c70b308c4c86b90392e5a8288
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SerializedTerrain/AgentConfigs/TerrainAgentConfig.asset
+  uploadId: 765713

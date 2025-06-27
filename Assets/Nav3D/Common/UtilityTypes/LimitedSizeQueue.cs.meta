@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: e8cecefb9ac755e45b41a39131df5246
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Common/UtilityTypes/LimitedSizeQueue.cs
+  uploadId: 765713

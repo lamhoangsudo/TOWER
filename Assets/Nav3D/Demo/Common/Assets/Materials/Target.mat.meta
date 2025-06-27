@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 96dd0b595d93c5542847f4df4f04b46f
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/Common/Assets/Materials/Target.mat
+  uploadId: 765713

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 00cad916f5ef004439f56ce79cffb808
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Tutorials/Nav3DAgentConfigSetup_v1.5.1/Nav3DAgentConfigSetupTutorial.unity
+  uploadId: 765713

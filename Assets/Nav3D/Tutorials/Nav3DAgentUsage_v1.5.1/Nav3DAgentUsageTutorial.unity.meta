@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 994fecd0d6df743b18cafa6cdd9f5daa
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Tutorials/Nav3DAgentUsage_v1.5.1/Nav3DAgentUsageTutorial.unity
+  uploadId: 765713

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 10fa7f4e1d5574d49886c0b2b2a09b24
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/LocalAvoidance/SupportingMath/ConeEndless.cs
+  uploadId: 765713

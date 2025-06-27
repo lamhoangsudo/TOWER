@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5c818bb99dd0e754d97e262b195045bd
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/Common/PostProcessing_Default.asset
+  uploadId: 758770

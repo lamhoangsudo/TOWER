@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: a7208c078045013428bb5b5af17bce8f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Common/UtilsGizmos/GizmosWireCube.cs
+  uploadId: 765713

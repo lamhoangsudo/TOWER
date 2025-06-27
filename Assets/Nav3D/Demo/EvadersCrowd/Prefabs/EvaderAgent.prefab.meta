@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3153a6fe2a13a4459b538ab539e2bcde
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/EvadersCrowd/Prefabs/EvaderAgent.prefab
+  uploadId: 765713

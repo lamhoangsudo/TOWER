@@ -1,0 +1,10 @@
+﻿fileFormatVersion: 2
+guid: 60e887c88d5c43529f1ae0261d7bd03f
+timeCreated: 1736337369
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Common/UtilsCommon/UtilsSpatialGrid.cs
+  uploadId: 765713

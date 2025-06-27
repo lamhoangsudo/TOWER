@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 97399f95b09f2c14786d32265a5ac5b9
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Tutorials/Common/Prefabs/AgentBlue.prefab
+  uploadId: 765713

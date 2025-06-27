@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 93d00a36a96ad1848bb5284825f127ee
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SphereShellDemo/Animations/BodyVerticalTwitching.controller
+  uploadId: 765713

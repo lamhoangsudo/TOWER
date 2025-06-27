@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: fdf3cab914795674f86ac170e759e73e
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Effects/MuzzleFlash1_M_Blue.prefab
+  uploadId: 758770

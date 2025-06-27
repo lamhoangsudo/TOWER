@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ecde83078e68844b0a0762e55b577617
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SphereShellDemo/AgentsConfigs/AgentSphereShellDemoConfig.asset
+  uploadId: 765713

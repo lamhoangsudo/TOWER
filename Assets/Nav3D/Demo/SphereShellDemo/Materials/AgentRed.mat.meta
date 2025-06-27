@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7c76c3e6164ef4c4799b8c3a62cebc00
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SphereShellDemo/Materials/AgentRed.mat
+  uploadId: 765713

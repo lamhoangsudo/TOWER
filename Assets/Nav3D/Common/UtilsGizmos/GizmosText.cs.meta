@@ -1,0 +1,10 @@
+﻿fileFormatVersion: 2
+guid: 9ef48a1f3f654c2d99c11a46039d8478
+timeCreated: 1739111792
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Common/UtilsGizmos/GizmosText.cs
+  uploadId: 765713

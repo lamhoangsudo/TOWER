@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 48f6d2281fcd57046b9b80ad22a06ced
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/Common/Assets/Prefabs/HoleWall.prefab
+  uploadId: 765713

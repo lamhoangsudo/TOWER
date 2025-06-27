@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 08d879126f2964676bb90b983d014c33
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SpaceGame/Materials/MineRedIncrustation.mat
+  uploadId: 765713

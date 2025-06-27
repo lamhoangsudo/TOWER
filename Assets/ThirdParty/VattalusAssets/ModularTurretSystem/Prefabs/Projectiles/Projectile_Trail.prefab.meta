@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: cc4b5b92afad36b458a3319c8e11127f
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Projectiles/Projectile_Trail.prefab
+  uploadId: 758770

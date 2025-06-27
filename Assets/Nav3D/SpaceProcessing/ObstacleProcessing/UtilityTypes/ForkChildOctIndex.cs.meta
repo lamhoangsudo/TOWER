@@ -1,0 +1,10 @@
+﻿fileFormatVersion: 2
+guid: 6ecc8060c3884541bf00b76f384e9bec
+timeCreated: 1739123806
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/SpaceProcessing/ObstacleProcessing/UtilityTypes/ForkChildOctIndex.cs
+  uploadId: 765713

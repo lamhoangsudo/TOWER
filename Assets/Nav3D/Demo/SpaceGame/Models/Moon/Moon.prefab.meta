@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 1b0332b109d080942846b067694b1852
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SpaceGame/Models/Moon/Moon.prefab
+  uploadId: 765713

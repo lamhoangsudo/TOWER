@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: d437541b41dbe1b45ba118c493e7ebe5
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/Common/Skyboxes/Starfield - PulsarBytes/credits.txt
+  uploadId: 758770

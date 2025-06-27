@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f22647935f9ee7b4ebf79a805431e02e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/Common/Materials/Trimsheet/VA_Trimsheet_GreyRed_Opaque.mat
+  uploadId: 758770

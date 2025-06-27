@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: cc6013365b35b614b9dab3d77a19c913
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Scenes/ModularWeapons_Showcase.unity
+  uploadId: 758770

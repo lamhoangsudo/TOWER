@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: cec52243ea118e94fb5fc8236f092045
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/Common/Assets/Prefabs/Cone.prefab
+  uploadId: 765713

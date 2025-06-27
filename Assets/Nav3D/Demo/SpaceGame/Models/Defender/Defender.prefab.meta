@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 9dd3710c92da76c4cad0a1a1572f95d0
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SpaceGame/Models/Defender/Defender.prefab
+  uploadId: 765713

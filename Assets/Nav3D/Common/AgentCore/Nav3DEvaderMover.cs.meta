@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 0dfe5d2deca84bbba83cc353e3955e82
+timeCreated: 1744550662
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Common/AgentCore/Nav3DEvaderMover.cs
+  uploadId: 765713

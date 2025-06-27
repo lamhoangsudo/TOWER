@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: d442e74bb3fd141d19a06bb817e836b4
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/Maze/Maze.unity
+  uploadId: 765713

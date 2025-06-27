@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0bdc93a04310d4d06a09e5616fddd521
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SphereShellDemo/SphereShell.unity
+  uploadId: 765713

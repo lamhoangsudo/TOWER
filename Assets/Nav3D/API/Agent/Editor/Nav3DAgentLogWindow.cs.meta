@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 4a1004e7efe99ba4d9982404ba81b644
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/API/Agent/Editor/Nav3DAgentLogWindow.cs
+  uploadId: 765713

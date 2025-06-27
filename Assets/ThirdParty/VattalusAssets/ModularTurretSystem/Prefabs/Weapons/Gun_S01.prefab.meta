@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: df8e62bafaf308543afa21c6e36ec534
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Weapons/Gun_S01.prefab
+  uploadId: 758770

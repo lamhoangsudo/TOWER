@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 6c8ea871ed3f459cbe404ce1072f711d
+timeCreated: 1744370189
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/API/AgentLikeEntities/Nav3DEvader.cs
+  uploadId: 765713

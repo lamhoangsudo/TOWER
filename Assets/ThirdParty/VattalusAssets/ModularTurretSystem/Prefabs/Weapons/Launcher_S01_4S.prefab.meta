@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0ab2238cf5afe5444bf82a1223f390aa
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Weapons/Launcher_S01_4S.prefab
+  uploadId: 758770

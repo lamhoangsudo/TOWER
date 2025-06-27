@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 26e7e4cb0136a474dbab5a1150c3c1e7
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Projectiles/Projectile_Flickery.prefab
+  uploadId: 758770

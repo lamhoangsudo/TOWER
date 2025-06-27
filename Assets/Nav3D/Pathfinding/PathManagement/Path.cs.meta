@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 0e1aab881cc277943b117882eecb3b6f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Pathfinding/PathManagement/Path.cs
+  uploadId: 765713

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 4ea150a83fde7dc4c94ec6c66cc1a099
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/Common/Assets/Materials/Structures.mat
+  uploadId: 765713

@@ -1,0 +1,10 @@
+﻿fileFormatVersion: 2
+guid: f1d1846ab65d4417a116a6125b8cba24
+timeCreated: 1739118575
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/LocalAvoidance/SupportingMath/ILine.cs
+  uploadId: 765713

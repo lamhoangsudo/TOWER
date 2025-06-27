@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 4e2bb822d379ba740878fd967356fbcd
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SphereShellDemo/Materials/GraphiteObstacleBody.mat
+  uploadId: 765713

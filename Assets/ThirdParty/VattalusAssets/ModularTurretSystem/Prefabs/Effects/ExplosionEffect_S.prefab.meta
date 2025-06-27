@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 625bbc63a6285fa4b861259b35e8e1f4
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Effects/ExplosionEffect_S.prefab
+  uploadId: 758770

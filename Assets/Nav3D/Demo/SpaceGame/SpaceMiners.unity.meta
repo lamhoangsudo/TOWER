@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 2778746af34ea417799f63ac8e41a71d
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SpaceGame/SpaceMiners.unity
+  uploadId: 765713

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 03bfe83624deb4f43831ba058d183ae2
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Tutorials/QuickStartTutorial_v1.4.3/AgentBody.prefab
+  uploadId: 765713

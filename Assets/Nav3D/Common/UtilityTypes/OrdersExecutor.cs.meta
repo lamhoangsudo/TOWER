@@ -1,0 +1,10 @@
+﻿fileFormatVersion: 2
+guid: 580b5294ca8846f381cea274b0de9846
+timeCreated: 1742051106
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Common/UtilityTypes/OrdersExecutor.cs
+  uploadId: 765713

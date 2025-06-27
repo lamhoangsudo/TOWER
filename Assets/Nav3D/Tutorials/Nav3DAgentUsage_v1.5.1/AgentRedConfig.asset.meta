@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f43b7f23036544e0cb9325f93b1757a2
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Tutorials/Nav3DAgentUsage_v1.5.1/AgentRedConfig.asset
+  uploadId: 765713

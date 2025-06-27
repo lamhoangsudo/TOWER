@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: ad328da9bf58e4ec68fd6850f450099c
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/Maze/Prefabs/Maze.prefab
+  uploadId: 765713

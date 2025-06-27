@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 65975e1d5b630da4998c1875e04b0631
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Weapons/Gun_L02.prefab
+  uploadId: 758770

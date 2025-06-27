@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 89fbbabde5eb1ec418e419965d686bc2
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SphereShellDemo/Animations/BodyHorizontalTwitching.controller
+  uploadId: 765713

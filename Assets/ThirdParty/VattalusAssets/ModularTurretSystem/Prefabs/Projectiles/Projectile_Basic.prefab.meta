@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: ddb7843b4c0a624439705476284ceb74
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Projectiles/Projectile_Basic.prefab
+  uploadId: 758770

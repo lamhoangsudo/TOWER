@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 4641698bfa4b416cac845f05839112f1
+timeCreated: 1745756626
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Common/Nav3DSphereShellMover.cs
+  uploadId: 765713

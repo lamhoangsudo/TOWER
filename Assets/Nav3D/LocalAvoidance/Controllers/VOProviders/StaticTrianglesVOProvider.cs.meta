@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 8cad1912a8da495aa77a8933a509f111
+timeCreated: 1744988647
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/LocalAvoidance/Controllers/VOProviders/StaticTrianglesVOProvider.cs
+  uploadId: 765713

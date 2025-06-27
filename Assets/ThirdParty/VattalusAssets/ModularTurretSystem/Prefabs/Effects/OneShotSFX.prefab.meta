@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 36a4abc994f046b4db917c43d9d3133b
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Effects/OneShotSFX.prefab
+  uploadId: 758770

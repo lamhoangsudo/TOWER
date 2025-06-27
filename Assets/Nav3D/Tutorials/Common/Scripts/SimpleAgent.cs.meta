@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 4add14e1b2ca0e24e82632c3f40d3009
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Tutorials/Common/Scripts/SimpleAgent.cs
+  uploadId: 765713

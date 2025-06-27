@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 9244bac6160a7f540826daa7f188cab8
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/SpaceProcessing/ObstacleProcessing/Octree/SerializableTypes/LeafSerializable.cs
+  uploadId: 765713

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: b2956a8b6272b0842b39358288a5fe06
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Weapons/Gun_M08_Burst.prefab
+  uploadId: 758770

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f48b047f5a018f24e9c1f9cbee176d2d
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Tutorials/QuickStartTutorial_v1.4.3/SimpleAgentConfig.asset
+  uploadId: 765713

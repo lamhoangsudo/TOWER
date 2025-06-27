@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 7eae62bb6cdc05a4eaa8345045fe4cee
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/API/Obstacles/Nav3DObstacle.cs
+  uploadId: 765713

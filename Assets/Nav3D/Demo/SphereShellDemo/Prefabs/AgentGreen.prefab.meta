@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c32d45bc736554cf2b3fdcc73692d418
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SphereShellDemo/Prefabs/AgentGreen.prefab
+  uploadId: 765713

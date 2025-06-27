@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: f521e746f362e2f43983becdef64f7e4
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/LocalAvoidance/SupportingMath/Circle.cs
+  uploadId: 765713

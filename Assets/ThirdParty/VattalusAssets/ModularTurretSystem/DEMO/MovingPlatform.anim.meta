@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: cb9d8077788eb844fa8958f4c17c627a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/DEMO/MovingPlatform.anim
+  uploadId: 758770

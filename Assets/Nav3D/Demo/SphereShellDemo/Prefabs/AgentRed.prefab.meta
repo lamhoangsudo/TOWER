@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 07388db20dc9b469fb756476de418377
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SphereShellDemo/Prefabs/AgentRed.prefab
+  uploadId: 765713

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 295b9bf55eea0fc4da1a0a9a1056d14e
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/DEMO/FirstPersonCamera.prefab
+  uploadId: 758770

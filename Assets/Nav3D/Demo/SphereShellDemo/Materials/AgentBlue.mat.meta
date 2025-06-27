@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 963f93d17df7e4803994edfd4f96d354
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SphereShellDemo/Materials/AgentBlue.mat
+  uploadId: 765713

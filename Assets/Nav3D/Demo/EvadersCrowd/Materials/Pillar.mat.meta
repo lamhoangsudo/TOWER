@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d5ddbb59fcc7945aab5b8f1fa6ac42b5
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/EvadersCrowd/Materials/Pillar.mat
+  uploadId: 765713

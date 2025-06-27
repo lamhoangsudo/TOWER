@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: cd9d6a2291ff58546a919a749aa7037d
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Common/Extensions/ExtensionVector3.cs
+  uploadId: 765713

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 3f1e592904edc2241a9fc560d1cf7a7e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/LocalAvoidance/Core/VOObstacle.cs
+  uploadId: 765713

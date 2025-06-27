@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 6aed0edf01713e940a5198be9f0ba038
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/LocalAvoidance/Controllers/VOProviders/MoversVOsProvider.cs
+  uploadId: 765713

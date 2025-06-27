@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 0dc2e23d05c4430c807c1fdf69c60909
+timeCreated: 1750183430
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/API/Obstacles/Debug/Nav3DObstacle.cs
+  uploadId: 765713

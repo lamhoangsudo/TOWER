@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 67395679d90a4b79b0f66afb51e17bc1
+timeCreated: 1655675927
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SpaceGame/Scripts/UnitsControllers/EnemyController.cs
+  uploadId: 765713

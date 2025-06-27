@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 8d0ece1c0df252740998569b7a54e110
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Scripts/VattalusMuzzleFlash.cs
+  uploadId: 758770

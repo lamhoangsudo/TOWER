@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3924772e25d517f4bb71a7c70c5bf61c
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Weapons/Gun_L05_Dual.prefab
+  uploadId: 758770

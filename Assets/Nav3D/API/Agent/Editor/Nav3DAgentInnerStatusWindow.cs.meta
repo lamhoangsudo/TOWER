@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: d8f9c551a28f48b4ba5a5f4c8890b0ef
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/API/Agent/Editor/Nav3DAgentInnerStatusWindow.cs
+  uploadId: 765713

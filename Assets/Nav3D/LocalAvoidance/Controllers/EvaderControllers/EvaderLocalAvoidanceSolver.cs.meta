@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 9567eed7f3ec46b69fddcd891236b9f6
+timeCreated: 1744566089
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/LocalAvoidance/Controllers/EvaderControllers/EvaderLocalAvoidanceSolver.cs
+  uploadId: 765713

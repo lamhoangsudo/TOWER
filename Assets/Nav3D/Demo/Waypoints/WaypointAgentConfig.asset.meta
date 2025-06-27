@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 59a85957cb64318408d5d5a67988453e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/Waypoints/WaypointAgentConfig.asset
+  uploadId: 765713

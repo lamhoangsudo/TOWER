@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a0e0deae273dc0346941b8ff6a28df73
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/Waypoints/Materials/WaypointAgentYellow.mat
+  uploadId: 765713

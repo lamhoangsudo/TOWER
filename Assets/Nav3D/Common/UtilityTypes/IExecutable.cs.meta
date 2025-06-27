@@ -1,0 +1,10 @@
+﻿fileFormatVersion: 2
+guid: fdf50b00447d4478af7bfb1f86983088
+timeCreated: 1742049548
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Common/UtilityTypes/IExecutable.cs
+  uploadId: 765713

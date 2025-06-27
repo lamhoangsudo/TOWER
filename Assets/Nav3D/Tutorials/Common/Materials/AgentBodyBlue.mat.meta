@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e30ed8f90729b6443aec9ddc517c5999
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Tutorials/Common/Materials/AgentBodyBlue.mat
+  uploadId: 765713

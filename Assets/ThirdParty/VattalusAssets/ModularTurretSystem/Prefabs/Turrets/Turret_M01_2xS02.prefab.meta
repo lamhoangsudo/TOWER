@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: d2c27d4531dd61f4d8779c7438104d36
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Turrets/Turret_M01_2xS02.prefab
+  uploadId: 758770

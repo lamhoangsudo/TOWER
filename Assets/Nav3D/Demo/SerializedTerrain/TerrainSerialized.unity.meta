@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c39adc7a018e8464b9f2550ea5b34b68
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SerializedTerrain/TerrainSerialized.unity
+  uploadId: 765713

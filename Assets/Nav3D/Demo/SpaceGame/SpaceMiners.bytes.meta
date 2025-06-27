@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 23464de8e31d6424b82455157f1c49ce
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SpaceGame/SpaceMiners.bytes
+  uploadId: 765713

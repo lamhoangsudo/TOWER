@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: dc84e18c74a5a2c40a9a8266ff0a66ac
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Weapons/Gun_M07_Gatling.prefab
+  uploadId: 758770

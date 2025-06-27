@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c6866b81f758f1c48808851af3387327
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/EvadersCrowd/EvadersScenario.unity
+  uploadId: 765713

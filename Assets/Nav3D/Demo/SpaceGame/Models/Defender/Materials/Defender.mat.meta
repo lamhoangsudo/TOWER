@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 246483fb7b3fb6e4fae1ac97dc473b48
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SpaceGame/Models/Defender/Materials/Defender.mat
+  uploadId: 765713

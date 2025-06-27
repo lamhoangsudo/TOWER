@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 504835dbe3909eb4d9cb5fc28182b00c
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Turrets/Turret_L01_1xLauncher_L01_8M.prefab
+  uploadId: 758770

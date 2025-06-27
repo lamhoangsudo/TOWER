@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: ad021552258a43e4db5b26392b9cc373
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/Common/Assets/Prefabs/agentBody.prefab
+  uploadId: 765713

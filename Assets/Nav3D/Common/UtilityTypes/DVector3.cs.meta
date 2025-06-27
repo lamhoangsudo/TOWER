@@ -1,0 +1,10 @@
+﻿fileFormatVersion: 2
+guid: 1da9f057614545a2a76ac66bd7531d73
+timeCreated: 1737298803
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Common/UtilityTypes/DVector3.cs
+  uploadId: 765713

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7be2eada2f5a8cf4dbd19f56c3eb6284
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Tutorials/Common/Materials/CubeObstacle.mat
+  uploadId: 765713

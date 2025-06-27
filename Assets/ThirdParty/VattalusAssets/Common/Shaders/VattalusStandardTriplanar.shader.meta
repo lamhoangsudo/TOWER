@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 5f3e5ad1686d8d346ba022aed50f1bcf
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  preprocessorOverride: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/Common/Shaders/VattalusStandardTriplanar.shader
+  uploadId: 758770

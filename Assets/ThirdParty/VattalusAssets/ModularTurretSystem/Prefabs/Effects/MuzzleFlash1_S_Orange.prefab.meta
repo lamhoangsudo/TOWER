@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 31d5c3bb51b924f43a611fe4c4976d04
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Effects/MuzzleFlash1_S_Orange.prefab
+  uploadId: 758770

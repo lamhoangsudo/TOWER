@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: f3cbdcc8bab34c39a4ef402cd533f082
+timeCreated: 1655717907
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SpaceGame/Scripts/SpaceEntityControllers/EnemySpawner.cs
+  uploadId: 765713

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3554f7b07d1ad4d1595744a5a7247002
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SpaceGame/Prefabs/SpaceMine.prefab
+  uploadId: 765713

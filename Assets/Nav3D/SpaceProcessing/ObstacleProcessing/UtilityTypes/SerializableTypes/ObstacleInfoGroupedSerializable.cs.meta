@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 234fd0010369b9b428c908c206e6c45a
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/SpaceProcessing/ObstacleProcessing/UtilityTypes/SerializableTypes/ObstacleInfoGroupedSerializable.cs
+  uploadId: 765713

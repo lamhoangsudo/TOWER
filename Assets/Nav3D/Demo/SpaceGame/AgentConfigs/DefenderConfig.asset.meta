@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d12924ff4829c41d68b88181a70c897a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SpaceGame/AgentConfigs/DefenderConfig.asset
+  uploadId: 765713

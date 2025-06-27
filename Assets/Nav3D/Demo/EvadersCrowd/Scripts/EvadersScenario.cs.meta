@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: cf7531f9caa5be144ba112d4b70f12dc
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/EvadersCrowd/Scripts/EvadersScenario.cs
+  uploadId: 765713

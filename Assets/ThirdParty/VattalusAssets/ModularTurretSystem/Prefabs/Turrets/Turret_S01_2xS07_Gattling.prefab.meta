@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6b616ae63907b6e4d8cbb1753e433184
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Turrets/Turret_S01_2xS07_Gattling.prefab
+  uploadId: 758770

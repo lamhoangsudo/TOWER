@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: afdfa307cefb87048bd57e2ed220afd1
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/Common/Materials/Trimsheet/VA_Trimsheet_BlackGray_Transparent.mat
+  uploadId: 758770

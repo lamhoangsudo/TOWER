@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 5191cdab021ea744b97b0e71c2dc70ab
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Common/AgentCore/Nav3DAgentMoverCombined.cs
+  uploadId: 765713

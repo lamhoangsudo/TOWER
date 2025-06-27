@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 51f9d0c01b6c638429d869be7d9b451d
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Weapons/Gun_L05_Gatling.prefab
+  uploadId: 758770

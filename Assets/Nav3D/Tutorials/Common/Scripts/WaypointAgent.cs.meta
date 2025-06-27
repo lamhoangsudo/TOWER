@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 0a47b430bd6074339be4abf03d21da10
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Tutorials/Common/Scripts/WaypointAgent.cs
+  uploadId: 765713

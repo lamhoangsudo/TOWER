@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: be3aa323acf996c4f98b807c92dab3b5
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Projectiles/Projectile_Explosive.prefab
+  uploadId: 758770

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 396be00b2f2419c48b9308a173c65b85
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SpaceGame/Models/Earth/Earth.prefab
+  uploadId: 765713

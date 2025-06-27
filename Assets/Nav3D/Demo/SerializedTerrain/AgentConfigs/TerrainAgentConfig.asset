@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a89774d9ff8fac4a87c060c23e25d94, type: 3}
+  m_Name: TerrainAgentConfig
+  m_EditorClassIdentifier: 
+  m_Radius: 2
+  m_Speed: 0.3
+  m_MaxSpeed: 0.39000002
+  m_SpeedToMaxSpeedMultiplier: 1.3
+  m_MaxSpeedObtainMode: 0
+  m_UseConsideredAgentsNumberLimit: 0
+  m_ConsideredAgentsNumberLimit: 3
+  m_ORCATau: 2.5
+  m_AvoidStaticObstacles: 0
+  m_PathfindingTimeout: 10000
+  m_SmoothPath: 1
+  m_SmoothRatio: 3
+  m_MotionNavigationType: 0
+  m_TargetReachDistance: 2
+  m_AutoUpdatePath: 1
+  m_PathAutoUpdateCooldown: 2000
+  m_MaxAgentDegreesRotationPerTick: 5
+  m_RotationVectorLerpFactor: 0.025
+  m_TryRepositionTargetIfOccupied: 0
+  m_PathVelocityWeight: 1
+  m_AgentsAvoidanceVelocityWeight: 100
+  m_ObstacleAvoidanceVelocityWeight: 5
+  m_PathVelocityWeight1: 1
+  m_ObstacleAvoidanceVelocityWeight1: 3
+  m_PathVelocityWeight2: 1
+  m_AgentsAvoidanceVelocityWeight1: 10
+  m_AgentsAvoidanceVelocityWeight2: 1
+  m_ObstacleAvoidanceVelocityWeight2: 1
+  m_UseLog: 0
+  m_LogSize: 50

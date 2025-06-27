@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: bfb15579a08862c419d2f2b7f21e1a94
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/API/Editor/UtilsEditor.cs
+  uploadId: 765713

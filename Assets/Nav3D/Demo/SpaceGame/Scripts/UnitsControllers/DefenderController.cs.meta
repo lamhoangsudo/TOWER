@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: bdfe7ad7b693491288912dfc21f0dd9b
+timeCreated: 1655026384
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/SpaceGame/Scripts/UnitsControllers/DefenderController.cs
+  uploadId: 765713

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 060f16945232d2e45abb65983c2e1c45
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Weapons/Gun_L05_Tri.prefab
+  uploadId: 758770

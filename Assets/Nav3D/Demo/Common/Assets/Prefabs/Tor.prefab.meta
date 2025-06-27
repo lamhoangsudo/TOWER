@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 17d6ec90378d6e14ea6e5cd83ef3ea9f
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/Common/Assets/Prefabs/Tor.prefab
+  uploadId: 765713

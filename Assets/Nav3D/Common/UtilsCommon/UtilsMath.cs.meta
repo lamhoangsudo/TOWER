@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 1835c17288a11b746a8abd0c0c1f66fc
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Common/UtilsCommon/UtilsMath.cs
+  uploadId: 765713

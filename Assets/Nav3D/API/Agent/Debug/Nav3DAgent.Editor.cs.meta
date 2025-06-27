@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 498c95b7b468424f9dccaade2ba6063f
+timeCreated: 1737387358
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/API/Agent/Debug/Nav3DAgent.Editor.cs
+  uploadId: 765713

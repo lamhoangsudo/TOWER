@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 85d02646d0eb8444d9304105cae0faea
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/DEMO/AnimatedTarget1.anim
+  uploadId: 758770

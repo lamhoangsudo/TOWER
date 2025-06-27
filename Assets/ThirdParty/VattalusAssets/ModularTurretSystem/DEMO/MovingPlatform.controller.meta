@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 86eeb01c8f317c747b3d0240d11b89c8
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/DEMO/MovingPlatform.controller
+  uploadId: 758770

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 261b5122b30d9214f98118664c434ebf
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Tutorials/Nav3DAgentConfigSetup_v1.5.1/AgentBlueConfig.asset
+  uploadId: 765713

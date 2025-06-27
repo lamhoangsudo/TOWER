@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 33eb093934c6f8b41bebb627c6c2a436
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Common/Extensions/ExtensionTransform.cs
+  uploadId: 765713

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: d0c7e0b850fcacc45afeb2035c678546
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/Common/Assets/Prefabs/Sphere.prefab
+  uploadId: 765713

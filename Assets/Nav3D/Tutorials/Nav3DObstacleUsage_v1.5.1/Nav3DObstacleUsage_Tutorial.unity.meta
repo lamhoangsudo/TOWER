@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6b863cc6514e04ea78930c29ce29c3f6
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Tutorials/Nav3DObstacleUsage_v1.5.1/Nav3DObstacleUsage_Tutorial.unity
+  uploadId: 765713

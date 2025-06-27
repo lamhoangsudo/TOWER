@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: fd6b2a68f7ffb4f4a8adbc0b26940041
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/SpaceProcessing/ObstacleProcessing/UtilityTypes/OperationsProgress/ObstacleDeserializingProgress.cs
+  uploadId: 765713

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f047443bb9e0b4407951652819e07122
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/Demo/Maze/Models/Materials/Maze.mat
+  uploadId: 765713

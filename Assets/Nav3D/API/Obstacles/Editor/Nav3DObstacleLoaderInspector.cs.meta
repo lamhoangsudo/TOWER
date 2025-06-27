@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 775affa979882a44b869f35a12d8dce7
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/API/Obstacles/Editor/Nav3DObstacleLoaderInspector.cs
+  uploadId: 765713

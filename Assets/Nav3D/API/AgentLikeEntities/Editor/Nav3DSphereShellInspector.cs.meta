@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: e77fb90a4d874c5b9dd46499729ce3ae
+timeCreated: 1745760392
+AssetOrigin:
+  serializedVersion: 1
+  productId: 100285
+  packageName: Nav3D
+  packageVersion: 1.5.2
+  assetPath: Assets/Nav3D/API/AgentLikeEntities/Editor/Nav3DSphereShellInspector.cs
+  uploadId: 765713

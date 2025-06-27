@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 295c2fcea6b5c30408f079863dfe92a1
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Materials/Projectiles/ProjectileTrail_Smoke.mat
+  uploadId: 758770

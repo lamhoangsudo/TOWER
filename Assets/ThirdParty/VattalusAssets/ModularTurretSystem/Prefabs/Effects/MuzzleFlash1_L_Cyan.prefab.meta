@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 47a08c2e92f76d7409d45c66955ddf0c
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.0.1
+  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Prefabs/Effects/MuzzleFlash1_L_Cyan.prefab
+  uploadId: 758770
