@@ -1,7 +1,10 @@
 ﻿using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
-
+/// <summary>
+/// Handles moving the projectile forward based on its direction and speed,
+/// and destroys it after its lifetime expires.
+/// </summary>
 partial struct ProjecTileMovementSystem : ISystem
 {
     [BurstCompile]
@@ -19,14 +22,8 @@ partial struct ProjecTileMovementSystem : ISystem
                  SystemAPI.Query<RefRW<ProjecTile>, RefRW<LocalTransform>>()
                  .WithEntityAccess())
         {
-            // Di chuyển theo hướng
-            transform.ValueRW.Position +=
-                projectile.ValueRO.direction * projectile.ValueRO.speed * deltaTime;
-
-            // Giảm lifetime
+            transform.ValueRW.Position += projectile.ValueRO.direction * projectile.ValueRO.speed * deltaTime;
             projectile.ValueRW.lifetime -= deltaTime;
-
-            // Hết thời gian sống thì destroy
             if (projectile.ValueRW.lifetime <= 0f)
             {
                 state.EntityManager.DestroyEntity(entity);
