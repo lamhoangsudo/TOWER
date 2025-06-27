@@ -1,4 +1,3 @@
 repository "TOWER/TOWER@18966784227581@cloud"
   path "/"
-    br "/main"
-    co "/main"
+    smartbranch "/main/VattalusProjectileECSConvert"
