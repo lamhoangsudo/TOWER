@@ -5,7 +5,7 @@ using Unity.Transforms;
 /// Handles moving the projectile forward based on its direction and speed,
 /// and destroys it after its lifetime expires.
 /// </summary>
-partial struct ProjecTileMovementSystem : ISystem
+public partial struct ProjecTileMovementSystem : ISystem
 {
     [BurstCompile]
     public void OnCreate(ref SystemState state)

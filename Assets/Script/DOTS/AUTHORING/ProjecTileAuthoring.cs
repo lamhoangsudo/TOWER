@@ -21,7 +21,8 @@ public class ProjecTileAuthoringBaker : Baker<ProjecTileAuthoring>
             speed = authoring.speed,
             lifetime = authoring.lifetime,
             damage = authoring.damage,
-            direction = math.normalize(authoring.direction)
+            direction = math.normalize(authoring.direction),
+            isHit = false // Initialize as not hit
         });
     }
 }
@@ -31,4 +32,5 @@ public struct ProjecTile : IComponentData
     public float lifetime;
     public float damage;
     public float3 direction;
+    public bool isHit; // Indicates if the projectile has hit something
 }
