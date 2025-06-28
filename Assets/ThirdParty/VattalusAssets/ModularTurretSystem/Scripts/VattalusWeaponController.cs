@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class VattalusWeaponController : MonoBehaviour
 {
-    private List<VattalusBarrelAnimator> barrelsList = new List<VattalusBarrelAnimator>();
+    public List<VattalusBarrelAnimator> barrelsList = new List<VattalusBarrelAnimator>();
     public enum VattalusFiringPattern
     {
         Individual, //Fires one barrel at a time
