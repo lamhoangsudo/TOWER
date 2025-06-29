@@ -69,7 +69,7 @@ partial struct TurretPitchSystem : ISystem
             }
 
             speed = math.clamp(speed, 0f, turret.ValueRO.elevationRotationSpeed);
-
+            
             // bước nâng
             float rotationStep = speed * deltaTime;
 
@@ -91,9 +91,11 @@ partial struct TurretPitchSystem : ISystem
                     turret.ValueRO.maxElevationLimit
                 );
             }
+
             // lưu state
             turret.ValueRW.currentElevation = elevation;
             turret.ValueRW.currentElevationSpeed = speed;
+            turret.ValueRW.elevationSpeedFactor = math.abs(turret.ValueRO.currentElevationSpeed) / turret.ValueRO.elevationRotationSpeed;
 
             // apply transform
             if (SystemAPI.HasComponent<LocalTransform>(turret.ValueRO.elevationPivot))

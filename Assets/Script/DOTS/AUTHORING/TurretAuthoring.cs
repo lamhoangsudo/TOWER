@@ -85,6 +85,12 @@ public struct Turret : IComponentData
     public bool autoFire;
     public float targetAquiredAngle; // 0.5
     public bool resetOrientation;
+
+    public float headingSpeedFactor;
+    public float elevationSpeedFactor;
+
+    public bool IsHeadingRotationSFX;
+    public bool IsElevationRotationSFX;
 }
 
 

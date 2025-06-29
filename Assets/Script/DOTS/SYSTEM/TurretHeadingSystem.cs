@@ -94,7 +94,7 @@ partial struct TurretHeadingSystem : ISystem
             // lưu state
             turret.ValueRW.currentHeading = heading;
             turret.ValueRW.currentHeadingSpeed = speed;
-
+            turret.ValueRW.headingSpeedFactor = math.abs(turret.ValueRO.currentHeadingSpeed) / turret.ValueRO.headingRotationSpeed;
             // apply transform
             if (SystemAPI.HasComponent<LocalTransform>(turret.ValueRO.headingPivot))
             {
