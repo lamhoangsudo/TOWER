@@ -7,7 +7,6 @@ using UnityEngine.EventSystems;
 public class EventBusMono : MonoBehaviour
 {
     public static EventBusMono Instance;
-    public event EventHandler onProjecTileEntityHit;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public void Start()
     {
@@ -26,12 +25,5 @@ public class EventBusMono : MonoBehaviour
     public void Update()
     {
         
-    }
-    public void TriggerOnProjecTileHit(NativeList<Entity> entities)
-    {
-        foreach (Entity entity in entities)
-        {
-            onProjecTileEntityHit?.Invoke(this, EventArgs.Empty);
-        }
     }
 }
