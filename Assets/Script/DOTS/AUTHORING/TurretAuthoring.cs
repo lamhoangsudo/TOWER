@@ -1,3 +1,4 @@
+using NUnit.Framework;
 using Unity.Entities;
 using UnityEngine;
 
@@ -27,6 +28,11 @@ public class TurretAuthoring : MonoBehaviour
     public bool autoFire;
     public float targetAquiredAngle;
     public bool resetOrientation;
+    public Entity turretEntity;
+
+    public GameObject SFX_Heading;
+    public GameObject SFX_Elevation;
+    public GameObject[] weapons;
     public class TurretAuthoringBaker : Baker<TurretAuthoring>
     {
         public override void Bake(TurretAuthoring authoring)
@@ -55,7 +61,20 @@ public class TurretAuthoring : MonoBehaviour
                 autoFire = authoring.autoFire,
                 targetAquiredAngle = authoring.targetAquiredAngle,
                 resetOrientation = authoring.resetOrientation,
+                IsElevationRotationSFX = false,
+                IsHeadingRotationSFX = false,
+                random = new Unity.Mathematics.Random((uint)entity.Index),
+                SFX_HeadingEntity = GetEntity(authoring.SFX_Heading, TransformUsageFlags.None),
+                SFX_ElevationEntity = GetEntity(authoring.SFX_Elevation, TransformUsageFlags.None),
+                isElevationRotationTarget = false,
+                isHeadingRotationTarget = false,
             });
+            foreach (GameObject weapon in authoring.weapons)
+            {
+                Entity weaponEntity = GetEntity(weapon, TransformUsageFlags.Dynamic);
+                AddBuffer<WeaponItemBuffer>(entity).Add(new WeaponItemBuffer { weaponEntity = weaponEntity });
+            }
+            authoring.turretEntity = entity;
         }
     }
 }
@@ -71,6 +90,8 @@ public struct Turret : IComponentData
     public float minElevationLimit;
     public float maxElevationLimit;
     public bool elevationLimited;
+    public bool isHeadingRotationTarget;
+    public bool isElevationRotationTarget;
 
     public Entity headingPivot;
     public Entity elevationPivot;
@@ -91,6 +112,15 @@ public struct Turret : IComponentData
 
     public bool IsHeadingRotationSFX;
     public bool IsElevationRotationSFX;
+    public Unity.Mathematics.Random random; // Used for sound pitch variation
+
+    public Entity SFX_HeadingEntity;
+    public Entity SFX_ElevationEntity;
+}
+[InternalBufferCapacity(8)]
+public struct WeaponItemBuffer : IBufferElementData
+{
+    public Entity weaponEntity;
 }
 
 

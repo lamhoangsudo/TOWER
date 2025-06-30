@@ -8,7 +8,7 @@ partial struct TurretHeadingSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        
+
     }
 
     [BurstCompile]
@@ -42,6 +42,10 @@ partial struct TurretHeadingSystem : ISystem
                     float3 toTarget = targetPos - pivotPos;
 
                     targetHeading = math.degrees(math.atan2(toTarget.x, toTarget.z));
+                    if ((targetHeading < turret.ValueRO.minHeadingLimit || targetHeading > turret.ValueRO.maxHeadingLimit) && turret.ValueRO.headingLimited)
+                    {
+                        targetHeading = heading;
+                    }
                 }
                 else
                 {
@@ -56,7 +60,14 @@ partial struct TurretHeadingSystem : ISystem
             // normalize delta angle -180..180
             float deltaAngle = targetHeading - heading;
             deltaAngle = (deltaAngle + 180f) % 360f - 180f;
-
+            if (math.abs(deltaAngle) < turret.ValueRO.targetAquiredAngle)
+            {
+                turret.ValueRW.isHeadingRotationTarget = true;
+            }
+            else
+            {
+                turret.ValueRW.isHeadingRotationTarget = false;
+            }
             // tăng giảm tốc độ
             if (math.abs(deltaAngle) > 1f)
             {
@@ -89,12 +100,24 @@ partial struct TurretHeadingSystem : ISystem
                     turret.ValueRO.minHeadingLimit,
                     turret.ValueRO.maxHeadingLimit
                 );
+                if (heading <= turret.ValueRO.minHeadingLimit || heading >= turret.ValueRO.maxHeadingLimit)
+                {
+                    speed = 0f; // dừng xoay nếu chạm giới hạn
+                }
             }
 
             // lưu state
             turret.ValueRW.currentHeading = heading;
             turret.ValueRW.currentHeadingSpeed = speed;
-            turret.ValueRW.headingSpeedFactor = math.abs(turret.ValueRO.currentHeadingSpeed) / turret.ValueRO.headingRotationSpeed;
+            turret.ValueRW.headingSpeedFactor = math.abs(speed) / turret.ValueRO.headingRotationSpeed;
+            if (turret.ValueRO.headingSpeedFactor > 0.05f)
+            {
+                turret.ValueRW.IsHeadingRotationSFX = true;
+            }
+            else
+            {
+                turret.ValueRW.IsHeadingRotationSFX = false;
+            }
             // apply transform
             if (SystemAPI.HasComponent<LocalTransform>(turret.ValueRO.headingPivot))
             {
@@ -111,6 +134,6 @@ partial struct TurretHeadingSystem : ISystem
     [BurstCompile]
     public void OnDestroy(ref SystemState state)
     {
-        
+
     }
 }

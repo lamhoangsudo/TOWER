@@ -2,6 +2,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine.UIElements.Experimental;
 
 partial struct TurretPitchSystem : ISystem
 {
@@ -42,6 +43,10 @@ partial struct TurretPitchSystem : ISystem
 
                     float distanceXZ = math.distance(targetPos, pivotPos);
                     targetElevation = math.degrees(math.atan2(toTarget.y, distanceXZ));
+                    if ((targetElevation < turret.ValueRO.minElevationLimit || targetElevation > turret.ValueRO.maxElevationLimit) && turret.ValueRO.elevationLimited)
+                    {
+                        targetElevation = elevation;
+                    }
                 }
                 else
                 {
@@ -57,7 +62,14 @@ partial struct TurretPitchSystem : ISystem
 
             float deltaAngle = targetElevation - elevation;
             deltaAngle = (deltaAngle + 180f) % 360f - 180f;
-
+            if (math.abs(deltaAngle) < turret.ValueRO.targetAquiredAngle)
+            {
+                turret.ValueRW.isElevationRotationTarget = true;
+            }
+            else
+            {
+                turret.ValueRW.isElevationRotationTarget = false;
+            }
             // tăng giảm tốc độ
             if (math.abs(deltaAngle) > 1f)
             {
@@ -69,7 +81,7 @@ partial struct TurretPitchSystem : ISystem
             }
 
             speed = math.clamp(speed, 0f, turret.ValueRO.elevationRotationSpeed);
-            
+
             // bước nâng
             float rotationStep = speed * deltaTime;
 
@@ -90,13 +102,24 @@ partial struct TurretPitchSystem : ISystem
                     turret.ValueRO.minElevationLimit,
                     turret.ValueRO.maxElevationLimit
                 );
+                if (elevation <= turret.ValueRO.minElevationLimit || elevation >= turret.ValueRO.maxElevationLimit)
+                {
+                    speed = 0f; // dừng xoay nếu chạm giới hạn
+                }
             }
 
             // lưu state
             turret.ValueRW.currentElevation = elevation;
             turret.ValueRW.currentElevationSpeed = speed;
-            turret.ValueRW.elevationSpeedFactor = math.abs(turret.ValueRO.currentElevationSpeed) / turret.ValueRO.elevationRotationSpeed;
-
+            turret.ValueRW.elevationSpeedFactor = math.abs(speed) / turret.ValueRO.elevationRotationSpeed;
+            if (turret.ValueRO.elevationSpeedFactor > 0.05f)
+            {
+                turret.ValueRW.IsElevationRotationSFX = true;
+            }
+            else
+            {
+                turret.ValueRW.IsElevationRotationSFX = false;
+            }
             // apply transform
             if (SystemAPI.HasComponent<LocalTransform>(turret.ValueRO.elevationPivot))
             {
