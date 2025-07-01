@@ -23,6 +23,8 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
 
     public AnimationCurve slideCurve;
     public AnimationCurve rotationCurve;
+    public float sfxPitch;
+    public float sfxVolume;
     public class BarrelAnimatorAuthoringBaker : Baker<BarrelAnimatorAuthoring>
     {
         public override void Bake(BarrelAnimatorAuthoring authoring)
@@ -69,7 +71,11 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
                 tipInitialRotation = authoring.tipInitialRotation,
                 tipRotationAtFire = authoring.tipRotationAtFire,
                 pointShootPosition = GetEntity(authoring.pointShoot, TransformUsageFlags.Dynamic),
-                curveBlob = blobAsset
+                curveBlob = blobAsset,
+                flashSpawned = false,
+                sfxPitch = authoring.sfxPitch,
+                sfxVolume = authoring.sfxVolume,
+                random = new Unity.Mathematics.Random((uint)entity.Index)
             });
         }
     }
@@ -95,6 +101,11 @@ public struct BarrelAnimator : IComponentData
     public Entity pointShootPosition;
 
     public BlobAssetReference<BarrelAnimatorCurveBlob> curveBlob;
+
+    public bool flashSpawned;
+    public float sfxPitch;
+    public float sfxVolume;
+    public Unity.Mathematics.Random random;
 }
 public struct BarrelAnimatorCurveBlob
 {

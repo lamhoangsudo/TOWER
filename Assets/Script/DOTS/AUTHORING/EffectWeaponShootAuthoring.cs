@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class EffectWeaponShootAuthoring : MonoBehaviour
 {
-    public AudioSource audioSource;
     public Light lightEffect;
     public GameObject muzzleFlashEffect;
     public float scaleVariance;
@@ -30,7 +29,6 @@ public class EffectWeaponShootAuthoring : MonoBehaviour
                 sfxPitch = 0f,
                 sfxVolume = 0f,
             });
-            AddComponentObject<AudioSource>(entity, authoring.audioSource);
             AddComponentObject<Light>(entity, authoring.lightEffect);
         }
     }

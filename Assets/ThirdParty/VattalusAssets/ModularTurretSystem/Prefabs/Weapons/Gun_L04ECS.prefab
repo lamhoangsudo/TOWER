@@ -40,6 +40,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7530572045743047679}
+  - component: {fileID: 4846359774060737032}
+  - component: {fileID: 8033393611259109709}
+  - component: {fileID: 8477605500849626183}
   m_Layer: 0
   m_Name: Gun_L04ECS
   m_TagString: Untagged
@@ -63,6 +66,138 @@ Transform:
   - {fileID: 8287474670625384721}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4846359774060737032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7530572045743047676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a108e7c92746a24da8ab3c0666b2fd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  firingPattern: 0
+  burstShots: 4
+  burstDelay: 0.1
+  cooldown: 1
+  spreadAngle: 0
+  gatlingRotationSpeed: 0
+  projectilePrefab: {fileID: 2803319171636174522, guid: 4b8bfbe362d0dab4ea7843181aa451df, type: 3}
+  projectileSpeed: 250
+  projectileLifetime: 5
+  projectileAcceleration: 0
+  projectileMaxSpeed: 250
+  projectileUsePrediction: 1
+  impactLayer: 0
+  sfxPitch: 1
+  sfxVolume: 1
+  isFiring: 0
+  currentCooldown: 0
+  burstCounter: 0
+  BarrelAnimator:
+  - {fileID: 7530572045743047676}
+--- !u!114 &8033393611259109709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7530572045743047676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7a690d115ab84244a4526737b664b98, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  barrelBaseEntity: {fileID: 8667413745957090219}
+  barrelTipEntity: {fileID: 1668729394477703596}
+  muzzleFlashEntity: {fileID: 2321277154601486530, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
+  pointShoot: {fileID: 2228983981261968619}
+  animationDuration: 1
+  baseSlideDistance: 0.45
+  tipSlideAmountDistance: 0.35
+  tipRotateDegrees: 90
+  lastFireTime: 0
+  animationPlaying: 0
+  tipInitialPosition:
+    x: 0
+    y: 0
+    z: 0
+  tipInitialRotation:
+    x: 0
+    y: 0
+    z: 0
+  tipRotationAtFire: 0
+  slideCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 2
+      outSlope: 10
+      tangentMode: 65
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.1
+      value: 1
+      inSlope: 0.002469679
+      outSlope: 0.002469679
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.06717688
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -2.894988
+      outSlope: -2.894988
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.04048197
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  rotationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &8477605500849626183
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7530572045743047676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2011399683227098365
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -124,6 +259,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5853e5a8a157b964c825d3c106c19506, type: 3}
+--- !u!1 &1668729394477703596 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 5853e5a8a157b964c825d3c106c19506, type: 3}
+  m_PrefabInstance: {fileID: 2011399683227098365}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2045571184831560470 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5853e5a8a157b964c825d3c106c19506, type: 3}
@@ -199,5 +339,10 @@ PrefabInstance:
 --- !u!4 &8287474670625384721 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0c80cb264095ebe4d8e183175735eb5c, type: 3}
+  m_PrefabInstance: {fileID: 8397453195991912186}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &8667413745957090219 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 0c80cb264095ebe4d8e183175735eb5c, type: 3}
   m_PrefabInstance: {fileID: 8397453195991912186}
   m_PrefabAsset: {fileID: 0}

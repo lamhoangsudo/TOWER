@@ -20,7 +20,7 @@ partial struct TargetMovementSystem : ISystem
             if(target.ValueRO.time <= 0f)
             {
                 Unity.Mathematics.Random random = target.ValueRO.RandomGenerator;
-                float3 targetPosition = random.NextFloat3(new float3(-20f, 5, -20f), new float3(20f, 20f, 20f));
+                float3 targetPosition = random.NextFloat3(new float3(-20f, 5, 0f), new float3(20f, 10f, 0f));
                 target.ValueRW.TargetPosition = targetPosition;
                 target.ValueRW.RandomGenerator = random;
                 target.ValueRW.time = 10f;

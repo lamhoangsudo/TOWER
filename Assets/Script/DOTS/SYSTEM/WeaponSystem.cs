@@ -25,44 +25,41 @@ public partial struct WeaponSystem : ISystem
                 if (weapon.ValueRO.currentCooldown <= 0f)
                 {
                     // có thể bắn
-                    // reset cooldown
-                    weapon.ValueRW.currentCooldown = weapon.ValueRO.cooldown;
-
                     // xử lý burst
                     if (weapon.ValueRO.firingPattern == WeaponFiringPattern.Individual && weapon.ValueRO.burstShots > 1)
                     {
-                        if (weapon.ValueRO.burstCounter > 0)
+                        if (weapon.ValueRO.burstCounter < weapon.ValueRO.burstShots)
                         {
-                            weapon.ValueRW.burstCounter--;
-                            float bustTime = 0;
                             // logic fire đạn (sẽ bổ sung)
                             DynamicBuffer<BarrelAnimatorBuffer> barrelAnimatorBuffers = SystemAPI.GetBuffer<BarrelAnimatorBuffer>(entity);
                             foreach(BarrelAnimatorBuffer barrelAnimatorBuffer in barrelAnimatorBuffers)
                             {
-                                bustTime -= SystemAPI.Time.DeltaTime;
-                                if (bustTime > 0f)
-                                {
-                                    continue;
-                                }
                                 RefRW<BarrelAnimator> barrelAnimator = SystemAPI.GetComponentRW<BarrelAnimator>(barrelAnimatorBuffer.barrelAnimatorBuffer);
-                                barrelAnimator.ValueRW.animationPlaying = true;
-                                barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
-                                bustTime = weapon.ValueRO.burstDelay;
+                                if (!barrelAnimator.ValueRO.animationPlaying)
+                                {
+                                    weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                    if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay)
+                                    {
+                                        continue;
+                                    }
+                                    weapon.ValueRW.burstTime = 0f;
+                                    weapon.ValueRW.burstCounter = weapon.ValueRO.burstCounter + 1;
+                                    UnityEngine.Debug.Log($"Burst shot {weapon.ValueRO.burstCounter} for weapon {entity.Index}");
+                                    barrelAnimator.ValueRW.animationPlaying = true;
+                                    barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
+                                }
                             }
                         }
                         else
                         {
-                            // reset burstCounter
-                            weapon.ValueRW.burstCounter = weapon.ValueRO.burstShots - 1;
+                            // reset cooldown
+                            weapon.ValueRW.currentCooldown = weapon.ValueRO.cooldown;
+                            weapon.ValueRW.burstCounter = 0;
+                            UnityEngine.Debug.Log($"Burst completed for weapon {entity.Index}");
                         }
-                    }
-                    else
-                    {
-                        // logic fire đạn (sẽ bổ sung)
                     }
                 }
             }
-
         }
     }
 

@@ -19,12 +19,10 @@ public class WeaponAuthoring : MonoBehaviour
     public bool projectileUsePrediction;
     public int impactLayer;
 
-    public float sfxPitch;
-    public float sfxVolume;
-
     public bool isFiring;
     public float currentCooldown;
     public int burstCounter;
+    public float bustTime;
     public GameObject[] BarrelAnimator;
     public class WeaponAuthoringBaker : Baker<WeaponAuthoring>
     {
@@ -47,12 +45,10 @@ public class WeaponAuthoring : MonoBehaviour
                 projectileMaxSpeed = authoring.projectileMaxSpeed,
                 projectileUsePrediction = authoring.projectileUsePrediction,
                 impactLayer = authoring.impactLayer,
-                sfxPitch = authoring.sfxPitch,
-                sfxVolume = authoring.sfxVolume,
                 isFiring = authoring.isFiring,
                 currentCooldown = authoring.currentCooldown,
                 burstCounter = authoring.burstCounter,
-                random = new Unity.Mathematics.Random((uint)entity.Index)
+                burstTime = authoring.bustTime,
             });
             foreach(GameObject gameObject in authoring.BarrelAnimator)
             {
@@ -87,13 +83,10 @@ public struct Weapon : IComponentData
     public bool projectileUsePrediction;
     public int impactLayer;
 
-    public float sfxPitch;
-    public float sfxVolume;
-
     public bool isFiring;
     public float currentCooldown;
     public int burstCounter;
-    public Unity.Mathematics.Random random;
+    public float burstTime;
 }
 [InternalBufferCapacity(6)]
 public struct BarrelAnimatorBuffer : IBufferElementData

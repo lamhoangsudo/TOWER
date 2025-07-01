@@ -2,7 +2,8 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-
+using UnityEngine;
+[UpdateBefore(typeof(WeaponSystem))]
 partial struct BarrelAnimatorSystem : ISystem
 {
     [BurstCompile]
@@ -10,8 +11,6 @@ partial struct BarrelAnimatorSystem : ISystem
     {
         
     }
-
-    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         float time = (float)SystemAPI.Time.ElapsedTime;
@@ -71,11 +70,48 @@ partial struct BarrelAnimatorSystem : ISystem
             }
 
             // TODO: Cập nhật muzzle flash nếu cần
+            if(animator.ValueRO.flashSpawned == false)
+            {
+                LocalToWorld spawnLocalToWorld = SystemAPI.GetComponent<LocalToWorld>(animator.ValueRO.pointShootPosition);
+                Entity entityEffect = state.EntityManager.Instantiate(animator.ValueRO.muzzleFlashEntity);
 
+                RefRW<EffectWeaponShoot> effect = SystemAPI.GetComponentRW<EffectWeaponShoot>(entityEffect);
+                Unity.Mathematics.Random random = animator.ValueRO.random;
+                float startScale = 1f + random.NextFloat(-1f, 1f) * effect.ValueRO.scaleVariance / 2f;
+                float endScale = startScale * random.NextFloat(0.6f, 0.8f);
+                float startLength = 1f + random.NextFloat(-1f, 1f) * effect.ValueRO.lengthVariance / 2f;
+                float endLength = startLength * random.NextFloat(1.75f, 3f);
+                float randomZ = random.NextFloat(-180f, 180f);
+                float pitch = math.clamp(animator.ValueRO.sfxPitch + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
+                float volume = math.clamp(animator.ValueRO.sfxVolume + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
+
+                effect.ValueRW.startScale = startScale;
+                effect.ValueRW.endScale = endScale;
+                effect.ValueRW.startLength = startLength;
+                effect.ValueRW.endLength = endLength;
+                effect.ValueRW.isInitialized = true;
+                effect.ValueRW.sfxPitch = pitch;
+                effect.ValueRW.sfxVolume = volume;
+
+                RefRW<LocalTransform> localTranform = SystemAPI.GetComponentRW<LocalTransform>(effect.ValueRO.muzzleFlashEffect);
+                localTranform.ValueRW.Position = spawnLocalToWorld.Position;
+                quaternion randomRot = quaternion.EulerXYZ(0f, 0f, math.radians(randomZ));
+                localTranform.ValueRW.Rotation = math.mul(spawnLocalToWorld.Rotation, randomRot);
+                //localTranform.ValueRW.Rotation = quaternion.EulerXYZ(0f, 0f, math.radians(randomZ));
+                RefRW<PostTransformMatrix> visualEffectPostTransformMatrix = SystemAPI.GetComponentRW<PostTransformMatrix>(effect.ValueRO.muzzleFlashEffect);
+                visualEffectPostTransformMatrix.ValueRW.Value = float4x4.Scale(startScale, startScale, startLength);
+                animator.ValueRW.random = random;
+                AudioSource audioSource = state.World.EntityManager.GetComponentObject<AudioSource>(animator.ValueRO.pointShootPosition);
+                audioSource.pitch = animator.ValueRO.sfxPitch;
+                audioSource.volume = animator.ValueRO.sfxVolume;
+                audioSource.PlayOneShot(audioSource.clip);
+                animator.ValueRW.flashSpawned = true;
+            }
             // Tắt animation khi xong
             if (progress >= 1f)
             {
                 animator.ValueRW.animationPlaying = false;
+                animator.ValueRW.flashSpawned = false;
             }
         }
     }

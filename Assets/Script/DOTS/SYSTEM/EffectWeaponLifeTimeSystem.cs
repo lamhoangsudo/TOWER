@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
-[UpdateAfter(typeof(WeaponSFXSystem))]
+[UpdateBefore(typeof(BarrelAnimatorSystem))]
 partial struct EffectWeaponLifeTimeSystem : ISystem
 {
     [BurstCompile]
