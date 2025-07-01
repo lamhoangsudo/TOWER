@@ -8,7 +8,7 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
     public GameObject barrelBaseEntity;
     public GameObject barrelTipEntity;
     public GameObject muzzleFlashEntity;
-
+    public GameObject pointShoot;
     public float animationDuration;
     public float baseSlideDistance;
     public float tipSlideAmountDistance;
@@ -68,6 +68,7 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
                 tipInitialPosition = authoring.tipInitialPosition,
                 tipInitialRotation = authoring.tipInitialRotation,
                 tipRotationAtFire = authoring.tipRotationAtFire,
+                pointShootPosition = GetEntity(authoring.pointShoot, TransformUsageFlags.Dynamic),
                 curveBlob = blobAsset
             });
         }
@@ -90,6 +91,8 @@ public struct BarrelAnimator : IComponentData
     public float3 tipInitialPosition;
     public float3 tipInitialRotation;
     public float tipRotationAtFire;
+
+    public Entity pointShootPosition;
 
     public BlobAssetReference<BarrelAnimatorCurveBlob> curveBlob;
 }

@@ -240,146 +240,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af18c25685686004b89949230bfd5806, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1 &460131983 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6807850532275301965, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
-  m_PrefabInstance: {fileID: 1791656558}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &460131985
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 460131983}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a108e7c92746a24da8ab3c0666b2fd5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  firingPattern: 0
-  burstShots: 4
-  burstDelay: 0.1
-  cooldown: 1
-  spreadAngle: 0
-  gatlingRotationSpeed: 0
-  projectilePrefab: {fileID: 2803319171636174522, guid: 4b8bfbe362d0dab4ea7843181aa451df, type: 3}
-  projectileSpeed: 250
-  projectileLifetime: 5
-  projectileAcceleration: 0
-  projectileMaxSpeed: 250
-  projectileUsePrediction: 1
-  impactLayer: 0
-  sfxPrefab: {fileID: 403559805}
-  sfxPitch: 1
-  sfxVolume: 1
-  isFiring: 0
-  currentCooldown: 0
-  burstCounter: 0
-  BarrelAnimator:
-  - {fileID: 460131983}
---- !u!114 &460131987
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 460131983}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7a690d115ab84244a4526737b664b98, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  barrelBaseEntity: {fileID: 762921762}
-  barrelTipEntity: {fileID: 1767346328}
-  muzzleFlashEntity: {fileID: 1482810522}
-  animationDuration: 1
-  baseSlideDistance: 0.45
-  tipSlideAmountDistance: 0.35
-  tipRotateDegrees: 90
-  lastFireTime: 0
-  animationPlaying: 0
-  tipInitialPosition:
-    x: 0
-    y: 0
-    z: 0
-  tipInitialRotation:
-    x: 0
-    y: 0
-    z: 0
-  tipRotationAtFire: 0
-  slideCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 2
-      outSlope: 10
-      tangentMode: 65
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.1
-      value: 1
-      inSlope: 0.002469679
-      outSlope: 0.002469679
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.06717688
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: -2.894988
-      outSlope: -2.894988
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.04048197
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  rotationCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 2
-      outSlope: 2
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
---- !u!1 &762921762 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5671006632401002010, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
-  m_PrefabInstance: {fileID: 1791656558}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1482810522 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4725344376434593632, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
-  m_PrefabInstance: {fileID: 1791656558}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1767346328 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2437331500952308765, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
-  m_PrefabInstance: {fileID: 1791656558}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1791656558
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -432,41 +292,24 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5987401993582420787, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
+      propertyPath: pointShoot
+      value: 
+      objectReference: {fileID: 2092687584}
     - target: {fileID: 5987456072366046133, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
       propertyPath: target
       value: 
       objectReference: {fileID: 403559805}
-    - target: {fileID: 5987456072366046133, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
-      propertyPath: autoFire
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5987456072366046133, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
-      propertyPath: headingLimited
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5987456072366046133, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
-      propertyPath: elevationLimited
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5987456072366046133, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
-      propertyPath: weapons.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5987456072366046133, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
-      propertyPath: 'weapons.Array.data[0]'
-      value: 
-      objectReference: {fileID: 460131983}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 6807850532275301965, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 460131985}
-    - targetCorrespondingSourceObject: {fileID: 6807850532275301965, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 460131987}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
+--- !u!1 &2092687584 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6189205900079112984, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
+  m_PrefabInstance: {fileID: 1791656558}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

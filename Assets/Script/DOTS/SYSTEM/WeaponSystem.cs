@@ -34,13 +34,20 @@ public partial struct WeaponSystem : ISystem
                         if (weapon.ValueRO.burstCounter > 0)
                         {
                             weapon.ValueRW.burstCounter--;
+                            float bustTime = 0;
                             // logic fire đạn (sẽ bổ sung)
                             DynamicBuffer<BarrelAnimatorBuffer> barrelAnimatorBuffers = SystemAPI.GetBuffer<BarrelAnimatorBuffer>(entity);
                             foreach(BarrelAnimatorBuffer barrelAnimatorBuffer in barrelAnimatorBuffers)
                             {
+                                bustTime -= SystemAPI.Time.DeltaTime;
+                                if (bustTime > 0f)
+                                {
+                                    continue;
+                                }
                                 RefRW<BarrelAnimator> barrelAnimator = SystemAPI.GetComponentRW<BarrelAnimator>(barrelAnimatorBuffer.barrelAnimatorBuffer);
                                 barrelAnimator.ValueRW.animationPlaying = true;
                                 barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
+                                bustTime = weapon.ValueRO.burstDelay;
                             }
                         }
                         else

@@ -19,7 +19,6 @@ public class WeaponAuthoring : MonoBehaviour
     public bool projectileUsePrediction;
     public int impactLayer;
 
-    public GameObject sfxPrefab;
     public float sfxPitch;
     public float sfxVolume;
 
@@ -48,12 +47,12 @@ public class WeaponAuthoring : MonoBehaviour
                 projectileMaxSpeed = authoring.projectileMaxSpeed,
                 projectileUsePrediction = authoring.projectileUsePrediction,
                 impactLayer = authoring.impactLayer,
-                sfxPrefab = GetEntity(authoring.sfxPrefab, TransformUsageFlags.Dynamic),
                 sfxPitch = authoring.sfxPitch,
                 sfxVolume = authoring.sfxVolume,
                 isFiring = authoring.isFiring,
                 currentCooldown = authoring.currentCooldown,
-                burstCounter = authoring.burstCounter
+                burstCounter = authoring.burstCounter,
+                random = new Unity.Mathematics.Random((uint)entity.Index)
             });
             foreach(GameObject gameObject in authoring.BarrelAnimator)
             {
@@ -88,13 +87,13 @@ public struct Weapon : IComponentData
     public bool projectileUsePrediction;
     public int impactLayer;
 
-    public Entity sfxPrefab;
     public float sfxPitch;
     public float sfxVolume;
 
     public bool isFiring;
     public float currentCooldown;
     public int burstCounter;
+    public Unity.Mathematics.Random random;
 }
 [InternalBufferCapacity(6)]
 public struct BarrelAnimatorBuffer : IBufferElementData
