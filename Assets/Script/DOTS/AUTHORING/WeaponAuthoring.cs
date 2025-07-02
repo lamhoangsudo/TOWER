@@ -50,10 +50,11 @@ public class WeaponAuthoring : MonoBehaviour
                 burstCounter = authoring.burstCounter,
                 burstTime = authoring.bustTime,
             });
-            foreach(GameObject gameObject in authoring.BarrelAnimator)
+            DynamicBuffer<BarrelAnimatorBuffer> buffer = AddBuffer<BarrelAnimatorBuffer>(entity);
+            foreach (GameObject gameObject in authoring.BarrelAnimator)
             {
                 Entity barrelAnimatorEntity = GetEntity(gameObject, TransformUsageFlags.Dynamic);
-                AddBuffer<BarrelAnimatorBuffer>(entity).Add(new BarrelAnimatorBuffer { barrelAnimatorBuffer = barrelAnimatorEntity });
+                buffer.Add(new BarrelAnimatorBuffer { barrelAnimatorBuffer = barrelAnimatorEntity });
             }
         }
     }

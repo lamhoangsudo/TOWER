@@ -24,7 +24,6 @@ public class EffectWeaponShootAuthoring : MonoBehaviour
                 scaleVariance = authoring.scaleVariance,
                 muzzleFlashDuration = authoring.muzzleFlashDuration,
                 muzzleFlashEffect = GetEntity(authoring.muzzleFlashEffect, TransformUsageFlags.NonUniformScale),
-                isInitialized = false,
                 elapsedTime = authoring.muzzleFlashDuration,
                 sfxPitch = 0f,
                 sfxVolume = 0f,
@@ -45,7 +44,6 @@ public struct EffectWeaponShoot : IComponentData
     public float endScale;
     public float startLength;
     public float endLength;
-    public bool isInitialized;
     public float sfxPitch;
     public float sfxVolume;
 }

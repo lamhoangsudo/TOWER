@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
-[UpdateBefore(typeof(BarrelAnimatorSystem))]
+[UpdateAfter(typeof(BarrelAnimatorSystem))]
 partial struct EffectWeaponLifeTimeSystem : ISystem
 {
     [BurstCompile]
@@ -21,7 +21,6 @@ partial struct EffectWeaponLifeTimeSystem : ISystem
             effectWeaponShoot.ValueRW.elapsedTime -= SystemAPI.Time.DeltaTime;
             if (effectWeaponShoot.ValueRO.elapsedTime <= 0)
             {
-                effectWeaponShoot.ValueRW.isInitialized = false;
                 ecb.DestroyEntity(entity);
                 return;
             }

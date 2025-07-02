@@ -3,27 +3,23 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
-[UpdateBefore(typeof(WeaponSystem))]
+[UpdateAfter(typeof(WeaponSystem))]
 partial struct BarrelAnimatorSystem : ISystem
 {
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        
+
     }
+    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        float time = (float)SystemAPI.Time.ElapsedTime;
-
         foreach ((RefRW<BarrelAnimator> animator, Entity entity) in SystemAPI.Query<RefRW<BarrelAnimator>>().WithEntityAccess())
         {
-            if (!animator.ValueRO.animationPlaying)
-                continue;
+            if (!animator.ValueRO.animationPlaying) continue;
 
-            float elapsed = time - animator.ValueRO.lastFireTime;
+            float elapsed = (float)SystemAPI.Time.ElapsedTime - animator.ValueRO.lastFireTime;
             float progress = math.clamp(elapsed / animator.ValueRO.animationDuration, 0f, 1f);
-
-            // Lấy blob asset
             ref BarrelAnimatorCurveBlob blob = ref animator.ValueRO.curveBlob.Value;
             int sampleCount = blob.sampleCount;
             float sampleT = progress * (sampleCount - 1);
@@ -31,48 +27,54 @@ partial struct BarrelAnimatorSystem : ISystem
             int idx1 = math.min(idx0 + 1, sampleCount - 1);
             float frac = sampleT - idx0;
 
-            // Nội suy giá trị slide và rotation
             float slideValue = math.lerp(blob.slideCurve[idx0], blob.slideCurve[idx1], frac);
             float rotationValue = math.lerp(blob.rotationCurve[idx0], blob.rotationCurve[idx1], frac);
 
-            // Cập nhật barrel base (slide)
-            if (animator.ValueRO.barrelBaseEntity != Entity.Null &&
-                SystemAPI.HasComponent<LocalTransform>(animator.ValueRO.barrelBaseEntity))
+            if (animator.ValueRO.barrelBaseEntity != Entity.Null && SystemAPI.HasComponent<LocalTransform>(animator.ValueRO.barrelBaseEntity))
             {
                 RefRW<LocalTransform> baseTransform = SystemAPI.GetComponentRW<LocalTransform>(animator.ValueRO.barrelBaseEntity);
-                float3 basePos = new float3(0f, 0f, -slideValue * animator.ValueRO.baseSlideDistance);
+                float3 basePos = new(0f, 0f, -slideValue * animator.ValueRO.baseSlideDistance);
                 baseTransform.ValueRW.Position = basePos;
             }
 
-            // Cập nhật barrel tip (slide + rotation)
-            if (animator.ValueRO.barrelTipEntity != Entity.Null &&
-                SystemAPI.HasComponent<LocalTransform>(animator.ValueRO.barrelTipEntity))
+            var tipBuffer = SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity);
+            BarrelTipEntityBuffer tip = tipBuffer[animator.ValueRO.barrelTipIndex];
+
+            RefRW<LocalTransform> tipTransform = SystemAPI.GetComponentRW<LocalTransform>(tip.barrelTipEntity);
+
+            if (tip.tipInitialPosition.Equals(float3.zero) && tip.tipInitialRotation.Equals(float3.zero))
             {
-                RefRW<LocalTransform> tipTransform = SystemAPI.GetComponentRW<LocalTransform>(animator.ValueRO.barrelTipEntity);
-                float tipY = animator.ValueRO.tipInitialPosition.y + slideValue * animator.ValueRO.tipSlideAmountDistance;
-                float tipRotY = animator.ValueRO.tipInitialRotation.y;
-                if (animator.ValueRO.tipRotateDegrees != 0f)
-                {
-                    tipRotY = math.lerp(animator.ValueRO.tipRotationAtFire,
-                        animator.ValueRO.tipRotationAtFire + animator.ValueRO.tipRotateDegrees,
-                        rotationValue);
-                }
-                tipTransform.ValueRW.Position = new float3(
-                    animator.ValueRO.tipInitialPosition.x,
-                    tipY,
-                    animator.ValueRO.tipInitialPosition.z
-                );
+                tip.tipInitialPosition = tipTransform.ValueRO.Position;
+                tip.tipInitialRotation = math.Euler(tipTransform.ValueRO.Rotation);
+                tipBuffer[animator.ValueRO.barrelTipIndex] = tip; // Update the buffer element
+            }
+
+            float tipY = tip.tipInitialPosition.y + slideValue * animator.ValueRO.tipSlideAmountDistance;
+
+            tipTransform.ValueRW.Position = new float3(
+                tip.tipInitialPosition.x,
+                tipY,
+                tip.tipInitialPosition.z
+            );
+
+            if (animator.ValueRO.tipRotateDegrees != 0f)
+            {
+                float tipRotY = tip.tipInitialRotation.y;
+                tipRotY = math.lerp(animator.ValueRO.tipRotationAtFire,
+                    animator.ValueRO.tipRotationAtFire + animator.ValueRO.tipRotateDegrees,
+                    rotationValue);
                 tipTransform.ValueRW.Rotation = quaternion.Euler(
-                    math.radians(animator.ValueRO.tipInitialRotation.x),
+                    math.radians(tip.tipInitialRotation.x),
                     math.radians(tipRotY),
-                    math.radians(animator.ValueRO.tipInitialRotation.z)
+                    math.radians(tip.tipInitialRotation.z)
                 );
             }
 
-            // TODO: Cập nhật muzzle flash nếu cần
-            if(animator.ValueRO.flashSpawned == false)
+
+            if (!animator.ValueRO.flashSpawned)
             {
-                LocalToWorld spawnLocalToWorld = SystemAPI.GetComponent<LocalToWorld>(animator.ValueRO.pointShootPosition);
+                Entity pointShoot = tip.pointShoot;
+                LocalToWorld spawnLocalToWorld = SystemAPI.GetComponent<LocalToWorld>(pointShoot);
                 Entity entityEffect = state.EntityManager.Instantiate(animator.ValueRO.muzzleFlashEntity);
 
                 RefRW<EffectWeaponShoot> effect = SystemAPI.GetComponentRW<EffectWeaponShoot>(entityEffect);
@@ -89,25 +91,22 @@ partial struct BarrelAnimatorSystem : ISystem
                 effect.ValueRW.endScale = endScale;
                 effect.ValueRW.startLength = startLength;
                 effect.ValueRW.endLength = endLength;
-                effect.ValueRW.isInitialized = true;
                 effect.ValueRW.sfxPitch = pitch;
                 effect.ValueRW.sfxVolume = volume;
 
-                RefRW<LocalTransform> localTranform = SystemAPI.GetComponentRW<LocalTransform>(effect.ValueRO.muzzleFlashEffect);
+                RefRW<LocalTransform> localTranform = SystemAPI.GetComponentRW<LocalTransform>(entityEffect);
                 localTranform.ValueRW.Position = spawnLocalToWorld.Position;
                 quaternion randomRot = quaternion.EulerXYZ(0f, 0f, math.radians(randomZ));
                 localTranform.ValueRW.Rotation = math.mul(spawnLocalToWorld.Rotation, randomRot);
-                //localTranform.ValueRW.Rotation = quaternion.EulerXYZ(0f, 0f, math.radians(randomZ));
                 RefRW<PostTransformMatrix> visualEffectPostTransformMatrix = SystemAPI.GetComponentRW<PostTransformMatrix>(effect.ValueRO.muzzleFlashEffect);
                 visualEffectPostTransformMatrix.ValueRW.Value = float4x4.Scale(startScale, startScale, startLength);
                 animator.ValueRW.random = random;
-                AudioSource audioSource = state.World.EntityManager.GetComponentObject<AudioSource>(animator.ValueRO.pointShootPosition);
-                audioSource.pitch = animator.ValueRO.sfxPitch;
-                audioSource.volume = animator.ValueRO.sfxVolume;
-                audioSource.PlayOneShot(audioSource.clip);
+                RefRW<SoundWeaponEffectShoot> soundWeaponEffectShoot = SystemAPI.GetComponentRW<SoundWeaponEffectShoot>(pointShoot);
+                soundWeaponEffectShoot.ValueRW.pitch = animator.ValueRO.sfxPitch;
+                soundWeaponEffectShoot.ValueRW.volume = animator.ValueRO.sfxVolume;
+                soundWeaponEffectShoot.ValueRW.isPlayOneShot = true;
                 animator.ValueRW.flashSpawned = true;
             }
-            // Tắt animation khi xong
             if (progress >= 1f)
             {
                 animator.ValueRW.animationPlaying = false;
@@ -118,6 +117,6 @@ partial struct BarrelAnimatorSystem : ISystem
     [BurstCompile]
     public void OnDestroy(ref SystemState state)
     {
-        
+
     }
 }

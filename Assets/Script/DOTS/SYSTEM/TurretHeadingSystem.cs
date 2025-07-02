@@ -35,7 +35,7 @@ partial struct TurretHeadingSystem : ISystem
                 )
                 {
                     LocalTransform targetTransform = SystemAPI.GetComponent<LocalTransform>(turret.ValueRO.target);
-                    LocalTransform pivotTransform = SystemAPI.GetComponent<LocalTransform>(turret.ValueRO.headingPivot);
+                    LocalToWorld pivotTransform = SystemAPI.GetComponent<LocalToWorld>(turret.ValueRO.headingPivot);
 
                     float3 targetPos = targetTransform.Position;
                     float3 pivotPos = pivotTransform.Position;
@@ -61,7 +61,6 @@ partial struct TurretHeadingSystem : ISystem
             // normalize delta angle -180..180
             float deltaAngle = targetHeading - heading;
             deltaAngle = (deltaAngle + 180f) % 360f - 180f;
-            UnityEngine.Debug.Log($"Turret, Heading: {heading}, Target: {targetHeading}, Delta: {deltaAngle}");
             if (math.abs(deltaAngle) <= turret.ValueRO.targetAquiredAngle)
             {
                 turret.ValueRW.isHeadingRotationTarget = true;

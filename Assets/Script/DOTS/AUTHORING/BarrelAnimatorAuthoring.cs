@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -6,9 +7,9 @@ using UnityEngine;
 public class BarrelAnimatorAuthoring : MonoBehaviour
 {
     public GameObject barrelBaseEntity;
-    public GameObject barrelTipEntity;
+    public GameObject[] barrelTipEntity;
     public GameObject muzzleFlashEntity;
-    public GameObject pointShoot;
+    public GameObject[] pointShoot;
     public float animationDuration;
     public float baseSlideDistance;
     public float tipSlideAmountDistance;
@@ -17,8 +18,6 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
     public float lastFireTime;
     public bool animationPlaying;
 
-    public float3 tipInitialPosition;
-    public float3 tipInitialRotation;
     public float tipRotationAtFire;
 
     public AnimationCurve slideCurve;
@@ -30,7 +29,7 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
         public override void Bake(BarrelAnimatorAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
-
+            
             // Sample AnimationCurve to array
             const int sampleCount = 50;
             float[] slideSamples = new float[sampleCount];
@@ -59,7 +58,6 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
             AddComponent(entity, new BarrelAnimator
             {
                 barrelBaseEntity = GetEntity(authoring.barrelBaseEntity, TransformUsageFlags.Dynamic),
-                barrelTipEntity = GetEntity(authoring.barrelTipEntity, TransformUsageFlags.Dynamic),
                 muzzleFlashEntity = GetEntity(authoring.muzzleFlashEntity, TransformUsageFlags.Dynamic),
                 animationDuration = authoring.animationDuration,
                 baseSlideDistance = authoring.baseSlideDistance,
@@ -67,23 +65,32 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
                 tipRotateDegrees = authoring.tipRotateDegrees,
                 lastFireTime = authoring.lastFireTime,
                 animationPlaying = authoring.animationPlaying,
-                tipInitialPosition = authoring.tipInitialPosition,
-                tipInitialRotation = authoring.tipInitialRotation,
                 tipRotationAtFire = authoring.tipRotationAtFire,
-                pointShootPosition = GetEntity(authoring.pointShoot, TransformUsageFlags.Dynamic),
                 curveBlob = blobAsset,
                 flashSpawned = false,
                 sfxPitch = authoring.sfxPitch,
                 sfxVolume = authoring.sfxVolume,
                 random = new Unity.Mathematics.Random((uint)entity.Index)
             });
+            DynamicBuffer<BarrelTipEntityBuffer> buffer = AddBuffer<BarrelTipEntityBuffer>(entity);
+            int tipCount = authoring.barrelTipEntity.Length;
+            for (int i = 0; i < tipCount; i++)
+            {
+                Entity barrelTipEntity = GetEntity(authoring.barrelTipEntity[i], TransformUsageFlags.Dynamic);
+                Entity pointShootEntity = GetEntity(authoring.pointShoot[i], TransformUsageFlags.Dynamic);
+                buffer.Add(new BarrelTipEntityBuffer { 
+                    barrelTipEntity = barrelTipEntity,
+                    pointShoot = pointShootEntity,
+                    tipInitialPosition = float3.zero,
+                    tipInitialRotation = float3.zero
+                });
+            }
         }
     }
 }
 public struct BarrelAnimator : IComponentData
 {
     public Entity barrelBaseEntity;
-    public Entity barrelTipEntity;
     public Entity muzzleFlashEntity;
 
     public float animationDuration;
@@ -94,11 +101,7 @@ public struct BarrelAnimator : IComponentData
     public float lastFireTime;
     public bool animationPlaying;
 
-    public float3 tipInitialPosition;
-    public float3 tipInitialRotation;
     public float tipRotationAtFire;
-
-    public Entity pointShootPosition;
 
     public BlobAssetReference<BarrelAnimatorCurveBlob> curveBlob;
 
@@ -106,12 +109,21 @@ public struct BarrelAnimator : IComponentData
     public float sfxPitch;
     public float sfxVolume;
     public Unity.Mathematics.Random random;
+    public int barrelTipIndex;
 }
 public struct BarrelAnimatorCurveBlob
 {
     public BlobArray<float> slideCurve;
     public BlobArray<float> rotationCurve;
     public int sampleCount;
+}
+[InternalBufferCapacity(6)]
+public struct BarrelTipEntityBuffer : IBufferElementData
+{
+    public Entity barrelTipEntity;
+    public Entity pointShoot;
+    public float3 tipInitialPosition;
+    public float3 tipInitialRotation;
 }
 
 

@@ -62,7 +62,6 @@ partial struct TurretPitchSystem : ISystem
 
             float deltaAngle = targetElevation - elevation;
             deltaAngle = (deltaAngle + 180f) % 360f - 180f;
-            UnityEngine.Debug.Log($"Turret, Heading: {elevation}, Target: {targetElevation}, Delta: {deltaAngle}");
             if (math.abs(deltaAngle) <= turret.ValueRO.targetAquiredAngle)
             {
                 turret.ValueRW.isElevationRotationTarget = true;

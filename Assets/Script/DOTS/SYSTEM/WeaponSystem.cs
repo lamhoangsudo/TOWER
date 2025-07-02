@@ -1,6 +1,6 @@
 ﻿using Unity.Burst;
 using Unity.Entities;
-[UpdateBefore(typeof(TurretFireSystem))]
+[UpdateAfter(typeof(TurretFireSystem))]
 public partial struct WeaponSystem : ISystem
 {
     [BurstCompile]
@@ -37,16 +37,37 @@ public partial struct WeaponSystem : ISystem
                                 RefRW<BarrelAnimator> barrelAnimator = SystemAPI.GetComponentRW<BarrelAnimator>(barrelAnimatorBuffer.barrelAnimatorBuffer);
                                 if (!barrelAnimator.ValueRO.animationPlaying)
                                 {
-                                    weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
-                                    if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay)
+
+                                    if (SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length > 1)
                                     {
-                                        continue;
+                                        weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                        if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay + barrelAnimator.ValueRW.barrelTipIndex * barrelAnimator.ValueRW.animationDuration)
+                                        {
+                                            continue;
+                                        }
+                                        barrelAnimator.ValueRW.barrelTipIndex++;
+                                        if (barrelAnimator.ValueRW.barrelTipIndex >= SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length)
+                                        {
+                                            barrelAnimator.ValueRW.barrelTipIndex = 0;
+                                        }
+                                        weapon.ValueRW.burstTime = 0f;
+                                        weapon.ValueRW.burstCounter++;
+                                        barrelAnimator.ValueRW.animationPlaying = true;
+                                        barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
                                     }
-                                    weapon.ValueRW.burstTime = 0f;
-                                    weapon.ValueRW.burstCounter++;
-                                    UnityEngine.Debug.Log($"Burst shot {weapon.ValueRO.burstCounter} for weapon {entity.Index}");
-                                    barrelAnimator.ValueRW.animationPlaying = true;
-                                    barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
+                                    else
+                                    {
+                                        weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                        if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay)
+                                        {
+                                            continue;
+                                        }
+                                        barrelAnimator.ValueRW.barrelTipIndex = 0;
+                                        weapon.ValueRW.burstTime = 0f;
+                                        weapon.ValueRW.burstCounter++;
+                                        barrelAnimator.ValueRW.animationPlaying = true;
+                                        barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
+                                    }
                                 }
                             }
                         }
@@ -55,7 +76,6 @@ public partial struct WeaponSystem : ISystem
                             // reset cooldown
                             weapon.ValueRW.currentCooldown = weapon.ValueRO.cooldown;
                             weapon.ValueRW.burstCounter = 0;
-                            UnityEngine.Debug.Log($"Burst completed for weapon {entity.Index}");
                         }
                     }
                 }
