@@ -62,7 +62,8 @@ partial struct TurretPitchSystem : ISystem
 
             float deltaAngle = targetElevation - elevation;
             deltaAngle = (deltaAngle + 180f) % 360f - 180f;
-            if (math.abs(deltaAngle) < turret.ValueRO.targetAquiredAngle)
+            UnityEngine.Debug.Log($"Turret, Heading: {elevation}, Target: {targetElevation}, Delta: {deltaAngle}");
+            if (math.abs(deltaAngle) <= turret.ValueRO.targetAquiredAngle)
             {
                 turret.ValueRW.isElevationRotationTarget = true;
             }
@@ -71,7 +72,7 @@ partial struct TurretPitchSystem : ISystem
                 turret.ValueRW.isElevationRotationTarget = false;
             }
             // tăng giảm tốc độ
-            if (math.abs(deltaAngle) > 1f)
+            if (math.abs(deltaAngle) > 0.05f)
             {
                 speed += turret.ValueRO.elevationRotationAcceleration * deltaTime;
             }

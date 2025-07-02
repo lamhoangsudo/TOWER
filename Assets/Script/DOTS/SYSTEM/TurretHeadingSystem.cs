@@ -1,4 +1,5 @@
-﻿using Unity.Burst;
+﻿using System.Diagnostics;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -60,7 +61,8 @@ partial struct TurretHeadingSystem : ISystem
             // normalize delta angle -180..180
             float deltaAngle = targetHeading - heading;
             deltaAngle = (deltaAngle + 180f) % 360f - 180f;
-            if (math.abs(deltaAngle) < turret.ValueRO.targetAquiredAngle)
+            UnityEngine.Debug.Log($"Turret, Heading: {heading}, Target: {targetHeading}, Delta: {deltaAngle}");
+            if (math.abs(deltaAngle) <= turret.ValueRO.targetAquiredAngle)
             {
                 turret.ValueRW.isHeadingRotationTarget = true;
             }
@@ -69,7 +71,7 @@ partial struct TurretHeadingSystem : ISystem
                 turret.ValueRW.isHeadingRotationTarget = false;
             }
             // tăng giảm tốc độ
-            if (math.abs(deltaAngle) > 1f)
+            if (math.abs(deltaAngle) > 0.05f)
             {
                 speed += turret.ValueRO.headingRotationAcceleration * deltaTime;
             }

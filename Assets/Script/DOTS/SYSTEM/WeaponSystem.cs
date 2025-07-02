@@ -1,6 +1,6 @@
 ﻿using Unity.Burst;
 using Unity.Entities;
-
+[UpdateBefore(typeof(TurretFireSystem))]
 public partial struct WeaponSystem : ISystem
 {
     [BurstCompile]
@@ -20,9 +20,9 @@ public partial struct WeaponSystem : ISystem
                 if (weapon.ValueRO.currentCooldown > 0f)
                 {
                     weapon.ValueRW.currentCooldown -= SystemAPI.Time.DeltaTime;
+                    continue;
                 }
-
-                if (weapon.ValueRO.currentCooldown <= 0f)
+                else
                 {
                     // có thể bắn
                     // xử lý burst
@@ -32,7 +32,7 @@ public partial struct WeaponSystem : ISystem
                         {
                             // logic fire đạn (sẽ bổ sung)
                             DynamicBuffer<BarrelAnimatorBuffer> barrelAnimatorBuffers = SystemAPI.GetBuffer<BarrelAnimatorBuffer>(entity);
-                            foreach(BarrelAnimatorBuffer barrelAnimatorBuffer in barrelAnimatorBuffers)
+                            foreach (BarrelAnimatorBuffer barrelAnimatorBuffer in barrelAnimatorBuffers)
                             {
                                 RefRW<BarrelAnimator> barrelAnimator = SystemAPI.GetComponentRW<BarrelAnimator>(barrelAnimatorBuffer.barrelAnimatorBuffer);
                                 if (!barrelAnimator.ValueRO.animationPlaying)
@@ -43,7 +43,7 @@ public partial struct WeaponSystem : ISystem
                                         continue;
                                     }
                                     weapon.ValueRW.burstTime = 0f;
-                                    weapon.ValueRW.burstCounter = weapon.ValueRO.burstCounter + 1;
+                                    weapon.ValueRW.burstCounter++;
                                     UnityEngine.Debug.Log($"Burst shot {weapon.ValueRO.burstCounter} for weapon {entity.Index}");
                                     barrelAnimator.ValueRW.animationPlaying = true;
                                     barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
