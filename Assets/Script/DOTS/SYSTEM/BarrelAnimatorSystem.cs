@@ -37,8 +37,10 @@ partial struct BarrelAnimatorSystem : ISystem
                 baseTransform.ValueRW.Position = basePos;
             }
 
-            var tipBuffer = SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity);
-            BarrelTipEntityBuffer tip = tipBuffer[animator.ValueRO.barrelTipIndex];
+            DynamicBuffer<BarrelTipEntityBuffer> tipBuffers = SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity);
+            DynamicBuffer<PointShotEntityBuffer> pointShotBuffers = SystemAPI.GetBuffer<PointShotEntityBuffer>(entity);
+            BarrelTipEntityBuffer tip = tipBuffers[animator.ValueRO.barrelTipIndex];
+            PointShotEntityBuffer pointShotEntityBuffer = pointShotBuffers[animator.ValueRO.pointShootIndex];
 
             RefRW<LocalTransform> tipTransform = SystemAPI.GetComponentRW<LocalTransform>(tip.barrelTipEntity);
 
@@ -46,7 +48,7 @@ partial struct BarrelAnimatorSystem : ISystem
             {
                 tip.tipInitialPosition = tipTransform.ValueRO.Position;
                 tip.tipInitialRotation = math.Euler(tipTransform.ValueRO.Rotation);
-                tipBuffer[animator.ValueRO.barrelTipIndex] = tip; // Update the buffer element
+                tipBuffers[animator.ValueRO.barrelTipIndex] = tip; // Update the buffer element
             }
 
             float tipY = tip.tipInitialPosition.y + slideValue * animator.ValueRO.tipSlideAmountDistance;
@@ -71,9 +73,10 @@ partial struct BarrelAnimatorSystem : ISystem
             }
 
 
+
             if (!animator.ValueRO.flashSpawned)
             {
-                Entity pointShoot = tip.pointShoot;
+                Entity pointShoot = pointShotEntityBuffer.pointShoot;
                 LocalToWorld spawnLocalToWorld = SystemAPI.GetComponent<LocalToWorld>(pointShoot);
                 Entity entityEffect = state.EntityManager.Instantiate(animator.ValueRO.muzzleFlashEntity);
 

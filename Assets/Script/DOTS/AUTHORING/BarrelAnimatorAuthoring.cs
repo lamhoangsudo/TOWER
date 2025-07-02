@@ -77,13 +77,18 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
             for (int i = 0; i < tipCount; i++)
             {
                 Entity barrelTipEntity = GetEntity(authoring.barrelTipEntity[i], TransformUsageFlags.Dynamic);
-                Entity pointShootEntity = GetEntity(authoring.pointShoot[i], TransformUsageFlags.Dynamic);
                 buffer.Add(new BarrelTipEntityBuffer { 
                     barrelTipEntity = barrelTipEntity,
-                    pointShoot = pointShootEntity,
                     tipInitialPosition = float3.zero,
                     tipInitialRotation = float3.zero
                 });
+            }
+            DynamicBuffer<PointShotEntityBuffer> pointShootBuffer = AddBuffer<PointShotEntityBuffer>(entity);
+            int pointShootCount = authoring.pointShoot.Length;
+            for (int i = 0; i < pointShootCount; i++)
+            {
+                Entity pointShootEntity = GetEntity(authoring.pointShoot[i], TransformUsageFlags.Dynamic);
+                pointShootBuffer.Add(new PointShotEntityBuffer { pointShoot = pointShootEntity });
             }
         }
     }
@@ -110,6 +115,7 @@ public struct BarrelAnimator : IComponentData
     public float sfxVolume;
     public Unity.Mathematics.Random random;
     public int barrelTipIndex;
+    public int pointShootIndex;
 }
 public struct BarrelAnimatorCurveBlob
 {
@@ -117,13 +123,17 @@ public struct BarrelAnimatorCurveBlob
     public BlobArray<float> rotationCurve;
     public int sampleCount;
 }
-[InternalBufferCapacity(6)]
+[InternalBufferCapacity(10)]
 public struct BarrelTipEntityBuffer : IBufferElementData
 {
     public Entity barrelTipEntity;
-    public Entity pointShoot;
     public float3 tipInitialPosition;
     public float3 tipInitialRotation;
+}
+[InternalBufferCapacity(10)]
+public struct PointShotEntityBuffer : IBufferElementData
+{
+    public Entity pointShoot;
 }
 
 

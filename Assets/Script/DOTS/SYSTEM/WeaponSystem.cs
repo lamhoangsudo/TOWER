@@ -26,56 +26,138 @@ public partial struct WeaponSystem : ISystem
                 {
                     // có thể bắn
                     // xử lý burst
-                    if (weapon.ValueRO.firingPattern == WeaponFiringPattern.Individual && weapon.ValueRO.burstShots > 1)
+                    if (weapon.ValueRO.burstShots >= 1)
                     {
-                        if (weapon.ValueRO.burstCounter < weapon.ValueRO.burstShots)
+                        switch (weapon.ValueRO.firingPattern)
                         {
-                            // logic fire đạn (sẽ bổ sung)
-                            DynamicBuffer<BarrelAnimatorBuffer> barrelAnimatorBuffers = SystemAPI.GetBuffer<BarrelAnimatorBuffer>(entity);
-                            foreach (BarrelAnimatorBuffer barrelAnimatorBuffer in barrelAnimatorBuffers)
-                            {
-                                RefRW<BarrelAnimator> barrelAnimator = SystemAPI.GetComponentRW<BarrelAnimator>(barrelAnimatorBuffer.barrelAnimatorBuffer);
-                                if (!barrelAnimator.ValueRO.animationPlaying)
+                            case WeaponFiringPattern.Gatling:
                                 {
 
-                                    if (SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length > 1)
+                                }
+                                break;
+                            case WeaponFiringPattern.Individual:
+                                {
+                                    // logic fire đạn (sẽ bổ sung)
+                                    if (weapon.ValueRO.burstCounter < weapon.ValueRO.burstShots)
                                     {
-                                        weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
-                                        if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay + barrelAnimator.ValueRW.barrelTipIndex * barrelAnimator.ValueRW.animationDuration)
+                                        // logic fire đạn (sẽ bổ sung)
+                                        DynamicBuffer<BarrelAnimatorBuffer> barrelAnimatorBuffers = SystemAPI.GetBuffer<BarrelAnimatorBuffer>(entity);
+                                        foreach (BarrelAnimatorBuffer barrelAnimatorBuffer in barrelAnimatorBuffers)
                                         {
-                                            continue;
+                                            RefRW<BarrelAnimator> barrelAnimator = SystemAPI.GetComponentRW<BarrelAnimator>(barrelAnimatorBuffer.barrelAnimatorBuffer);
+                                            if (!barrelAnimator.ValueRO.animationPlaying)
+                                            {
+
+                                                if (SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length > 1)
+                                                {
+                                                    weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                                    if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay + barrelAnimator.ValueRW.barrelTipIndex * barrelAnimator.ValueRW.animationDuration)
+                                                    {
+                                                        continue;
+                                                    }
+                                                    barrelAnimator.ValueRW.barrelTipIndex++;
+                                                    if (barrelAnimator.ValueRW.barrelTipIndex >= SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length)
+                                                    {
+                                                        barrelAnimator.ValueRW.barrelTipIndex = 0;
+                                                    }
+                                                    weapon.ValueRW.burstTime = 0f;
+                                                    weapon.ValueRW.burstCounter++;
+                                                    barrelAnimator.ValueRW.animationPlaying = true;
+                                                    barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
+                                                }
+                                                else
+                                                {
+                                                    weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                                    if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay)
+                                                    {
+                                                        continue;
+                                                    }
+                                                    barrelAnimator.ValueRW.barrelTipIndex = 0;
+                                                    weapon.ValueRW.burstTime = 0f;
+                                                    weapon.ValueRW.burstCounter++;
+                                                    barrelAnimator.ValueRW.animationPlaying = true;
+                                                    barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
+                                                }
+                                            }
                                         }
-                                        barrelAnimator.ValueRW.barrelTipIndex++;
-                                        if (barrelAnimator.ValueRW.barrelTipIndex >= SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length)
-                                        {
-                                            barrelAnimator.ValueRW.barrelTipIndex = 0;
-                                        }
-                                        weapon.ValueRW.burstTime = 0f;
-                                        weapon.ValueRW.burstCounter++;
-                                        barrelAnimator.ValueRW.animationPlaying = true;
-                                        barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
                                     }
                                     else
                                     {
-                                        weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
-                                        if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay)
-                                        {
-                                            continue;
-                                        }
-                                        barrelAnimator.ValueRW.barrelTipIndex = 0;
-                                        weapon.ValueRW.burstTime = 0f;
-                                        weapon.ValueRW.burstCounter++;
-                                        barrelAnimator.ValueRW.animationPlaying = true;
-                                        barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
+                                        // reset cooldown
+                                        weapon.ValueRW.currentCooldown = weapon.ValueRO.cooldown;
+                                        weapon.ValueRW.burstCounter = 0;
                                     }
                                 }
-                            }
-                        }
-                        else
-                        {
-                            // reset cooldown
-                            weapon.ValueRW.currentCooldown = weapon.ValueRO.cooldown;
-                            weapon.ValueRW.burstCounter = 0;
+                                break;
+                            case WeaponFiringPattern.Simultaneous:
+                                {
+                                    // logic fire đạn (sẽ bổ sung)
+                                }
+                                break;
+                            case WeaponFiringPattern.MissileLauncher:
+                                {
+                                    // logic fire đạn (sẽ bổ sung)
+                                    if (weapon.ValueRO.burstCounter < weapon.ValueRO.burstShots)
+                                    {
+                                        // logic fire đạn (sẽ bổ sung)
+                                        DynamicBuffer<BarrelAnimatorBuffer> barrelAnimatorBuffers = SystemAPI.GetBuffer<BarrelAnimatorBuffer>(entity);
+                                        foreach (BarrelAnimatorBuffer barrelAnimatorBuffer in barrelAnimatorBuffers)
+                                        {
+                                            RefRW<BarrelAnimator> barrelAnimator = SystemAPI.GetComponentRW<BarrelAnimator>(barrelAnimatorBuffer.barrelAnimatorBuffer);
+                                            if (!barrelAnimator.ValueRO.animationPlaying)
+                                            {
+
+                                                if (SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length > 1)
+                                                {
+                                                    weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                                    if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay + barrelAnimator.ValueRW.barrelTipIndex * barrelAnimator.ValueRW.animationDuration)
+                                                    {
+                                                        continue;
+                                                    }
+                                                    barrelAnimator.ValueRW.barrelTipIndex++;
+                                                    barrelAnimator.ValueRW.pointShootIndex++;
+                                                    if (barrelAnimator.ValueRW.barrelTipIndex >= SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length)
+                                                    {
+                                                        barrelAnimator.ValueRW.barrelTipIndex = 0;
+                                                    }
+                                                    if (barrelAnimator.ValueRW.pointShootIndex >= SystemAPI.GetBuffer<PointShotEntityBuffer>(entity).Length)
+                                                    {
+                                                        barrelAnimator.ValueRW.pointShootIndex = 0;
+                                                    }
+                                                    weapon.ValueRW.burstTime = 0f;
+                                                    weapon.ValueRW.burstCounter++;
+                                                    barrelAnimator.ValueRW.animationPlaying = true;
+                                                    barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
+                                                }
+                                                else
+                                                {
+                                                    weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                                    if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay)
+                                                    {
+                                                        continue;
+                                                    }
+                                                    barrelAnimator.ValueRW.barrelTipIndex = 0;
+                                                    barrelAnimator.ValueRW.pointShootIndex++;
+                                                    if (barrelAnimator.ValueRW.pointShootIndex >= SystemAPI.GetBuffer<PointShotEntityBuffer>(entity).Length)
+                                                    {
+                                                        barrelAnimator.ValueRW.pointShootIndex = 0;
+                                                    }
+                                                    weapon.ValueRW.burstTime = 0f;
+                                                    weapon.ValueRW.burstCounter++;
+                                                    barrelAnimator.ValueRW.animationPlaying = true;
+                                                    barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // reset cooldown
+                                        weapon.ValueRW.currentCooldown = weapon.ValueRO.cooldown;
+                                        weapon.ValueRW.burstCounter = 0;
+                                    }
+                                }
+                                break;
                         }
                     }
                 }
