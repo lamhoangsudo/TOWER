@@ -56,9 +56,14 @@ public partial struct WeaponSystem : ISystem
                                                         continue;
                                                     }
                                                     barrelAnimator.ValueRW.barrelTipIndex++;
+                                                    barrelAnimator.ValueRW.pointShootIndex++;
                                                     if (barrelAnimator.ValueRW.barrelTipIndex >= SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length)
                                                     {
                                                         barrelAnimator.ValueRW.barrelTipIndex = 0;
+                                                    }
+                                                    if (barrelAnimator.ValueRW.pointShootIndex >= SystemAPI.GetBuffer<PointShotEntityBuffer>(entity).Length)
+                                                    {
+                                                        barrelAnimator.ValueRW.pointShootIndex = 0;
                                                     }
                                                     weapon.ValueRW.burstTime = 0f;
                                                     weapon.ValueRW.burstCounter++;

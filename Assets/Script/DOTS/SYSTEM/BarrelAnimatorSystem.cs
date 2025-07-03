@@ -77,11 +77,11 @@ partial struct BarrelAnimatorSystem : ISystem
             if (!animator.ValueRO.flashSpawned)
             {
                 Entity pointShoot = pointShotEntityBuffer.pointShoot;
-                LocalToWorld spawnLocalToWorld = SystemAPI.GetComponent<LocalToWorld>(pointShoot);
-                Entity entityEffect = state.EntityManager.Instantiate(animator.ValueRO.muzzleFlashEntity);
-
-                RefRW<EffectWeaponShoot> effect = SystemAPI.GetComponentRW<EffectWeaponShoot>(entityEffect);
+                LocalTransform spawnLocalTransform = SystemAPI.GetComponent<LocalTransform>(pointShoot);
                 Unity.Mathematics.Random random = animator.ValueRO.random;
+                Entity entityEffect = animator.ValueRO.muzzleFlashEntity;
+                RefRW<LocalToWorld> localToWorld = SystemAPI.GetComponentRW<LocalToWorld>(entityEffect);
+                RefRW<EffectWeaponShoot> effect = SystemAPI.GetComponentRW<EffectWeaponShoot>(entityEffect);
                 float startScale = 1f + random.NextFloat(-1f, 1f) * effect.ValueRO.scaleVariance / 2f;
                 float endScale = startScale * random.NextFloat(0.6f, 0.8f);
                 float startLength = 1f + random.NextFloat(-1f, 1f) * effect.ValueRO.lengthVariance / 2f;
@@ -89,20 +89,17 @@ partial struct BarrelAnimatorSystem : ISystem
                 float randomZ = random.NextFloat(-180f, 180f);
                 float pitch = math.clamp(animator.ValueRO.sfxPitch + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
                 float volume = math.clamp(animator.ValueRO.sfxVolume + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
-
                 effect.ValueRW.startScale = startScale;
                 effect.ValueRW.endScale = endScale;
                 effect.ValueRW.startLength = startLength;
                 effect.ValueRW.endLength = endLength;
                 effect.ValueRW.sfxPitch = pitch;
                 effect.ValueRW.sfxVolume = volume;
-
-                RefRW<LocalTransform> localTranform = SystemAPI.GetComponentRW<LocalTransform>(entityEffect);
-                localTranform.ValueRW.Position = spawnLocalToWorld.Position;
-                quaternion randomRot = quaternion.EulerXYZ(0f, 0f, math.radians(randomZ));
-                localTranform.ValueRW.Rotation = math.mul(spawnLocalToWorld.Rotation, randomRot);
-                RefRW<PostTransformMatrix> visualEffectPostTransformMatrix = SystemAPI.GetComponentRW<PostTransformMatrix>(effect.ValueRO.muzzleFlashEffect);
-                visualEffectPostTransformMatrix.ValueRW.Value = float4x4.Scale(startScale, startScale, startLength);
+                effect.ValueRW.elapsedTime = effect.ValueRO.muzzleFlashDuration;
+                if (effect.ValueRO.isPlayOneShot == false) effect.ValueRW.isPlayOneShot = true;
+                effect.ValueRW.SpawnPosition = spawnLocalTransform.Position;
+                effect.ValueRW.SpawnRandomRotation = spawnLocalTransform.RotateZ(randomZ).Rotation;
+                SystemAPI.GetComponentRW<Parent>(entityEffect).ValueRW.Value = tip.barrelTipEntity;
                 animator.ValueRW.random = random;
                 RefRW<SoundWeaponEffectShoot> soundWeaponEffectShoot = SystemAPI.GetComponentRW<SoundWeaponEffectShoot>(pointShoot);
                 soundWeaponEffectShoot.ValueRW.pitch = animator.ValueRO.sfxPitch;

@@ -636,6 +636,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4969473683420496669}
     m_Modifications:
+    - target: {fileID: 4044671742251484792, guid: 2a4386ae4d9dadb41b7cb4df6d6d2828, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7530572045743047676, guid: 2a4386ae4d9dadb41b7cb4df6d6d2828, type: 3}
       propertyPath: m_Name
       value: Gun_L04ECS

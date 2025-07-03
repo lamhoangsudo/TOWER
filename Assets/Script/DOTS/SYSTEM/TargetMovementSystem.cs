@@ -25,7 +25,7 @@ partial struct TargetMovementSystem : ISystem
                 target.ValueRW.RandomGenerator = random;
                 target.ValueRW.time = 10f;
             }
-            localTransform.ValueRW.Position = math.lerp(localTransform.ValueRO.Position, target.ValueRO.TargetPosition, SystemAPI.Time.DeltaTime * 2f);
+            localTransform.ValueRW.Position = math.lerp(localTransform.ValueRO.Position, target.ValueRO.TargetPosition, SystemAPI.Time.DeltaTime);
         }
     }
 

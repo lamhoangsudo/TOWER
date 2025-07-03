@@ -58,9 +58,9 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
             AddComponent(entity, new BarrelAnimator
             {
                 barrelBaseEntity = GetEntity(authoring.barrelBaseEntity, TransformUsageFlags.Dynamic),
-                muzzleFlashEntity = GetEntity(authoring.muzzleFlashEntity, TransformUsageFlags.Dynamic),
                 animationDuration = authoring.animationDuration,
                 baseSlideDistance = authoring.baseSlideDistance,
+                muzzleFlashEntity = GetEntity(authoring.muzzleFlashEntity, TransformUsageFlags.Dynamic),
                 tipSlideAmountDistance = authoring.tipSlideAmountDistance,
                 tipRotateDegrees = authoring.tipRotateDegrees,
                 lastFireTime = authoring.lastFireTime,

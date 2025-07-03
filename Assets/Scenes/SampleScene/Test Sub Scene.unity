@@ -235,7 +235,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 403559805}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: af18c25685686004b89949230bfd5806, type: 3}
   m_Name: 
@@ -252,9 +252,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: Turret_L01_1xLauncher_L01_8MECS
       objectReference: {fileID: 0}
+    - target: {fileID: 4969473682298969666, guid: 175d2f05d99ed3847965eb6ea6c31462, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4969473682298969667, guid: 175d2f05d99ed3847965eb6ea6c31462, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 5.64
+      value: -4.43
       objectReference: {fileID: 0}
     - target: {fileID: 4969473682298969667, guid: 175d2f05d99ed3847965eb6ea6c31462, type: 3}
       propertyPath: m_LocalPosition.y
@@ -309,6 +313,38 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 41976457999601761, guid: 0b42c8c65f83f084d80974c1da30f7ff, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 41976457999601761, guid: 0b42c8c65f83f084d80974c1da30f7ff, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 41976457999601761, guid: 0b42c8c65f83f084d80974c1da30f7ff, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 41976457999601761, guid: 0b42c8c65f83f084d80974c1da30f7ff, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2914397834458044833, guid: 0b42c8c65f83f084d80974c1da30f7ff, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2914397834458044833, guid: 0b42c8c65f83f084d80974c1da30f7ff, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2914397834458044833, guid: 0b42c8c65f83f084d80974c1da30f7ff, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2914397834458044833, guid: 0b42c8c65f83f084d80974c1da30f7ff, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4969473682298969666, guid: 0b42c8c65f83f084d80974c1da30f7ff, type: 3}
       propertyPath: m_Name
       value: Turret_L01_1xL08_BurstECS
@@ -319,7 +355,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4969473682298969667, guid: 0b42c8c65f83f084d80974c1da30f7ff, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -8.81
+      value: 5.2
       objectReference: {fileID: 0}
     - target: {fileID: 4969473682298969667, guid: 0b42c8c65f83f084d80974c1da30f7ff, type: 3}
       propertyPath: m_LocalPosition.y
@@ -361,10 +397,6 @@ PrefabInstance:
       propertyPath: target
       value: 
       objectReference: {fileID: 403559805}
-    - target: {fileID: 7060976874483262103, guid: 0b42c8c65f83f084d80974c1da30f7ff, type: 3}
-      propertyPath: autoFire
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -430,8 +462,36 @@ PrefabInstance:
       propertyPath: target
       value: 
       objectReference: {fileID: 403559805}
-    - target: {fileID: 5987456072366046133, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
-      propertyPath: autoFire
+    - target: {fileID: 6548147368905590641, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6548147368905590641, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6548147368905590641, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6548147368905590641, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8298734862209495435, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8298734862209495435, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8298734862209495435, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8298734862209495435, guid: 1adb49fb2fa263a40977a93f08416989, type: 3}
+      propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []

@@ -12,6 +12,7 @@ public class TargetAuthoring : MonoBehaviour
             AddComponent(entity, new Target
             {
                 time = 10f,
+                TargetPosition = authoring.transform.position,
                 RandomGenerator = new Unity.Mathematics.Random((uint)entity.Index),
             });
         }

@@ -66,7 +66,7 @@ MonoBehaviour:
   currentElevationSpeed: 0
   target: {fileID: 0}
   useTargetPrediction: 0
-  autoFire: 0
+  autoFire: 1
   targetAquiredAngle: 0.5
   resetOrientation: 0
   SFX_Heading: {fileID: 4969473683629901364}
@@ -753,6 +753,10 @@ PrefabInstance:
     - target: {fileID: 6481835106486034226, guid: 7f3579a137b64674393ea422d564823d, type: 3}
       propertyPath: m_Name
       value: Gun_L08_BurstECS
+      objectReference: {fileID: 0}
+    - target: {fileID: 8354581680198428719, guid: 7f3579a137b64674393ea422d564823d, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
