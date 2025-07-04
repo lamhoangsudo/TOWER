@@ -69,10 +69,11 @@ public class TurretAuthoring : MonoBehaviour
                 isElevationRotationTarget = false,
                 isHeadingRotationTarget = false,
             });
+            DynamicBuffer<WeaponItemBuffer> weaponItemBuffers = AddBuffer<WeaponItemBuffer>(entity);
             foreach (GameObject weapon in authoring.weapons)
             {
                 Entity weaponEntity = GetEntity(weapon, TransformUsageFlags.Dynamic);
-                AddBuffer<WeaponItemBuffer>(entity).Add(new WeaponItemBuffer { weaponEntity = weaponEntity });
+                weaponItemBuffers.Add(new WeaponItemBuffer { weaponEntity = weaponEntity });
             }
             authoring.turretEntity = entity;
         }
