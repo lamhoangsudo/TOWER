@@ -20,12 +20,12 @@ partial struct TargetMovementSystem : ISystem
             if(target.ValueRO.time <= 0f)
             {
                 Unity.Mathematics.Random random = target.ValueRO.RandomGenerator;
-                float3 targetPosition = new float3 (random.NextFloat(-5f, 5f), random.NextFloat(0f, 5f), 30f);
+                float3 targetPosition = new float3 (random.NextFloat(-20f, 20f), random.NextFloat(0f, 10f), 30f);
                 target.ValueRW.TargetPosition = targetPosition;
                 target.ValueRW.RandomGenerator = random;
-                target.ValueRW.time = 10f;
+                target.ValueRW.time = 2f;
             }
-            localTransform.ValueRW.Position = math.lerp(localTransform.ValueRO.Position, target.ValueRO.TargetPosition, SystemAPI.Time.DeltaTime);
+            localTransform.ValueRW.Position = math.lerp(localTransform.ValueRO.Position, target.ValueRO.TargetPosition, SystemAPI.Time.DeltaTime/10f);
         }
     }
 

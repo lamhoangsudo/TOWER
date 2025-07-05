@@ -32,7 +32,56 @@ public partial struct WeaponSystem : ISystem
                         {
                             case WeaponFiringPattern.Gatling:
                                 {
-
+                                    if (weapon.ValueRO.burstCounter < weapon.ValueRO.burstShots)
+                                    {
+                                        // logic fire đạn (sẽ bổ sung)
+                                        DynamicBuffer<BarrelAnimatorBuffer> barrelAnimatorBuffers = SystemAPI.GetBuffer<BarrelAnimatorBuffer>(entity);
+                                        foreach (BarrelAnimatorBuffer barrelAnimatorBuffer in barrelAnimatorBuffers)
+                                        {
+                                            RefRW<BarrelAnimator> barrelAnimator = SystemAPI.GetComponentRW<BarrelAnimator>(barrelAnimatorBuffer.barrelAnimatorBuffer);
+                                            if (SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length > 1)
+                                            {
+                                                weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                                if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay + barrelAnimator.ValueRW.barrelTipIndex * barrelAnimator.ValueRW.animationDuration)
+                                                {
+                                                    continue;
+                                                }
+                                                barrelAnimator.ValueRW.barrelTipIndex++;
+                                                barrelAnimator.ValueRW.pointShootIndex++;
+                                                if (barrelAnimator.ValueRW.barrelTipIndex >= SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length)
+                                                {
+                                                    barrelAnimator.ValueRW.barrelTipIndex = 0;
+                                                }
+                                                if (barrelAnimator.ValueRW.pointShootIndex >= SystemAPI.GetBuffer<PointShotEntityBuffer>(entity).Length)
+                                                {
+                                                    barrelAnimator.ValueRW.pointShootIndex = 0;
+                                                }
+                                                weapon.ValueRW.burstTime = 0f;
+                                                weapon.ValueRW.burstCounter++;
+                                                barrelAnimator.ValueRW.animationPlaying = true;
+                                                barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
+                                            }
+                                            else
+                                            {
+                                                weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                                if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay)
+                                                {
+                                                    continue;
+                                                }
+                                                barrelAnimator.ValueRW.barrelTipIndex = 0;
+                                                weapon.ValueRW.burstTime = 0f;
+                                                weapon.ValueRW.burstCounter++;
+                                                barrelAnimator.ValueRW.animationPlaying = true;
+                                                barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // reset cooldown
+                                        weapon.ValueRW.currentCooldown = weapon.ValueRO.cooldown;
+                                        weapon.ValueRW.burstCounter = 0;
+                                    }
                                 }
                                 break;
                             case WeaponFiringPattern.Individual:

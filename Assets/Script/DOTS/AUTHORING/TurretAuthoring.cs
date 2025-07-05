@@ -28,7 +28,7 @@ public class TurretAuthoring : MonoBehaviour
     public bool autoFire;
     public float targetAquiredAngle;
     public bool resetOrientation;
-    public Entity turretEntity;
+    public Entity turretEntity { get; private set; }
 
     public GameObject SFX_Heading;
     public GameObject SFX_Elevation;

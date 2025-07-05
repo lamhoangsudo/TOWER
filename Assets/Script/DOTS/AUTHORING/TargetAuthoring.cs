@@ -11,7 +11,7 @@ public class TargetAuthoring : MonoBehaviour
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
             AddComponent(entity, new Target
             {
-                time = 10f,
+                time = 2f,
                 TargetPosition = authoring.transform.position,
                 RandomGenerator = new Unity.Mathematics.Random((uint)entity.Index),
             });

@@ -24,6 +24,7 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
     public AnimationCurve rotationCurve;
     public float sfxPitch;
     public float sfxVolume;
+    public GameObject audioGatlingEffect;
     public class BarrelAnimatorAuthoringBaker : Baker<BarrelAnimatorAuthoring>
     {
         public override void Bake(BarrelAnimatorAuthoring authoring)
@@ -70,7 +71,8 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
                 flashSpawned = false,
                 sfxPitch = authoring.sfxPitch,
                 sfxVolume = authoring.sfxVolume,
-                random = new Unity.Mathematics.Random((uint)entity.Index)
+                random = new Unity.Mathematics.Random((uint)entity.Index),
+                audioGatlingEffect = GetEntity(authoring.audioGatlingEffect, TransformUsageFlags.Dynamic),
             });
             DynamicBuffer<BarrelTipEntityBuffer> buffer = AddBuffer<BarrelTipEntityBuffer>(entity);
             int tipCount = authoring.barrelTipEntity.Length;
@@ -97,6 +99,7 @@ public struct BarrelAnimator : IComponentData
 {
     public Entity barrelBaseEntity;
     public Entity muzzleFlashEntity;
+    public Entity audioGatlingEffect;
 
     public float animationDuration;
     public float baseSlideDistance;
