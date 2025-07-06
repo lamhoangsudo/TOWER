@@ -4,6 +4,8 @@ using UnityEngine;
 [UpdateAfter(typeof(TurretHeadingElevationSoundSystem))]
 partial struct PlayAndStopSoundHeadingSystem : ISystem
 {
+    private float headingRotationSFXInitialPitch;
+    private float headingRotationSFXInitialVolume;
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
@@ -12,25 +14,21 @@ partial struct PlayAndStopSoundHeadingSystem : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
-        foreach ((RefRO<SFX_Heading> SFX_Heading, Entity Entity) in SystemAPI.Query<RefRO<SFX_Heading>>().WithEntityAccess())
+        foreach ((RefRO<SFX_Heading> sfx_Heading, Entity entity) in SystemAPI.Query<RefRO<SFX_Heading>>().WithEntityAccess())
         {
-            AudioSource audioSource = state.EntityManager.GetComponentObject<AudioSource>(Entity);
-            if (SFX_Heading.ValueRO.isPlaying)
+            headingRotationSFXInitialPitch = sfx_Heading.ValueRO.headingRotationSFXInitialPitch;
+            headingRotationSFXInitialVolume = sfx_Heading.ValueRO.headingRotationSFXInitialVolume;
+            AudioSource audioSource = state.World.EntityManager.GetComponentObject<AudioSource>(entity);
+            if (sfx_Heading.ValueRO.isPlaying)
             {
-                if (!audioSource.isPlaying)
-                {
-                    UnityEngine.Debug.Log($"Play sound: { audioSource.clip?.name}");
-                    audioSource.Play();
-                }
-                audioSource.pitch = SFX_Heading.ValueRO.HeadingRotationSFXInitialPitch;
-                audioSource.volume = SFX_Heading.ValueRO.HeadingRotationSFXInitialVolume;
+                if (!audioSource.isPlaying) audioSource.Play();
+
+                audioSource.pitch = headingRotationSFXInitialPitch;
+                audioSource.volume = headingRotationSFXInitialVolume;
             }
             else
             {
-                if (audioSource.isPlaying)
-                {
-                    audioSource.Stop();
-                }
+                if (audioSource.isPlaying) audioSource.Stop();
             }
         }
     }

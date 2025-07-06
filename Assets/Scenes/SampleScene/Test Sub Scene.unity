@@ -252,6 +252,10 @@ PrefabInstance:
       propertyPath: target
       value: 
       objectReference: {fileID: 403559805}
+    - target: {fileID: 5227079578115672197, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
+      propertyPath: autoFire
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5795755249376107132, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
       propertyPath: m_Name
       value: Turret_L01_2xM05ECS
@@ -295,10 +299,6 @@ PrefabInstance:
     - target: {fileID: 5795755249376107133, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5795755250234655244, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
-      propertyPath: m_Volume
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

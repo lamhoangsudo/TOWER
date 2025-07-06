@@ -68,8 +68,6 @@ MonoBehaviour:
   autoFire: 0
   targetAquiredAngle: 0.5
   resetOrientation: 0
-  SFX_Heading: {fileID: 5795755250234655242}
-  SFX_Elevation: {fileID: 5795755249893872582}
   weapons:
   - {fileID: 507728256120364596}
   - {fileID: 7746954298611443481}
@@ -260,6 +258,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5537e4002d14b9d49a2f3493bfd94e64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  turretAuthoring: {fileID: 5227079578115672197}
 --- !u!1 &5795755249984692401
 GameObject:
   m_ObjectHideFlags: 0
@@ -482,6 +481,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3a965207a397714991b869656b067f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  turretAuthoring: {fileID: 5227079578115672197}
 --- !u!1 &5795755250427119394
 GameObject:
   m_ObjectHideFlags: 0

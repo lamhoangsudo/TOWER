@@ -1,36 +1,35 @@
 using Unity.Burst;
 using Unity.Entities;
 using UnityEngine;
+using static UnityEngine.EventSystems.EventTrigger;
 [UpdateAfter(typeof(TurretHeadingElevationSoundSystem))]
 partial struct PlayAndStopSoundElevationSystem : ISystem
 {
+    private float elevationRotationSFXInitialPitch;
+    private float elevationRotationSFXInitialVolume;
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        
+
     }
 
     public void OnUpdate(ref SystemState state)
     {
-        foreach ((RefRO<SFX_Elevation> SFX_Elevation, Entity Entity) in SystemAPI.Query<RefRO<SFX_Elevation>>().WithEntityAccess())
+        foreach ((RefRO<SFX_Elevation> sfx_Elevation, Entity entity) in SystemAPI.Query<RefRO<SFX_Elevation>>().WithEntityAccess())
         {
-            AudioSource audioSource = state.EntityManager.GetComponentObject<AudioSource>(Entity);
-            if (SFX_Elevation.ValueRO.isPlaying)
+            elevationRotationSFXInitialPitch = sfx_Elevation.ValueRO.elevationRotationSFXInitialPitch;
+            elevationRotationSFXInitialVolume = sfx_Elevation.ValueRO.elevationRotationSFXInitialVolume;
+            AudioSource audioSource = state.World.EntityManager.GetComponentObject<AudioSource>(entity);
+            if (sfx_Elevation.ValueRO.isPlaying)
             {
-                if (!audioSource.isPlaying)
-                {
-                    UnityEngine.Debug.Log($"Play sound: {audioSource.clip?.name}");
-                    audioSource.Play();
-                }
-                audioSource.pitch = SFX_Elevation.ValueRO.ElevationRotationSFXInitialPitch;
-                audioSource.volume = SFX_Elevation.ValueRO.ElevationRotationSFXInitialVolume;
+                if (!audioSource.isPlaying) audioSource.Play();
+
+                audioSource.pitch = elevationRotationSFXInitialPitch;
+                audioSource.volume = elevationRotationSFXInitialVolume;
             }
             else
             {
-                if (audioSource.isPlaying)
-                {
-                    audioSource.Stop();
-                }
+                if (audioSource.isPlaying) audioSource.Stop();
             }
         }
     }
@@ -38,6 +37,6 @@ partial struct PlayAndStopSoundElevationSystem : ISystem
     [BurstCompile]
     public void OnDestroy(ref SystemState state)
     {
-        
+
     }
 }

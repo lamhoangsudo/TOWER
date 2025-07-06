@@ -1,7 +1,8 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using UnityEngine;
+using Unity.Jobs;
+using Unity.Mathematics;
 [UpdateAfter(typeof(TurretHeadingSystem))]
 [UpdateAfter(typeof(TurretPitchSystem))]
 partial struct TurretHeadingElevationSoundSystem : ISystem
@@ -20,18 +21,18 @@ partial struct TurretHeadingElevationSoundSystem : ISystem
         /*
         foreach (RefRO<Turret> turret in SystemAPI.Query<RefRO<Turret>>())
         {
-            RefRW<SFX_Heading> audioSourceHeadingSFX = SystemAPI.GetComponentRW<SFX_Heading>(turret.ValueRO.SFX_HeadingEntity);
+            RefRW<SFX_Elevation> audioSourceHeadingSFX = SystemAPI.GetComponentRW<SFX_Elevation>(turret.ValueRO.SFX_HeadingEntity);
             RefRW<SFX_Elevation> audioSourceElevationSFX = SystemAPI.GetComponentRW<SFX_Elevation>(turret.ValueRO.SFX_ElevationEntity);
             #region heading
             Unity.Mathematics.Random randomHeadingSFX = audioSourceHeadingSFX.ValueRO.random;
-            if (HeadingRotationSFXInitialPitch == 0) HeadingRotationSFXInitialPitch = audioSourceHeadingSFX.ValueRO.HeadingRotationSFXInitialPitch * randomHeadingSFX.NextFloat(0.95f, 1.05f);
+            if (headingRotationSFXInitialPitch == 0) headingRotationSFXInitialPitch = audioSourceHeadingSFX.ValueRO.headingRotationSFXInitialPitch * randomHeadingSFX.NextFloat(0.95f, 1.05f);
             audioSourceHeadingSFX.ValueRW.random = randomHeadingSFX;
 
             if (turret.ValueRO.IsHeadingRotationSFX)
             {
                 if (!audioSourceHeadingSFX.ValueRO.isPlaying) audioSourceHeadingSFX.ValueRW.isPlaying = true;
-                audioSourceHeadingSFX.ValueRW.HeadingRotationSFXInitialPitch = Mathf.Lerp(HeadingRotationSFXInitialPitch * 0.8f, HeadingRotationSFXInitialPitch, turret.ValueRO.headingSpeedFactor);
-                audioSourceHeadingSFX.ValueRW.HeadingRotationSFXInitialVolume = Mathf.Lerp(0f, 1f, turret.ValueRO.headingSpeedFactor);
+                audioSourceHeadingSFX.ValueRW.headingRotationSFXInitialPitch = Mathf.Lerp(headingRotationSFXInitialPitch * 0.8f, headingRotationSFXInitialPitch, turret.ValueRO.headingSpeedFactor);
+                audioSourceHeadingSFX.ValueRW.headingRotationSFXInitialVolume = Mathf.Lerp(0f, 1f, turret.ValueRO.headingSpeedFactor);
             }
             else
             {
@@ -43,13 +44,13 @@ partial struct TurretHeadingElevationSoundSystem : ISystem
             #endregion
             #region elevation
             Unity.Mathematics.Random randomElevationSFX = audioSourceElevationSFX.ValueRO.random;
-            if (ElevationRotationSFXInitialPitch == 0) ElevationRotationSFXInitialPitch = audioSourceElevationSFX.ValueRO.ElevationRotationSFXInitialPitch * randomElevationSFX.NextFloat(0.95f, 1.05f);
+            if (elevationRotationSFXInitialPitch == 0) elevationRotationSFXInitialPitch = audioSourceElevationSFX.ValueRO.elevationRotationSFXInitialPitch * randomElevationSFX.NextFloat(0.95f, 1.05f);
             audioSourceElevationSFX.ValueRW.random = randomElevationSFX;
             if (turret.ValueRO.IsElevationRotationSFX)
             {
                 if (!audioSourceElevationSFX.ValueRO.isPlaying) audioSourceElevationSFX.ValueRW.isPlaying = true;
-                audioSourceElevationSFX.ValueRW.ElevationRotationSFXInitialPitch = Mathf.Lerp(ElevationRotationSFXInitialPitch * 0.8f, ElevationRotationSFXInitialPitch, turret.ValueRO.elevationSpeedFactor);
-                audioSourceElevationSFX.ValueRW.ElevationRotationSFXInitialVolume = Mathf.Lerp(0f, 1f, turret.ValueRO.elevationSpeedFactor);
+                audioSourceElevationSFX.ValueRW.elevationRotationSFXInitialPitch = Mathf.Lerp(elevationRotationSFXInitialPitch * 0.8f, elevationRotationSFXInitialPitch, turret.ValueRO.elevationSpeedFactor);
+                audioSourceElevationSFX.ValueRW.elevationRotationSFXInitialVolume = Mathf.Lerp(0f, 1f, turret.ValueRO.elevationSpeedFactor);
             }
             else
             {
@@ -63,77 +64,80 @@ partial struct TurretHeadingElevationSoundSystem : ISystem
         */
         #endregion
         #region new code
-        EntityCommandBuffer ecb = new(Allocator.TempJob);
-        TurretHeadingElevationSoundJob turretHeadingElevationSoundJob = new()
+        TurretHeadingSoundJob turretHeadingSoundJob = new()
         {
-            audioSourceHeadingSFXLookup = SystemAPI.GetComponentLookup<SFX_Heading>(isReadOnly: true),
-            audioSourceElevationSFXLookup = SystemAPI.GetComponentLookup<SFX_Elevation>(isReadOnly: true),
             HeadingRotationSFXInitialPitch = HeadingRotationSFXInitialPitch,
-            ElevationRotationSFXInitialPitch = ElevationRotationSFXInitialPitch,
-            ecb = ecb.AsParallelWriter()
+            turretLookup = SystemAPI.GetComponentLookup<Turret>(isReadOnly: true),
         };
-        turretHeadingElevationSoundJob.ScheduleParallel();
-        state.Dependency.Complete();
-        ecb.Playback(state.EntityManager);
-        ecb.Dispose();
+        //JobHandle turretHeadingSoundJobHandler = 
+        turretHeadingSoundJob.ScheduleParallel();
+        TurretElevationSoundJob turretElevationSoundJob = new()
+        {
+            ElevationRotationSFXInitialPitch = ElevationRotationSFXInitialPitch,
+            turretLookup = SystemAPI.GetComponentLookup<Turret>(isReadOnly: true),
+        };
+        //JobHandle turretElevationSoundJobHandler = 
+        turretElevationSoundJob.ScheduleParallel();
+        //state.Dependency = JobHandle.CombineDependencies(turretHeadingSoundJobHandler, turretElevationSoundJobHandler);
         #endregion
     }
     [BurstCompile]
     public void OnDestroy(ref SystemState state)
     {
-        
+
     }
 }
 [BurstCompile]
-public partial struct TurretHeadingElevationSoundJob : IJobEntity
+public partial struct TurretHeadingSoundJob : IJobEntity
 {
-    [ReadOnly] public ComponentLookup<SFX_Heading> audioSourceHeadingSFXLookup;
-    [ReadOnly] public ComponentLookup<SFX_Elevation> audioSourceElevationSFXLookup;
+    [ReadOnly] public ComponentLookup<Turret> turretLookup;
     public float HeadingRotationSFXInitialPitch;
-    public float ElevationRotationSFXInitialPitch;
-    public EntityCommandBuffer.ParallelWriter ecb;
-    public void Execute(in Turret turret, [ChunkIndexInQuery]int sortkey)
+    public void Execute(ref SFX_Heading SFX_Heading)
     {
-        SFX_Heading audioSourceHeadingSFXWriter = audioSourceHeadingSFXLookup[turret.SFX_HeadingEntity];
-        SFX_Elevation audioSourceElevationSFXWriter = audioSourceElevationSFXLookup[turret.SFX_ElevationEntity];
-        #region heading
-        Unity.Mathematics.Random randomHeadingSFX = audioSourceHeadingSFXWriter.random;
-        if (HeadingRotationSFXInitialPitch == 0) HeadingRotationSFXInitialPitch = audioSourceHeadingSFXWriter.HeadingRotationSFXInitialPitch * randomHeadingSFX.NextFloat(0.95f, 1.05f);
-        audioSourceHeadingSFXWriter.random = randomHeadingSFX;
+        Turret turret = turretLookup[SFX_Heading.turretEntity];
+        Unity.Mathematics.Random randomHeadingSFX = SFX_Heading.random;
+        if (HeadingRotationSFXInitialPitch == 0) HeadingRotationSFXInitialPitch = SFX_Heading.headingRotationSFXInitialPitch * randomHeadingSFX.NextFloat(0.95f, 1.05f);
+        SFX_Heading.random = randomHeadingSFX;
 
         if (turret.IsHeadingRotationSFX)
         {
-            if (!audioSourceHeadingSFXWriter.isPlaying) audioSourceHeadingSFXWriter.isPlaying = true;
-            audioSourceHeadingSFXWriter.HeadingRotationSFXInitialPitch = Mathf.Lerp(HeadingRotationSFXInitialPitch * 0.8f, HeadingRotationSFXInitialPitch, turret.headingSpeedFactor);
-            audioSourceHeadingSFXWriter.HeadingRotationSFXInitialVolume = Mathf.Lerp(0f, 1f, turret.headingSpeedFactor);
+            if (!SFX_Heading.isPlaying) SFX_Heading.isPlaying = true;
+            SFX_Heading.headingRotationSFXInitialPitch = math.lerp(0f, 1f, turret.headingSpeedFactor);
+            SFX_Heading.headingRotationSFXInitialVolume = math.lerp(0f, 1f, turret.headingSpeedFactor);
         }
         else
         {
-            if (audioSourceHeadingSFXWriter.isPlaying)
+            if (SFX_Heading.isPlaying)
             {
-                audioSourceHeadingSFXWriter.isPlaying = false;
+                SFX_Heading.isPlaying = false;
             }
         }
-        #endregion
-        #region elevation
-        Unity.Mathematics.Random randomElevationSFX = audioSourceElevationSFXWriter.random;
-        if (ElevationRotationSFXInitialPitch == 0) ElevationRotationSFXInitialPitch = audioSourceElevationSFXWriter.ElevationRotationSFXInitialPitch * randomElevationSFX.NextFloat(0.95f, 1.05f);
-        audioSourceElevationSFXWriter.random = randomElevationSFX;
-        if (turret.IsElevationRotationSFX)
+    }
+}
+[BurstCompile]
+public partial struct TurretElevationSoundJob : IJobEntity
+{
+    [ReadOnly] public ComponentLookup<Turret> turretLookup;
+    public float ElevationRotationSFXInitialPitch;
+    public void Execute(ref SFX_Elevation SFX_Elevation)
+    {
+        Turret turret = turretLookup[SFX_Elevation.turretEntity];
+        Unity.Mathematics.Random randomHeadingSFX = SFX_Elevation.random;
+        if (ElevationRotationSFXInitialPitch == 0) ElevationRotationSFXInitialPitch = SFX_Elevation.elevationRotationSFXInitialPitch * randomHeadingSFX.NextFloat(0.95f, 1.05f);
+        SFX_Elevation.random = randomHeadingSFX;
+
+        if (turret.IsHeadingRotationSFX)
         {
-            if (!audioSourceElevationSFXWriter.isPlaying) audioSourceElevationSFXWriter.isPlaying = true;
-            audioSourceElevationSFXWriter.ElevationRotationSFXInitialPitch = Mathf.Lerp(ElevationRotationSFXInitialPitch * 0.8f, ElevationRotationSFXInitialPitch, turret.elevationSpeedFactor);
-            audioSourceElevationSFXWriter.ElevationRotationSFXInitialVolume = Mathf.Lerp(0f, 1f, turret.elevationSpeedFactor);
+            if (!SFX_Elevation.isPlaying) SFX_Elevation.isPlaying = true;
+            SFX_Elevation.elevationRotationSFXInitialPitch = math.lerp(0f, 1f, turret.elevationSpeedFactor);
+            SFX_Elevation.elevationRotationSFXInitialVolume = math.lerp(0f, 1f, turret.elevationSpeedFactor);
         }
         else
         {
-            if (audioSourceElevationSFXWriter.isPlaying)
+            if (SFX_Elevation.isPlaying)
             {
-                audioSourceElevationSFXWriter.isPlaying = false;
+                SFX_Elevation.isPlaying = false;
             }
         }
-        #endregion
-        ecb.SetComponent(sortkey, turret.SFX_HeadingEntity, audioSourceHeadingSFXWriter);
-        ecb.SetComponent(sortkey, turret.SFX_ElevationEntity, audioSourceElevationSFXWriter);
     }
 }
