@@ -7,8 +7,6 @@ using Unity.Mathematics;
 [UpdateAfter(typeof(TurretPitchSystem))]
 partial struct TurretHeadingElevationSoundSystem : ISystem
 {
-    private float HeadingRotationSFXInitialPitch;
-    private float ElevationRotationSFXInitialPitch;
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
@@ -66,19 +64,14 @@ partial struct TurretHeadingElevationSoundSystem : ISystem
         #region new code
         TurretHeadingSoundJob turretHeadingSoundJob = new()
         {
-            HeadingRotationSFXInitialPitch = HeadingRotationSFXInitialPitch,
             turretLookup = SystemAPI.GetComponentLookup<Turret>(isReadOnly: true),
         };
-        //JobHandle turretHeadingSoundJobHandler = 
         turretHeadingSoundJob.ScheduleParallel();
         TurretElevationSoundJob turretElevationSoundJob = new()
         {
-            ElevationRotationSFXInitialPitch = ElevationRotationSFXInitialPitch,
             turretLookup = SystemAPI.GetComponentLookup<Turret>(isReadOnly: true),
         };
-        //JobHandle turretElevationSoundJobHandler = 
         turretElevationSoundJob.ScheduleParallel();
-        //state.Dependency = JobHandle.CombineDependencies(turretHeadingSoundJobHandler, turretElevationSoundJobHandler);
         #endregion
     }
     [BurstCompile]
@@ -91,18 +84,13 @@ partial struct TurretHeadingElevationSoundSystem : ISystem
 public partial struct TurretHeadingSoundJob : IJobEntity
 {
     [ReadOnly] public ComponentLookup<Turret> turretLookup;
-    public float HeadingRotationSFXInitialPitch;
     public void Execute(ref SFX_Heading SFX_Heading)
     {
         Turret turret = turretLookup[SFX_Heading.turretEntity];
-        Unity.Mathematics.Random randomHeadingSFX = SFX_Heading.random;
-        if (HeadingRotationSFXInitialPitch == 0) HeadingRotationSFXInitialPitch = SFX_Heading.headingRotationSFXInitialPitch * randomHeadingSFX.NextFloat(0.95f, 1.05f);
-        SFX_Heading.random = randomHeadingSFX;
-
         if (turret.IsHeadingRotationSFX)
         {
             if (!SFX_Heading.isPlaying) SFX_Heading.isPlaying = true;
-            SFX_Heading.headingRotationSFXInitialPitch = math.lerp(0f, 1f, turret.headingSpeedFactor);
+            SFX_Heading.headingRotationSFXInitialPitch = math.lerp(0f, 0.55f, turret.headingSpeedFactor);
             SFX_Heading.headingRotationSFXInitialVolume = math.lerp(0f, 1f, turret.headingSpeedFactor);
         }
         else
@@ -118,18 +106,13 @@ public partial struct TurretHeadingSoundJob : IJobEntity
 public partial struct TurretElevationSoundJob : IJobEntity
 {
     [ReadOnly] public ComponentLookup<Turret> turretLookup;
-    public float ElevationRotationSFXInitialPitch;
     public void Execute(ref SFX_Elevation SFX_Elevation)
     {
         Turret turret = turretLookup[SFX_Elevation.turretEntity];
-        Unity.Mathematics.Random randomHeadingSFX = SFX_Elevation.random;
-        if (ElevationRotationSFXInitialPitch == 0) ElevationRotationSFXInitialPitch = SFX_Elevation.elevationRotationSFXInitialPitch * randomHeadingSFX.NextFloat(0.95f, 1.05f);
-        SFX_Elevation.random = randomHeadingSFX;
-
         if (turret.IsHeadingRotationSFX)
         {
             if (!SFX_Elevation.isPlaying) SFX_Elevation.isPlaying = true;
-            SFX_Elevation.elevationRotationSFXInitialPitch = math.lerp(0f, 1f, turret.elevationSpeedFactor);
+            SFX_Elevation.elevationRotationSFXInitialPitch = math.lerp(0f, 0.75f, turret.elevationSpeedFactor);
             SFX_Elevation.elevationRotationSFXInitialVolume = math.lerp(0f, 1f, turret.elevationSpeedFactor);
         }
         else

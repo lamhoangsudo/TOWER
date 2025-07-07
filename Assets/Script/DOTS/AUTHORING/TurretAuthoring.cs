@@ -18,11 +18,6 @@ public class TurretAuthoring : MonoBehaviour
     public GameObject headingPivot;
     public GameObject elevationPivot;
 
-    public float currentHeading;
-    public float currentElevation;
-    public float currentHeadingSpeed;
-    public float currentElevationSpeed;
-
     public GameObject target;
     public bool useTargetPrediction;
     public bool autoFire;
@@ -50,10 +45,6 @@ public class TurretAuthoring : MonoBehaviour
                 elevationLimited = authoring.elevationLimited,
                 headingPivot = GetEntity(authoring.headingPivot, TransformUsageFlags.Dynamic),
                 elevationPivot = GetEntity(authoring.elevationPivot, TransformUsageFlags.Dynamic),
-                currentHeading = authoring.currentHeading,
-                currentElevation = authoring.currentElevation,
-                currentHeadingSpeed = authoring.currentHeadingSpeed,
-                currentElevationSpeed = authoring.currentElevationSpeed,
                 target = GetEntity(authoring.target, TransformUsageFlags.Dynamic),
                 useTargetPrediction = authoring.useTargetPrediction,
                 autoFire = authoring.autoFire,

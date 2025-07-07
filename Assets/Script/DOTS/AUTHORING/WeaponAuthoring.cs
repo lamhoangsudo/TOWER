@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class WeaponAuthoring : MonoBehaviour
 {
-    public WeaponFiringPattern firingPattern;
+    public Enum.WeaponFiringPattern firingPattern;
     public int burstShots;
     public float burstDelay;
     public float cooldown;
@@ -59,16 +59,9 @@ public class WeaponAuthoring : MonoBehaviour
         }
     }
 }
-public enum WeaponFiringPattern
-{
-    Individual,
-    Simultaneous,
-    Gatling,
-    MissileLauncher
-}
 public struct Weapon : IComponentData
 {
-    public WeaponFiringPattern firingPattern;
+    public Enum.WeaponFiringPattern firingPattern;
     public int burstShots;
     public float burstDelay;
     public float cooldown;

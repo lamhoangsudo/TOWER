@@ -30,7 +30,7 @@ public partial struct WeaponSystem : ISystem
                     {
                         switch (weapon.ValueRO.firingPattern)
                         {
-                            case WeaponFiringPattern.Gatling:
+                            case Enum.WeaponFiringPattern.Gatling:
                                 {
                                     if (weapon.ValueRO.burstCounter < weapon.ValueRO.burstShots)
                                     {
@@ -84,7 +84,7 @@ public partial struct WeaponSystem : ISystem
                                     }
                                 }
                                 break;
-                            case WeaponFiringPattern.Individual:
+                            case Enum.WeaponFiringPattern.Individual:
                                 {
                                     // logic fire đạn (sẽ bổ sung)
                                     if (weapon.ValueRO.burstCounter < weapon.ValueRO.burstShots)
@@ -143,12 +143,12 @@ public partial struct WeaponSystem : ISystem
                                     }
                                 }
                                 break;
-                            case WeaponFiringPattern.Simultaneous:
+                            case Enum.WeaponFiringPattern.Simultaneous:
                                 {
                                     // logic fire đạn (sẽ bổ sung)
                                 }
                                 break;
-                            case WeaponFiringPattern.MissileLauncher:
+                            case Enum.WeaponFiringPattern.MissileLauncher:
                                 {
                                     // logic fire đạn (sẽ bổ sung)
                                     if (weapon.ValueRO.burstCounter < weapon.ValueRO.burstShots)

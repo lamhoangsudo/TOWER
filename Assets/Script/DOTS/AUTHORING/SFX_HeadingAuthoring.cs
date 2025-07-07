@@ -13,7 +13,6 @@ public class SFX_HeadingAuthoring : MonoBehaviour
             AudioSource audioSource = authoring.GetComponent<AudioSource>();
             AddComponent(entity, new SFX_Heading
             {
-                random = new Unity.Mathematics.Random((uint)entity.Index),
                 headingRotationSFXInitialPitch = audioSource.pitch,
                 headingRotationSFXInitialVolume = audioSource.volume,
                 turretEntity = GetEntity(authoring.turretAuthoring.gameObject, TransformUsageFlags.Dynamic),
@@ -28,7 +27,6 @@ public struct SFX_Heading : IComponentData
     public float headingRotationSFXInitialPitch;
     public float headingRotationSFXInitialVolume;
     public bool isPlaying;
-    public Unity.Mathematics.Random random;
 }
 
 
