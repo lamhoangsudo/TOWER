@@ -381,7 +381,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 602626577bea6304baf1c8710a2fd3b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  burstDelayMax: 0.2
+  burstDelayMax: 0
   burstCountMax: 1
 --- !u!1 &1272653061 stripped
 GameObject:
@@ -400,7 +400,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 602626577bea6304baf1c8710a2fd3b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  burstDelayMax: 0.2
+  burstDelayMax: 0
   burstCountMax: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

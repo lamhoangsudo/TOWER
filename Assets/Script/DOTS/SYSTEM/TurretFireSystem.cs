@@ -43,9 +43,9 @@ partial struct TurretFireSystem : ISystem
                         foreach (WeaponBuffer weaponBuffer in weaponBuffers)
                         {
                             weapon = SystemAPI.GetComponentRW<Weapon>(weaponBuffer.weaponBuffer);
-                            if(weapon.ValueRO.startFire == shouldFire) continue;
+                            if (weapon.ValueRO.startFire == shouldFire) continue;
                             turretFireTime.ValueRW.burstCount++;
-                            turretFireTime.ValueRW.burstCount = math.clamp(turretFireTime.ValueRO.burstCount ,0, turretFireTime.ValueRO.burstCountMax);
+                            turretFireTime.ValueRW.burstCount = math.clamp(turretFireTime.ValueRO.burstCount, 0, turretFireTime.ValueRO.burstCountMax);
                             weapon.ValueRW.startFire = shouldFire;
                         }
                         turretFireTime.ValueRW.burstDelay = 0f;
@@ -56,6 +56,12 @@ partial struct TurretFireSystem : ISystem
                         }
                         break;
                     case Enum.TurretFiringPattern.Individual:
+                        if (turretFireTime.ValueRO.burstCount >= turretFireTime.ValueRO.burstCountMax)
+                        {
+                            turretFireTime.ValueRW.cooldown = turretFireTime.ValueRO.cooldownMax;
+                            turretFireTime.ValueRW.burstCount = 0;
+                            break;
+                        }
                         turretFireTime.ValueRW.burstDelay += SystemAPI.Time.DeltaTime;
                         if (turretFireTime.ValueRO.burstDelay < turretFireTime.ValueRO.burstDelayMax) continue;
                         weapon = SystemAPI.GetComponentRW<Weapon>(weaponBuffers[indexWeapons].weaponBuffer);
@@ -64,14 +70,8 @@ partial struct TurretFireSystem : ISystem
                         if (indexWeapons >= weaponBuffers.Length) indexWeapons = 0;
                         turretFireTime.ValueRW.burstCount++;
                         turretFireTime.ValueRW.burstCount = math.clamp(turretFireTime.ValueRO.burstCount, 0, turretFireTime.ValueRO.burstCountMax);
-                        weapon.ValueRW.startFire = shouldFire;
-
                         turretFireTime.ValueRW.burstDelay = 0f;
-                        if (turretFireTime.ValueRO.burstCount >= turretFireTime.ValueRO.burstCountMax)
-                        {
-                            turretFireTime.ValueRW.cooldown = turretFireTime.ValueRO.cooldownMax;
-                            turretFireTime.ValueRW.burstCount = 0;
-                        }
+                        weapon.ValueRW.startFire = shouldFire;
                         break;
                 }
             }

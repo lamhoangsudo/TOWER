@@ -227,9 +227,16 @@ public partial struct WeaponSystem : ISystem
             switch (weapon.ValueRO.firingPattern)
             {
                 case Enum.WeaponFiringPattern.Individual:
+                    if(weaponFireTime.ValueRO.burstCount >= weaponFireTime.ValueRO.burstCountMax && !barrelAnimator.ValueRO.animationPlaying)
+                    {
+                        weaponFireTime.ValueRW.burstCount = 0;
+                        weaponFireTime.ValueRW.burstDelay = 0;
+                        weapon.ValueRW.startFire = false;
+                        break;
+                    }
                     if (barrelTipEntityBuffers.Length != pointShotEntityBuffers.Length) continue;
                     weaponFireTime.ValueRW.burstDelay += SystemAPI.Time.DeltaTime;
-                    if (weaponFireTime.ValueRO.burstDelay < weaponFireTime.ValueRO.burstDelayMax + barrelAnimator.ValueRO.animationDuration) continue;
+                    if (weaponFireTime.ValueRO.burstDelay < weaponFireTime.ValueRO.burstDelayMax) continue;
                     barrelAnimator.ValueRW.barrelTipIndex = weaponFireTime.ValueRO.burstCount % weaponFireTime.ValueRO.burstCountMax;
                     barrelAnimator.ValueRW.pointShootIndex = weaponFireTime.ValueRO.burstCount % weaponFireTime.ValueRO.burstCountMax;
                     if (barrelAnimator.ValueRW.animationPlaying == false)
@@ -239,12 +246,6 @@ public partial struct WeaponSystem : ISystem
                     }
                     weaponFireTime.ValueRW.burstCount++;
                     weaponFireTime.ValueRW.burstCount = math.clamp(weaponFireTime.ValueRO.burstCount, 0, weaponFireTime.ValueRO.burstCountMax);
-                    if(weaponFireTime.ValueRO.burstCount >= weaponFireTime.ValueRO.burstCountMax)
-                    {
-                        weaponFireTime.ValueRW.burstCount = 0;
-                        weaponFireTime.ValueRW.burstDelay = 0;
-                        weapon.ValueRW.startFire = false;
-                    }
                     break;
                 case Enum.WeaponFiringPattern.Simultaneous:
                     if (barrelTipEntityBuffers.Length <= 1) continue;
