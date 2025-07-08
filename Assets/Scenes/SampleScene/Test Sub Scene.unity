@@ -254,7 +254,7 @@ PrefabInstance:
       objectReference: {fileID: 403559805}
     - target: {fileID: 5227079578115672197, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
       propertyPath: autoFire
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5795755249376107132, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
       propertyPath: m_Name
@@ -311,6 +311,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5795755249376107132, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1249099125}
+    - targetCorrespondingSourceObject: {fileID: 507728256120364596, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1249099130}
+    - targetCorrespondingSourceObject: {fileID: 7746954298611443481, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1272653063}
   m_SourcePrefab: {fileID: 100100000, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
 --- !u!1 &1249099124 stripped
 GameObject:
@@ -330,8 +336,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firingPattern: 0
-  burstDelayMax: 0.2
-  cooldownMax: 1.9
+  burstCountMax: 5
+  burstDelayMax: 0.4
+  cooldownMax: 2
   weaponAuthorings:
   - {fileID: 1249099127}
   - {fileID: 1249099126}
@@ -340,7 +347,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7757196315732866672, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
   m_PrefabInstance: {fileID: 1249099123}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1272653061}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4a108e7c92746a24da8ab3c0666b2fd5, type: 3}
@@ -351,12 +358,50 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 517488687666810717, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
   m_PrefabInstance: {fileID: 1249099123}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1249099128}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4a108e7c92746a24da8ab3c0666b2fd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1249099128 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 507728256120364596, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
+  m_PrefabInstance: {fileID: 1249099123}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1249099130
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1249099128}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 602626577bea6304baf1c8710a2fd3b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  burstDelayMax: 0.2
+  burstCountMax: 1
+--- !u!1 &1272653061 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7746954298611443481, guid: a1c7e2142e15b284bbec693ea72d4a83, type: 3}
+  m_PrefabInstance: {fileID: 1249099123}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1272653063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1272653061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 602626577bea6304baf1c8710a2fd3b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  burstDelayMax: 0.2
+  burstCountMax: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

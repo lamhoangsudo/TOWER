@@ -4,9 +4,6 @@ using UnityEngine;
 public class WeaponAuthoring : MonoBehaviour
 {
     public Enum.WeaponFiringPattern firingPattern;
-    public int burstShots;
-    public float burstDelay;
-    public float cooldown;
     public float spreadAngle;
 
     public float gatlingRotationSpeed;
@@ -18,12 +15,6 @@ public class WeaponAuthoring : MonoBehaviour
     public float projectileMaxSpeed;
     public bool projectileUsePrediction;
     public int impactLayer;
-
-    public bool isFiring;
-    public float currentCooldown;
-    public int burstCounter;
-    public float bustTime;
-    public GameObject[] BarrelAnimator;
     public class WeaponAuthoringBaker : Baker<WeaponAuthoring>
     {
 
@@ -33,9 +24,6 @@ public class WeaponAuthoring : MonoBehaviour
             AddComponent(entity, new Weapon
             {
                 firingPattern = authoring.firingPattern,
-                burstShots = authoring.burstShots,
-                burstDelay = authoring.burstDelay,
-                cooldown = authoring.cooldown,
                 spreadAngle = authoring.spreadAngle,
                 gatlingRotationSpeed = authoring.gatlingRotationSpeed,
                 projectilePrefab = GetEntity(authoring.projectilePrefab, TransformUsageFlags.Dynamic),
@@ -45,30 +33,16 @@ public class WeaponAuthoring : MonoBehaviour
                 projectileMaxSpeed = authoring.projectileMaxSpeed,
                 projectileUsePrediction = authoring.projectileUsePrediction,
                 impactLayer = authoring.impactLayer,
-                isFiring = authoring.isFiring,
-                currentCooldown = authoring.currentCooldown,
-                burstCounter = authoring.burstCounter,
-                burstTime = authoring.bustTime,
+                startFire = false,
             });
-            DynamicBuffer<BarrelAnimatorBuffer> buffer = AddBuffer<BarrelAnimatorBuffer>(entity);
-            foreach (GameObject gameObject in authoring.BarrelAnimator)
-            {
-                Entity barrelAnimatorEntity = GetEntity(gameObject, TransformUsageFlags.Dynamic);
-                buffer.Add(new BarrelAnimatorBuffer { barrelAnimatorBuffer = barrelAnimatorEntity });
-            }
         }
     }
 }
 public struct Weapon : IComponentData
 {
     public Enum.WeaponFiringPattern firingPattern;
-    public int burstShots;
-    public float burstDelay;
-    public float cooldown;
     public float spreadAngle;
-
     public float gatlingRotationSpeed;
-
     public Entity projectilePrefab;
     public float projectileSpeed;
     public float projectileLifetime;
@@ -76,16 +50,7 @@ public struct Weapon : IComponentData
     public float projectileMaxSpeed;
     public bool projectileUsePrediction;
     public int impactLayer;
-
-    public bool isFiring;
-    public float currentCooldown;
-    public int burstCounter;
-    public float burstTime;
-}
-[InternalBufferCapacity(6)]
-public struct BarrelAnimatorBuffer : IBufferElementData
-{
-    public Entity barrelAnimatorBuffer;
+    public bool startFire;
 }
 
 

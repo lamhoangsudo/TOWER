@@ -8,6 +8,7 @@ using UnityEngine;
 partial struct TurretFireSystem : ISystem
 {
     private bool shouldFire;
+    private int indexWeapons;
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
@@ -17,26 +18,6 @@ partial struct TurretFireSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        foreach ((RefRO<Turret> turret, RefRO<LocalTransform> localTransform, Entity entity) in SystemAPI.Query<RefRO<Turret>, RefRO<LocalTransform>>().WithEntityAccess())
-        {
-            if (turret.ValueRO.autoFire && turret.ValueRO.isHeadingRotationTarget && turret.ValueRO.isElevationRotationTarget)
-            {
-                shouldFire = true;
-            }
-            else
-            {
-                shouldFire = false;
-            }
-            DynamicBuffer<WeaponItemBuffer> weaponBuffers = SystemAPI.GetBuffer<WeaponItemBuffer>(entity);
-            foreach (WeaponItemBuffer weaponItem in weaponBuffers)
-            {
-                RefRW<Weapon> weapon = SystemAPI.GetComponentRW<Weapon>(weaponItem.weaponEntity);
-                if (weapon.ValueRO.isFiring != shouldFire)
-                {
-                    weapon.ValueRW.isFiring = shouldFire;
-                }
-            }
-        }
         foreach ((RefRO<Turret> turret, DynamicBuffer<WeaponBuffer> weaponBuffers, RefRW<TurretFireTime> turretFireTime) in SystemAPI.Query<RefRO<Turret>, DynamicBuffer<WeaponBuffer>, RefRW<TurretFireTime>>())
         {
             turretFireTime.ValueRW.cooldown -= SystemAPI.Time.DeltaTime;
@@ -62,34 +43,34 @@ partial struct TurretFireSystem : ISystem
                         foreach (WeaponBuffer weaponBuffer in weaponBuffers)
                         {
                             weapon = SystemAPI.GetComponentRW<Weapon>(weaponBuffer.weaponBuffer);
-                            if(weapon.ValueRO.isFiring != shouldFire) continue;
+                            if(weapon.ValueRO.startFire == shouldFire) continue;
                             turretFireTime.ValueRW.burstCount++;
-                            turretFireTime.ValueRW.burstCount = math.clamp(turretFireTime.ValueRO.burstCount ,0f, turretFireTime.ValueRO.burstCountMax);
-                            weapon.ValueRW.isFiring = shouldFire;
+                            turretFireTime.ValueRW.burstCount = math.clamp(turretFireTime.ValueRO.burstCount ,0, turretFireTime.ValueRO.burstCountMax);
+                            weapon.ValueRW.startFire = shouldFire;
                         }
                         turretFireTime.ValueRW.burstDelay = 0f;
                         if (turretFireTime.ValueRO.burstCount >= turretFireTime.ValueRO.burstCountMax)
                         {
                             turretFireTime.ValueRW.cooldown = turretFireTime.ValueRO.cooldownMax;
-                            turretFireTime.ValueRW.burstCount = 0f;
+                            turretFireTime.ValueRW.burstCount = 0;
                         }
                         break;
                     case Enum.TurretFiringPattern.Individual:
                         turretFireTime.ValueRW.burstDelay += SystemAPI.Time.DeltaTime;
                         if (turretFireTime.ValueRO.burstDelay < turretFireTime.ValueRO.burstDelayMax) continue;
-
-                        int indexWeapons = (int)(turretFireTime.ValueRO.burstCount / turretFireTime.ValueRO.burstCountMax);
                         weapon = SystemAPI.GetComponentRW<Weapon>(weaponBuffers[indexWeapons].weaponBuffer);
-                        if (weapon.ValueRO.isFiring != shouldFire) continue;
+                        if (weapon.ValueRO.startFire == shouldFire) continue;
+                        indexWeapons++;
+                        if (indexWeapons >= weaponBuffers.Length) indexWeapons = 0;
                         turretFireTime.ValueRW.burstCount++;
-                        turretFireTime.ValueRW.burstCount = math.clamp(turretFireTime.ValueRO.burstCount, 0f, turretFireTime.ValueRO.burstCountMax);
-                        weapon.ValueRW.isFiring = shouldFire;
+                        turretFireTime.ValueRW.burstCount = math.clamp(turretFireTime.ValueRO.burstCount, 0, turretFireTime.ValueRO.burstCountMax);
+                        weapon.ValueRW.startFire = shouldFire;
 
                         turretFireTime.ValueRW.burstDelay = 0f;
                         if (turretFireTime.ValueRO.burstCount >= turretFireTime.ValueRO.burstCountMax)
                         {
                             turretFireTime.ValueRW.cooldown = turretFireTime.ValueRO.cooldownMax;
-                            turretFireTime.ValueRW.burstCount = 0f;
+                            turretFireTime.ValueRW.burstCount = 0;
                         }
                         break;
                 }
@@ -97,9 +78,9 @@ partial struct TurretFireSystem : ISystem
             else if (weaponBuffers.Length == 1)
             {
                 weapon = SystemAPI.GetComponentRW<Weapon>(weaponBuffers[0].weaponBuffer);
-                if (weapon.ValueRO.isFiring != shouldFire)
+                if (weapon.ValueRO.startFire != shouldFire)
                 {
-                    weapon.ValueRW.isFiring = shouldFire;
+                    weapon.ValueRW.startFire = shouldFire;
                 }
             }
         }

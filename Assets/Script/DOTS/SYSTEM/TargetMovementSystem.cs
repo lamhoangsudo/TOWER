@@ -23,7 +23,7 @@ partial struct TargetMovementSystem : ISystem
                 float3 targetPosition = new float3 (random.NextFloat(-50f, 50f), random.NextFloat(0f, 10f), 30f);
                 target.ValueRW.TargetPosition = targetPosition;
                 target.ValueRW.RandomGenerator = random;
-                target.ValueRW.time = 2f;
+                target.ValueRW.time = 200f;
             }
             localTransform.ValueRW.Position = math.lerp(localTransform.ValueRO.Position, target.ValueRO.TargetPosition, SystemAPI.Time.DeltaTime * 10f);
         }

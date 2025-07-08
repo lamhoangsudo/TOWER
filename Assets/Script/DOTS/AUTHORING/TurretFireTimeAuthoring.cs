@@ -1,10 +1,11 @@
 using Unity.Entities;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class TurretFireTimeAuthoring : MonoBehaviour
 {
     public Enum.TurretFiringPattern firingPattern;
-    public float burstCountMax;
+    public int burstCountMax;
     public float burstDelayMax;
     public float cooldownMax;
     public WeaponAuthoring[] weaponAuthorings;
@@ -19,7 +20,7 @@ public class TurretFireTimeAuthoring : MonoBehaviour
                 burstDelayMax = authoring.burstDelayMax,
                 cooldownMax = authoring.cooldownMax,
             });
-            if (authoring.weaponAuthorings.Length > 0)
+            if (authoring.weaponAuthorings.Length > 0 && !authoring.weaponAuthorings.IsUnityNull())
             {
                 DynamicBuffer<WeaponBuffer> weaponBuffers = AddBuffer<WeaponBuffer>(entity);
                 foreach (WeaponAuthoring weaponAuthoring in authoring.weaponAuthorings)
@@ -36,8 +37,8 @@ public class TurretFireTimeAuthoring : MonoBehaviour
 public struct TurretFireTime : IComponentData
 {
     public Enum.TurretFiringPattern firingPattern;
-    public float burstCountMax;
-    public float burstCount;
+    public int burstCountMax;
+    public int burstCount;
     public float burstDelayMax;
     public float burstDelay;
     public float cooldownMax;
