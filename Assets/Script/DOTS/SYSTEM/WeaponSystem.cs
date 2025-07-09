@@ -22,7 +22,7 @@ public partial struct WeaponSystem : ISystem
                 // Giảm cooldown
                 if (weapon.ValueRO.currentCooldown > 0f)
                 {
-                    weapon.ValueRW.currentCooldown -= SystemAPI.Time.DeltaTime;
+                    weapon.ValueRW.currentCooldown -= SystemAPI.Time.deltaTime;
                     continue;
                 }
                 else
@@ -44,7 +44,7 @@ public partial struct WeaponSystem : ISystem
                                             RefRW<BarrelAnimator> barrelAnimator = SystemAPI.GetComponentRW<BarrelAnimator>(barrelAnimatorBuffer.barrelAnimatorBuffer);
                                             if (SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length > 1)
                                             {
-                                                weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                                weapon.ValueRW.burstTime += SystemAPI.Time.deltaTime;
                                                 if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay + barrelAnimator.ValueRW.barrelTipIndex * barrelAnimator.ValueRW.animationDuration)
                                                 {
                                                     continue;
@@ -66,7 +66,7 @@ public partial struct WeaponSystem : ISystem
                                             }
                                             else
                                             {
-                                                weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                                weapon.ValueRW.burstTime += SystemAPI.Time.deltaTime;
                                                 if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay)
                                                 {
                                                     continue;
@@ -102,7 +102,7 @@ public partial struct WeaponSystem : ISystem
 
                                                 if (SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length > 1)
                                                 {
-                                                    weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                                    weapon.ValueRW.burstTime += SystemAPI.Time.deltaTime;
                                                     if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay + barrelAnimator.ValueRW.barrelTipIndex * barrelAnimator.ValueRW.animationDuration)
                                                     {
                                                         continue;
@@ -124,7 +124,7 @@ public partial struct WeaponSystem : ISystem
                                                 }
                                                 else
                                                 {
-                                                    weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                                    weapon.ValueRW.burstTime += SystemAPI.Time.deltaTime;
                                                     if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay)
                                                     {
                                                         continue;
@@ -166,7 +166,7 @@ public partial struct WeaponSystem : ISystem
 
                                                 if (SystemAPI.GetBuffer<BarrelTipEntityBuffer>(entity).Length > 1)
                                                 {
-                                                    weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                                    weapon.ValueRW.burstTime += SystemAPI.Time.deltaTime;
                                                     if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay + barrelAnimator.ValueRW.barrelTipIndex * barrelAnimator.ValueRW.animationDuration)
                                                     {
                                                         continue;
@@ -188,7 +188,7 @@ public partial struct WeaponSystem : ISystem
                                                 }
                                                 else
                                                 {
-                                                    weapon.ValueRW.burstTime += SystemAPI.Time.DeltaTime;
+                                                    weapon.ValueRW.burstTime += SystemAPI.Time.deltaTime;
                                                     if (weapon.ValueRO.burstTime <= weapon.ValueRO.burstDelay)
                                                     {
                                                         continue;

@@ -16,9 +16,11 @@ public class TurretFireTimeAuthoring : MonoBehaviour
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
             AddComponent(entity, new TurretFireTime
             {
+                firingPattern = authoring.firingPattern,
                 burstCountMax = authoring.burstCountMax * authoring.weaponAuthorings.Length,
                 burstDelayMax = authoring.burstDelayMax,
                 cooldownMax = authoring.cooldownMax,
+                indexWeapons = 0,
             });
             if (authoring.weaponAuthorings.Length > 0 && !authoring.weaponAuthorings.IsUnityNull())
             {
@@ -43,6 +45,7 @@ public struct TurretFireTime : IComponentData
     public float burstDelay;
     public float cooldownMax;
     public float cooldown;
+    public int indexWeapons;
 }
 [InternalBufferCapacity(6)] 
 public struct WeaponBuffer : IBufferElementData
