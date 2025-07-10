@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2321277154601486529}
   - component: {fileID: 4382616537750652385}
-  - component: {fileID: 5874758881373789258}
   m_Layer: 0
   m_Name: MuzzleFlash1_L_OrangeECS
   m_TagString: Untagged
@@ -51,24 +50,7 @@ MonoBehaviour:
   scaleVariance: 0.3
   lengthVariance: 0.2
   muzzleFlashDuration: 0.03
-  elapsedTime: 0
-  startScale: 0
-  endScale: 0
-  startLength: 0
-  endLength: 0
   lightIntensity: 4
---- !u!114 &5874758881373789258
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2321277154601486530}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2321277155883260264
 GameObject:
   m_ObjectHideFlags: 0
@@ -285,6 +267,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 703233841135042107}
+  - component: {fileID: 5161574700812030971}
   m_Layer: 0
   m_Name: FlashParent
   m_TagString: Untagged
@@ -302,10 +285,22 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.25, y: 1.25, z: 1.25}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2482966007852023435}
   - {fileID: 2321277155883260271}
   m_Father: {fileID: 2321277154601486529}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5161574700812030971
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5632071814975292973}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

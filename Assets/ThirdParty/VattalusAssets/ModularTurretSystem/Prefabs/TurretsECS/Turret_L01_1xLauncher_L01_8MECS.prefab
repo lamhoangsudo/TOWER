@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4969473682298969667}
   - component: {fileID: 4992795495340850638}
-  - component: {fileID: 8260096758803213234}
+  - component: {fileID: 829285328227047879}
   m_Layer: 0
   m_Name: Turret_L01_1xLauncher_L01_8MECS
   m_TagString: Untagged
@@ -60,20 +60,14 @@ MonoBehaviour:
   elevationLimited: 0
   headingPivot: {fileID: 4969473683846292623}
   elevationPivot: {fileID: 4969473683420496668}
-  currentHeading: 0
-  currentElevation: 0
-  currentHeadingSpeed: 0
-  currentElevationSpeed: 0
   target: {fileID: 0}
   useTargetPrediction: 0
   autoFire: 1
   targetAquiredAngle: 25
   resetOrientation: 0
-  SFX_Heading: {fileID: 4969473683629901364}
-  SFX_Elevation: {fileID: 4969473683962304504}
   weapons:
   - {fileID: 1860148548334539114}
---- !u!114 &8260096758803213234
+--- !u!114 &829285328227047879
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -82,9 +76,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 4969473682298969666}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
+  m_Script: {fileID: 11500000, guid: 9373227d7129085438993386d0f59489, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  firingPattern: 0
+  burstCountMax: 1
+  burstDelayMax: 0
+  cooldownMax: 5
+  weaponAuthorings:
+  - {fileID: 1102219620801199296}
 --- !u!1 &4969473683420496668
 GameObject:
   m_ObjectHideFlags: 0
@@ -140,6 +140,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4969473683629901365}
   - component: {fileID: 4969473683629901362}
+  - component: {fileID: 9044363396699001409}
   m_Layer: 0
   m_Name: SFX_Heading
   m_TagString: Untagged
@@ -304,6 +305,19 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &9044363396699001409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4969473683629901364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3a965207a397714991b869656b067f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  turretAuthoring: {fileID: 4992795495340850638}
 --- !u!1 &4969473683846292623
 GameObject:
   m_ObjectHideFlags: 0
@@ -362,6 +376,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4969473683962304505}
   - component: {fileID: 4969473683962304262}
+  - component: {fileID: 5987409694329584154}
   m_Layer: 0
   m_Name: SFX_Elevation
   m_TagString: Untagged
@@ -526,6 +541,19 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &5987409694329584154
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4969473683962304504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5537e4002d14b9d49a2f3493bfd94e64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  turretAuthoring: {fileID: 4992795495340850638}
 --- !u!1001 &4969473682391891124
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -628,6 +656,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4969473683420496669}
     m_Modifications:
+    - target: {fileID: 5614726156978237291, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
+      propertyPath: burstDelayMax
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 6836354282534631581, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
       propertyPath: m_Name
       value: Launcher_L01_8MECS
@@ -677,6 +709,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
+--- !u!114 &1102219620801199296 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5207522535755748663, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
+  m_PrefabInstance: {fileID: 5120320922435332599}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1860148548334539114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a108e7c92746a24da8ab3c0666b2fd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &1860148548334539113 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6836354282534631582, guid: 98e7121c03680da419ecead0149a0d04, type: 3}

@@ -1207,7 +1207,7 @@ GameObject:
   - component: {fileID: 6836354282534631582}
   - component: {fileID: 5207522535755748663}
   - component: {fileID: 5308959467167847902}
-  - component: {fileID: 3596007723730802526}
+  - component: {fileID: 5614726156978237291}
   m_Layer: 0
   m_Name: Launcher_L01_8MECS
   m_TagString: Untagged
@@ -1245,9 +1245,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firingPattern: 3
-  burstShots: 8
-  burstDelay: 0.5
-  cooldown: 1
   spreadAngle: 0
   gatlingRotationSpeed: 0
   projectilePrefab: {fileID: 708610523296216716, guid: 8c333ae8e12d29a48aae422ac3a4c809, type: 3}
@@ -1257,12 +1254,6 @@ MonoBehaviour:
   projectileMaxSpeed: 150
   projectileUsePrediction: 0
   impactLayer: 0
-  isFiring: 0
-  currentCooldown: 0
-  burstCounter: 0
-  bustTime: 0
-  BarrelAnimator:
-  - {fileID: 6836354282534631581}
 --- !u!114 &5308959467167847902
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1309,7 +1300,8 @@ MonoBehaviour:
     m_RotationOrder: 4
   sfxPitch: 1
   sfxVolume: 1
---- !u!114 &3596007723730802526
+  audioGatlingEffect: {fileID: 0}
+--- !u!114 &5614726156978237291
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1318,9 +1310,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 6836354282534631581}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
+  m_Script: {fileID: 11500000, guid: 602626577bea6304baf1c8710a2fd3b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  burstDelayMax: 0.4
+  burstCountMax: 8
 --- !u!1001 &625127806924848598
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1864,34 +1858,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6836354282534631582}
     m_Modifications:
-    - target: {fileID: 703233841135042107, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 703233841135042107, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 703233841135042107, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 703233841135042107, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2321277154601486529, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2321277154601486529, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2321277154601486529, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2321277154601486529, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.36070013
@@ -1932,29 +1898,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2321277154601486529, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 2321277154601486530, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
       propertyPath: m_Name
       value: MuzzleFlash1_L_OrangeECS
       objectReference: {fileID: 0}
-    - target: {fileID: 2321277155883260270, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
-      propertyPath: m_Intensity
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4382616537750652385, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
-      propertyPath: lightIntensity
-      value: 4
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5632071814975292973, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1926193876968906604}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
 --- !u!4 &1769410524739074809 stripped
 Transform:
@@ -1966,23 +1917,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 2321277154601486530, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
   m_PrefabInstance: {fileID: 4087263198827819576}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &8543824650239423509 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5632071814975292973, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
-  m_PrefabInstance: {fileID: 4087263198827819576}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1926193876968906604
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8543824650239423509}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &4179208153004427724
 PrefabInstance:
   m_ObjectHideFlags: 0
