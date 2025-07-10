@@ -2,6 +2,7 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
+using static UnityEngine.EventSystems.EventTrigger;
 [UpdateAfter(typeof(TurretFireSystem))]
 public partial struct WeaponSystem : ISystem
 {
@@ -252,6 +253,13 @@ public partial struct WeaponSystem : ISystem
                 case Enum.WeaponFiringPattern.Simultaneous:
                     if (barrelTipEntityBuffers.Length <= 1) break;
                     if (barrelTipEntityBuffers.Length != pointShotEntityBuffers.Length) break;
+                    if (weaponFireTime.ValueRO.burstCount >= weaponFireTime.ValueRO.burstCountMax)
+                    {
+                        weaponFireTime.ValueRW.burstCount = 0;
+                        weaponFireTime.ValueRW.burstDelay = 0;
+                        weapon.ValueRW.startFire = false;
+                        break;
+                    }
                     weaponFireTime.ValueRW.burstDelay += SystemAPI.Time.DeltaTime;
                     if (weaponFireTime.ValueRO.burstDelay < weaponFireTime.ValueRO.burstDelayMax) break;
                     weaponFireTime.ValueRW.barrelTipIndex = weaponFireTime.ValueRO.burstCount % weaponFireTime.ValueRO.burstCountMax;
@@ -263,16 +271,32 @@ public partial struct WeaponSystem : ISystem
                     }
                     weaponFireTime.ValueRW.burstCount += barrelTipEntityBuffers.Length;
                     weaponFireTime.ValueRW.burstCount = math.clamp(weaponFireTime.ValueRO.burstCount, 0, weaponFireTime.ValueRO.burstCountMax);
-                    if (weaponFireTime.ValueRO.burstCount >= weaponFireTime.ValueRO.burstCountMax)
-                    {
-                        weaponFireTime.ValueRW.burstCount = 0;
-                        weaponFireTime.ValueRW.burstDelay = 0;
-                        weapon.ValueRW.startFire = false;
-                    }
+
                     weaponFireTime.ValueRW.burstCount += barrelTipEntityBuffers.Length;
                     break;
                 case Enum.WeaponFiringPattern.MissileLauncher:
                     if (barrelTipEntityBuffers.Length > 1) break;
+                    if (weaponFireTime.ValueRO.burstCount >= weaponFireTime.ValueRO.burstCountMax && !barrelAnimator.ValueRO.animationPlaying)
+                    {
+                        weaponFireTime.ValueRW.burstCount = 0;
+                        weaponFireTime.ValueRW.burstDelay = 0;
+                        weapon.ValueRW.startFire = false;
+                        break;
+                    }
+                    weaponFireTime.ValueRW.burstDelay += SystemAPI.Time.DeltaTime;
+                    if (weaponFireTime.ValueRO.burstDelay > weaponFireTime.ValueRO.burstDelayMax)
+                    {
+                        if (barrelAnimator.ValueRW.animationPlaying == false)
+                        {
+                            barrelAnimator.ValueRW.animationPlaying = true;
+                            barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
+                            weaponFireTime.ValueRW.burstDelay = 0;
+                            weaponFireTime.ValueRW.pointShootIndex++;
+                            weaponFireTime.ValueRW.burstCount++;
+                            weaponFireTime.ValueRW.burstCount = math.clamp(weaponFireTime.ValueRO.burstCount, 0, weaponFireTime.ValueRO.burstCountMax);
+                            if (weaponFireTime.ValueRO.pointShootIndex >= pointShotEntityBuffers.Length) weaponFireTime.ValueRW.pointShootIndex = 0;
+                        }
+                    }
                     break;
                 case Enum.WeaponFiringPattern.Gatling:
                     break;

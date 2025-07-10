@@ -8,7 +8,6 @@ using UnityEngine;
 [UpdateAfter(typeof(TurretPitchSystem))]
 partial struct TurretFireSystem : ISystem
 {
-    private bool shouldFire;
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
@@ -93,7 +92,6 @@ partial struct TurretFireSystem : ISystem
         TurretFireJob turretFireJob = new TurretFireJob()
         {
             deltaTime = SystemAPI.Time.DeltaTime,
-            shouldFire = shouldFire,
             ecb = ecb.AsParallelWriter(),
             componentLookupWeapon = SystemAPI.GetComponentLookup<Weapon>(isReadOnly: false),
         };
@@ -112,7 +110,7 @@ partial struct TurretFireSystem : ISystem
     public partial struct TurretFireJob : IJobEntity
     {
         public float deltaTime;
-        public bool shouldFire;
+        private bool shouldFire;
         public EntityCommandBuffer.ParallelWriter ecb;
         [ReadOnly] public ComponentLookup<Weapon> componentLookupWeapon;
         public void Execute(in Turret turret, ref DynamicBuffer<WeaponBuffer> weaponBuffers, ref TurretFireTime turretFireTime, [ChunkIndexInQuery] int sortkey)
@@ -130,60 +128,50 @@ partial struct TurretFireSystem : ISystem
             }
 
             Weapon weaponWritter;
-            if (weaponBuffers.Length > 1)
+            switch (turretFireTime.firingPattern)
             {
-                switch (turretFireTime.firingPattern)
-                {
-                    case Enum.TurretFiringPattern.Simultaneous:
-                        if (turretFireTime.burstCount >= turretFireTime.burstCountMax)
-                        {
-                            turretFireTime.cooldown = turretFireTime.cooldownMax;
-                            turretFireTime.burstCount = 0;
-                            break;
-                        }
-                        turretFireTime.burstDelay += deltaTime;
-                        if (turretFireTime.burstDelay < turretFireTime.burstDelayMax) break;
-                        foreach (WeaponBuffer weaponBuffer in weaponBuffers)
-                        {
-                            weaponWritter = componentLookupWeapon[weaponBuffer.weaponBuffer];
-                            if (weaponWritter.startFire == shouldFire) continue;
-                            turretFireTime.burstCount = math.clamp(turretFireTime.burstCount, 0, turretFireTime.burstCountMax);
-                            weaponWritter.startFire = shouldFire;
-                            turretFireTime.burstCount++;
-                            ecb.SetComponent<Weapon>(sortkey, weaponBuffer.weaponBuffer, weaponWritter);
-                        }
-                        turretFireTime.burstDelay = 0f;
+                case Enum.TurretFiringPattern.Simultaneous:
+                    if (weaponBuffers.Length <= 1) break;
+                    if (turretFireTime.burstCount >= turretFireTime.burstCountMax)
+                    {
+                        turretFireTime.cooldown = turretFireTime.cooldownMax;
+                        turretFireTime.burstCount = 0;
                         break;
-                    case Enum.TurretFiringPattern.Individual:
-                        if (turretFireTime.burstCount >= turretFireTime.burstCountMax)
-                        {
-                            turretFireTime.cooldown = turretFireTime.cooldownMax;
-                            turretFireTime.burstCount = 0;
-                            break;
-                        }
-                        turretFireTime.burstDelay += deltaTime;
-                        if (turretFireTime.burstDelay < turretFireTime.burstDelayMax) break;
-                        weaponWritter = componentLookupWeapon[weaponBuffers[turretFireTime.indexWeapons].weaponBuffer];
-                        if (weaponWritter.startFire == shouldFire) break;
-                        turretFireTime.indexWeapons++;
-                        if (turretFireTime.indexWeapons >= weaponBuffers.Length) turretFireTime.indexWeapons = 0;
-                        turretFireTime.burstCount++;
+                    }
+                    turretFireTime.burstDelay += deltaTime;
+                    if (turretFireTime.burstDelay < turretFireTime.burstDelayMax) break;
+                    foreach (WeaponBuffer weaponBuffer in weaponBuffers)
+                    {
+                        weaponWritter = componentLookupWeapon[weaponBuffer.weaponBuffer];
+                        if (weaponWritter.startFire == shouldFire) continue;
                         turretFireTime.burstCount = math.clamp(turretFireTime.burstCount, 0, turretFireTime.burstCountMax);
-                        turretFireTime.burstDelay = 0f;
                         weaponWritter.startFire = shouldFire;
-                        ecb.SetComponent<Weapon>(sortkey, weaponBuffers[turretFireTime.indexWeapons].weaponBuffer, weaponWritter);
+                        turretFireTime.burstCount++;
+                        ecb.SetComponent<Weapon>(sortkey, weaponBuffer.weaponBuffer, weaponWritter);
+                    }
+                    turretFireTime.burstDelay = 0f;
+                    break;
+                case Enum.TurretFiringPattern.Individual:
+                    if (turretFireTime.burstCount >= turretFireTime.burstCountMax)
+                    {
+                        turretFireTime.cooldown = turretFireTime.cooldownMax;
+                        turretFireTime.burstCount = 0;
                         break;
-                }
-            }
-            else if (weaponBuffers.Length == 1)
-            {
-                weaponWritter = componentLookupWeapon[weaponBuffers[0].weaponBuffer];
-                if (weaponWritter.startFire != shouldFire)
-                {
+                    }
+                    turretFireTime.burstDelay += deltaTime;
+                    if (turretFireTime.burstDelay < turretFireTime.burstDelayMax) break;
+                    weaponWritter = componentLookupWeapon[weaponBuffers[turretFireTime.indexWeapons].weaponBuffer];
+                    if (weaponWritter.startFire == shouldFire) break;
+                    turretFireTime.indexWeapons++;
+                    if (turretFireTime.indexWeapons >= weaponBuffers.Length) turretFireTime.indexWeapons = 0;
+                    turretFireTime.burstCount++;
+                    turretFireTime.burstCount = math.clamp(turretFireTime.burstCount, 0, turretFireTime.burstCountMax);
+                    turretFireTime.burstDelay = 0f;
                     weaponWritter.startFire = shouldFire;
-                    ecb.SetComponent<Weapon>(sortkey, weaponBuffers[0].weaponBuffer, weaponWritter);
-                }
+                    ecb.SetComponent<Weapon>(sortkey, weaponBuffers[turretFireTime.indexWeapons].weaponBuffer, weaponWritter);
+                    break;
             }
+            return;
         }
     }
 }
