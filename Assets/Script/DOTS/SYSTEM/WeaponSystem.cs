@@ -227,33 +227,35 @@ public partial struct WeaponSystem : ISystem
             switch (weapon.ValueRO.firingPattern)
             {
                 case Enum.WeaponFiringPattern.Individual:
-                    if(weaponFireTime.ValueRO.burstCount >= weaponFireTime.ValueRO.burstCountMax && !barrelAnimator.ValueRO.animationPlaying)
+                    if (weaponFireTime.ValueRO.burstCount >= weaponFireTime.ValueRO.burstCountMax && !barrelAnimator.ValueRO.animationPlaying)
                     {
                         weaponFireTime.ValueRW.burstCount = 0;
                         weaponFireTime.ValueRW.burstDelay = 0;
                         weapon.ValueRW.startFire = false;
                         break;
                     }
-                    if (barrelTipEntityBuffers.Length != pointShotEntityBuffers.Length) continue;
+                    if (barrelTipEntityBuffers.Length != pointShotEntityBuffers.Length) break;
                     weaponFireTime.ValueRW.burstDelay += SystemAPI.Time.DeltaTime;
-                    if (weaponFireTime.ValueRO.burstDelay < weaponFireTime.ValueRO.burstDelayMax) continue;
-                    barrelAnimator.ValueRW.barrelTipIndex = weaponFireTime.ValueRO.burstCount % weaponFireTime.ValueRO.burstCountMax;
-                    barrelAnimator.ValueRW.pointShootIndex = weaponFireTime.ValueRO.burstCount % weaponFireTime.ValueRO.burstCountMax;
+                    if (weaponFireTime.ValueRO.burstDelay < weaponFireTime.ValueRO.burstDelayMax) break;
                     if (barrelAnimator.ValueRW.animationPlaying == false)
                     {
                         barrelAnimator.ValueRW.animationPlaying = true;
                         barrelAnimator.ValueRW.lastFireTime = (float)SystemAPI.Time.ElapsedTime;
+                        weaponFireTime.ValueRW.barrelTipIndex++;
+                        weaponFireTime.ValueRW.pointShootIndex++;
+                        weaponFireTime.ValueRW.burstCount++;
+                        weaponFireTime.ValueRW.burstCount = math.clamp(weaponFireTime.ValueRO.burstCount, 0, weaponFireTime.ValueRO.burstCountMax);
+                        if (weaponFireTime.ValueRO.barrelTipIndex >= barrelTipEntityBuffers.Length) weaponFireTime.ValueRW.barrelTipIndex = 0;
+                        if (weaponFireTime.ValueRO.pointShootIndex >= pointShotEntityBuffers.Length) weaponFireTime.ValueRW.pointShootIndex = 0;
                     }
-                    weaponFireTime.ValueRW.burstCount++;
-                    weaponFireTime.ValueRW.burstCount = math.clamp(weaponFireTime.ValueRO.burstCount, 0, weaponFireTime.ValueRO.burstCountMax);
                     break;
                 case Enum.WeaponFiringPattern.Simultaneous:
-                    if (barrelTipEntityBuffers.Length <= 1) continue;
-                    if (barrelTipEntityBuffers.Length != pointShotEntityBuffers.Length) continue;
+                    if (barrelTipEntityBuffers.Length <= 1) break;
+                    if (barrelTipEntityBuffers.Length != pointShotEntityBuffers.Length) break;
                     weaponFireTime.ValueRW.burstDelay += SystemAPI.Time.DeltaTime;
-                    if (weaponFireTime.ValueRO.burstDelay < weaponFireTime.ValueRO.burstDelayMax) continue;
-                    barrelAnimator.ValueRW.barrelTipIndex = weaponFireTime.ValueRO.burstCount % weaponFireTime.ValueRO.burstCountMax;
-                    barrelAnimator.ValueRW.pointShootIndex = weaponFireTime.ValueRO.burstCount % weaponFireTime.ValueRO.burstCountMax;
+                    if (weaponFireTime.ValueRO.burstDelay < weaponFireTime.ValueRO.burstDelayMax) break;
+                    weaponFireTime.ValueRW.barrelTipIndex = weaponFireTime.ValueRO.burstCount % weaponFireTime.ValueRO.burstCountMax;
+                    weaponFireTime.ValueRW.pointShootIndex = weaponFireTime.ValueRO.burstCount % weaponFireTime.ValueRO.burstCountMax;
                     if (barrelAnimator.ValueRW.animationPlaying == false)
                     {
                         barrelAnimator.ValueRW.animationPlaying = true;
@@ -267,9 +269,10 @@ public partial struct WeaponSystem : ISystem
                         weaponFireTime.ValueRW.burstDelay = 0;
                         weapon.ValueRW.startFire = false;
                     }
+                    weaponFireTime.ValueRW.burstCount += barrelTipEntityBuffers.Length;
                     break;
                 case Enum.WeaponFiringPattern.MissileLauncher:
-                    if (barrelTipEntityBuffers.Length > 1) continue;
+                    if (barrelTipEntityBuffers.Length > 1) break;
                     break;
                 case Enum.WeaponFiringPattern.Gatling:
                     break;

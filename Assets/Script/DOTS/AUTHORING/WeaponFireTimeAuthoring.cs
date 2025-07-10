@@ -15,6 +15,8 @@ public class WeaponFireTimeAuthoring : MonoBehaviour
             {
                 burstCountMax = authoring.burstCountMax,
                 burstDelayMax = authoring.burstDelayMax,
+                barrelTipIndex = 0,
+                pointShootIndex = 0,
             });
         }
     }
@@ -25,6 +27,8 @@ public struct WeaponFireTime : IComponentData
     public int burstCount;
     public float burstDelayMax;
     public float burstDelay;
+    public int barrelTipIndex;
+    public int pointShootIndex;
 }
 
 

@@ -9,11 +9,6 @@ public class EffectWeaponShootAuthoring : MonoBehaviour
     public float scaleVariance;
     public float lengthVariance;
     public float muzzleFlashDuration;
-    public float elapsedTime;
-    public float startScale;
-    public float endScale;
-    public float startLength;
-    public float endLength;
     public float lightIntensity;
     public class EffectWeaponShootAuthoringBaker : Baker<EffectWeaponShootAuthoring>
     {

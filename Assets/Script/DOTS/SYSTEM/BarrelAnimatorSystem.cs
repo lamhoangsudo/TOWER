@@ -14,9 +14,9 @@ partial struct BarrelAnimatorSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        foreach ((RefRW<BarrelAnimator> barrelAnimator, RefRO<Weapon> weapon, DynamicBuffer<BarrelTipEntityBuffer> tipBuffers, DynamicBuffer<PointShotEntityBuffer> pointShotBuffers, Entity entity)
+        foreach ((RefRW<BarrelAnimator> barrelAnimator, RefRO<Weapon> weapon, DynamicBuffer<BarrelTipEntityBuffer> tipBuffers, DynamicBuffer<PointShotEntityBuffer> pointShotBuffers, RefRO<WeaponFireTime> weaponFireTime)
             in
-            SystemAPI.Query<RefRW<BarrelAnimator>, RefRO<Weapon>, DynamicBuffer<BarrelTipEntityBuffer>, DynamicBuffer<PointShotEntityBuffer>>().WithEntityAccess())
+            SystemAPI.Query<RefRW<BarrelAnimator>, RefRO<Weapon>, DynamicBuffer<BarrelTipEntityBuffer>, DynamicBuffer<PointShotEntityBuffer>, RefRO<WeaponFireTime>>())
         {
             if (!barrelAnimator.ValueRO.animationPlaying) continue;
 
@@ -41,8 +41,8 @@ partial struct BarrelAnimatorSystem : ISystem
 
             if (weapon.ValueRO.firingPattern == Enum.WeaponFiringPattern.MissileLauncher || weapon.ValueRO.firingPattern == Enum.WeaponFiringPattern.Individual)
             {
-                BarrelTipEntityBuffer tip = tipBuffers[barrelAnimator.ValueRO.barrelTipIndex];
-                PointShotEntityBuffer pointShotEntityBuffer = pointShotBuffers[barrelAnimator.ValueRO.pointShootIndex];
+                BarrelTipEntityBuffer tip = tipBuffers[weaponFireTime.ValueRO.barrelTipIndex];
+                PointShotEntityBuffer pointShotEntityBuffer = pointShotBuffers[weaponFireTime.ValueRO.pointShootIndex];
 
                 RefRW<LocalTransform> tipTransform = SystemAPI.GetComponentRW<LocalTransform>(tip.barrelTipEntity);
 
@@ -50,7 +50,7 @@ partial struct BarrelAnimatorSystem : ISystem
                 {
                     tip.tipInitialPosition = tipTransform.ValueRO.Position;
                     tip.tipInitialRotation = math.Euler(tipTransform.ValueRO.Rotation);
-                    tipBuffers.ElementAt(barrelAnimator.ValueRO.barrelTipIndex) = tip;
+                    tipBuffers.ElementAt(weaponFireTime.ValueRO.barrelTipIndex) = tip;
                 }
                 
                 float tipY = tip.tipInitialPosition.y + slideValue * barrelAnimator.ValueRO.tipSlideAmountDistance;
@@ -110,7 +110,7 @@ partial struct BarrelAnimatorSystem : ISystem
             }
             else if (weapon.ValueRO.firingPattern == Enum.WeaponFiringPattern.Simultaneous || weapon.ValueRO.firingPattern == Enum.WeaponFiringPattern.Gatling)
             {
-                for (int index = 0; index < barrelAnimator.ValueRO.barrelTipIndex; index++)
+                for (int index = 0; index < tipBuffers.Length; index++)
                 {
                     BarrelTipEntityBuffer tip = tipBuffers[index];
                     PointShotEntityBuffer pointShotEntityBuffer = pointShotBuffers[index];

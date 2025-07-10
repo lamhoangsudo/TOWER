@@ -29,7 +29,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 635554520464916737}
   m_Father: {fileID: 0}
@@ -51,11 +51,6 @@ MonoBehaviour:
   scaleVariance: 0.3
   lengthVariance: 0.2
   muzzleFlashDuration: 0.03
-  elapsedTime: 0
-  startScale: 0
-  endScale: 0
-  startLength: 0
-  endLength: 0
   lightIntensity: 4
 --- !u!114 &6908865973512101459
 MonoBehaviour:

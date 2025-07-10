@@ -117,8 +117,6 @@ public struct BarrelAnimator : IComponentData
     public float sfxPitch;
     public float sfxVolume;
     public Unity.Mathematics.Random random;
-    public int barrelTipIndex;
-    public int pointShootIndex;
 }
 public struct BarrelAnimatorCurveBlob
 {

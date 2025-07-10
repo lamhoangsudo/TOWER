@@ -80,7 +80,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9373227d7129085438993386d0f59489, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  firingPattern: 1
+  firingPattern: 0
   burstCountMax: 5
   burstDelayMax: 0.4
   cooldownMax: 2
