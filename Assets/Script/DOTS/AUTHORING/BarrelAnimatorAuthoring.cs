@@ -105,6 +105,9 @@ public struct BarrelAnimator : IComponentData
     public float baseSlideDistance;
     public float tipSlideAmountDistance;
     public float tipRotateDegrees;
+    public float gatlingRotationSpeed;
+    public float curentGatlingRotation;
+    public float gatlingRotationSpeedChange;
 
     public float lastFireTime;
     public bool animationPlaying;

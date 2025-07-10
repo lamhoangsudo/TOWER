@@ -3,6 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.UIElements.Experimental;
 [UpdateAfter(typeof(WeaponSystem))]
 partial struct BarrelAnimatorSystem : ISystem
 {
@@ -177,6 +178,20 @@ partial struct BarrelAnimatorSystem : ISystem
                         soundWeaponEffectShoot.ValueRW.isPlayOneShot = true;
                         barrelAnimator.ValueRW.flashSpawned = true;
                     }
+                }
+            }
+            else if (weapon.ValueRO.firingPattern == Enum.WeaponFiringPattern.Gatling)
+            {
+                float gatlingRotationFactor = barrelAnimator.ValueRO.curentGatlingRotation / barrelAnimator.ValueRO.gatlingRotationSpeed;
+                RefRW<LocalTransform> tipTransform = SystemAPI.GetComponentRW<LocalTransform>(tipBuffers[0].barrelTipEntity);
+                tipTransform.ValueRW.WithRotation(quaternion.Euler(0f, math.radians(barrelAnimator.ValueRO.curentGatlingRotation), 0f));
+                if(gatlingRotationFactor > 0.05f)
+                {
+
+                }
+                else
+                {
+
                 }
             }
             if (progress >= 1f)

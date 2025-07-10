@@ -299,6 +299,30 @@ public partial struct WeaponSystem : ISystem
                     }
                     break;
                 case Enum.WeaponFiringPattern.Gatling:
+                    barrelAnimator.ValueRW.gatlingRotationSpeedChange = barrelAnimator.ValueRO.gatlingRotationSpeed * (1f / barrelAnimator.ValueRO.animationDuration) * SystemAPI.Time.DeltaTime;
+                    if (weapon.ValueRO.startFire)
+                    {
+                        if (barrelAnimator.ValueRO.curentGatlingRotation < barrelAnimator.ValueRO.gatlingRotationSpeed)
+                        {
+                            barrelAnimator.ValueRW.curentGatlingRotation += barrelAnimator.ValueRO.gatlingRotationSpeedChange;
+                        }
+                    }
+                    else
+                    {
+                        if (barrelAnimator.ValueRO.curentGatlingRotation > 0)
+                        {
+                            barrelAnimator.ValueRW.curentGatlingRotation -= barrelAnimator.ValueRO.gatlingRotationSpeedChange;
+                        }
+                    }
+                    barrelAnimator.ValueRW.curentGatlingRotation = math.clamp(barrelAnimator.ValueRO.curentGatlingRotation, 0f, barrelAnimator.ValueRO.gatlingRotationSpeed);
+                    if (barrelAnimator.ValueRO.curentGatlingRotation > 0f)
+                    {
+                        if(!barrelAnimator.ValueRO.animationPlaying) barrelAnimator.ValueRW.animationPlaying = true;
+                    }
+                    else
+                    {
+                        if (barrelAnimator.ValueRO.animationPlaying) barrelAnimator.ValueRW.animationPlaying = false;
+                    }
                     break;
             }
         }
