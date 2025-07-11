@@ -6,6 +6,7 @@ public class WeaponFireTimeAuthoring : MonoBehaviour
 {
     public float burstDelayMax;
     public int burstCountMax;
+    public float timeOverHeatMax;
     public class WeaponFireTimeAuthoringBaker : Baker<WeaponFireTimeAuthoring>
     {
         public override void Bake(WeaponFireTimeAuthoring authoring)
@@ -15,6 +16,7 @@ public class WeaponFireTimeAuthoring : MonoBehaviour
             {
                 burstCountMax = authoring.burstCountMax,
                 burstDelayMax = authoring.burstDelayMax,
+                timeOverHeatMax = authoring.timeOverHeatMax,
                 barrelTipIndex = 0,
                 pointShootIndex = 0,
             });
@@ -29,6 +31,8 @@ public struct WeaponFireTime : IComponentData
     public float burstDelay;
     public int barrelTipIndex;
     public int pointShootIndex;
+    public float timeOverHeatMax;
+    public float timeOverHeat;
 }
 
 

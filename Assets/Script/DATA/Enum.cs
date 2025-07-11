@@ -6,6 +6,7 @@ public static class Enum
     {
         Individual,
         Simultaneous,
+        Gatling,
     }
     public enum WeaponFiringPattern
     {

@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 347371779}
   - component: {fileID: 347371780}
+  - component: {fileID: 6294797862513261948}
   m_Layer: 0
   m_Name: GatlingSpinSFX
   m_TagString: Untagged
@@ -42,7 +43,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 5f552150df10c7640b99c2a96db8db32, type: 3}
+  m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 5f552150df10c7640b99c2a96db8db32, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
@@ -174,6 +175,19 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &6294797862513261948
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 347371778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a8a231d84031484987ad8b79b43d72c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioSource: {fileID: 347371780}
 --- !u!1 &6518300230637509955
 GameObject:
   m_ObjectHideFlags: 0
@@ -217,11 +231,11 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 52b44e5e102e32243be251a219255c3e, type: 3}
+  m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 52b44e5e102e32243be251a219255c3e, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
-  m_Pitch: 1
+  m_Volume: 0.55
+  m_Pitch: 2
   Loop: 0
   Mute: 0
   Spatialize: 0
@@ -327,6 +341,7 @@ GameObject:
   - component: {fileID: 7300555443607577705}
   - component: {fileID: 6053357515553346193}
   - component: {fileID: 3254872784822213237}
+  - component: {fileID: 4956068842385650443}
   m_Layer: 0
   m_Name: Gun_S07_GatlingECS
   m_TagString: Untagged
@@ -344,7 +359,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: -1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 544851320069350814}
@@ -365,9 +380,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firingPattern: 2
-  burstShots: 1
-  burstDelay: 0.2
-  cooldown: 0.13
   spreadAngle: 1
   gatlingRotationSpeed: 1100
   projectilePrefab: {fileID: 4487581658243413398, guid: ddb7843b4c0a624439705476284ceb74, type: 3}
@@ -377,12 +389,6 @@ MonoBehaviour:
   projectileMaxSpeed: 300
   projectileUsePrediction: 0
   impactLayer: 0
-  isFiring: 0
-  currentCooldown: 0
-  burstCounter: 0
-  bustTime: 0
-  BarrelAnimator:
-  - {fileID: 7300555443607577686}
 --- !u!114 &3254872784822213237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -401,7 +407,7 @@ MonoBehaviour:
   muzzleFlashEntity: {fileID: 544851320069350813}
   pointShoot:
   - {fileID: 6518300230637509955}
-  animationDuration: 2
+  animationDuration: 0
   baseSlideDistance: 0
   tipSlideAmountDistance: 0
   tipRotateDegrees: 0
@@ -459,6 +465,20 @@ MonoBehaviour:
   sfxPitch: 2
   sfxVolume: 0.55
   audioGatlingEffect: {fileID: 347371778}
+--- !u!114 &4956068842385650443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7300555443607577686}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 602626577bea6304baf1c8710a2fd3b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  burstDelayMax: 0.5
+  burstCountMax: 0
 --- !u!1001 &2862431349642538335
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -42,13 +42,13 @@ partial struct TurretHeadingElevationSoundSystem : ISystem
             #endregion
             #region elevation
             Unity.Mathematics.Random randomElevationSFX = audioSourceElevationSFX.ValueRO.random;
-            if (elevationRotationSFXInitialPitch == 0) elevationRotationSFXInitialPitch = audioSourceElevationSFX.ValueRO.elevationRotationSFXInitialPitch * randomElevationSFX.NextFloat(0.95f, 1.05f);
+            if (GatlingSpinSFXInitialPitch == 0) GatlingSpinSFXInitialPitch = audioSourceElevationSFX.ValueRO.GatlingSpinSFXInitialPitch * randomElevationSFX.NextFloat(0.95f, 1.05f);
             audioSourceElevationSFX.ValueRW.random = randomElevationSFX;
             if (turret.ValueRO.IsElevationRotationSFX)
             {
                 if (!audioSourceElevationSFX.ValueRO.isPlaying) audioSourceElevationSFX.ValueRW.isPlaying = true;
-                audioSourceElevationSFX.ValueRW.elevationRotationSFXInitialPitch = Mathf.Lerp(elevationRotationSFXInitialPitch * 0.8f, elevationRotationSFXInitialPitch, turret.ValueRO.elevationSpeedFactor);
-                audioSourceElevationSFX.ValueRW.elevationRotationSFXInitialVolume = Mathf.Lerp(0f, 1f, turret.ValueRO.elevationSpeedFactor);
+                audioSourceElevationSFX.ValueRW.GatlingSpinSFXInitialPitch = Mathf.Lerp(GatlingSpinSFXInitialPitch * 0.8f, GatlingSpinSFXInitialPitch, turret.ValueRO.elevationSpeedFactor);
+                audioSourceElevationSFX.ValueRW.GatlingSpinSFXInitialVolume = Mathf.Lerp(0f, 1f, turret.ValueRO.elevationSpeedFactor);
             }
             else
             {

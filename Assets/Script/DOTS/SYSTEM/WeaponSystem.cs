@@ -299,8 +299,18 @@ public partial struct WeaponSystem : ISystem
                     }
                     break;
                 case Enum.WeaponFiringPattern.Gatling:
-                    barrelAnimator.ValueRW.gatlingRotationSpeedChange = barrelAnimator.ValueRO.gatlingRotationSpeed * (1f / barrelAnimator.ValueRO.animationDuration) * SystemAPI.Time.DeltaTime;
-                    if (weapon.ValueRO.startFire)
+                    if (weaponFireTime.ValueRO.timeOverHeat < weaponFireTime.ValueRO.timeOverHeatMax)
+                    {
+                        weaponFireTime.ValueRW.timeOverHeat += SystemAPI.Time.DeltaTime;
+                        if(!weapon.ValueRO.startGatling) weapon.ValueRW.startGatling = true;
+                    }
+                    else
+                    {
+                        if (weapon.ValueRO.startGatling) weapon.ValueRW.startGatling = false;
+                    }
+                    barrelAnimator.ValueRW.gatlingRotationSpeed = weapon.ValueRO.gatlingRotationSpeed;
+                    barrelAnimator.ValueRW.gatlingRotationSpeedChange = barrelAnimator.ValueRO.gatlingRotationSpeed * SystemAPI.Time.DeltaTime;
+                    if (weapon.ValueRO.startGatling)
                     {
                         if (barrelAnimator.ValueRO.curentGatlingRotation < barrelAnimator.ValueRO.gatlingRotationSpeed)
                         {
@@ -315,13 +325,23 @@ public partial struct WeaponSystem : ISystem
                         }
                     }
                     barrelAnimator.ValueRW.curentGatlingRotation = math.clamp(barrelAnimator.ValueRO.curentGatlingRotation, 0f, barrelAnimator.ValueRO.gatlingRotationSpeed);
-                    if (barrelAnimator.ValueRO.curentGatlingRotation > 0f)
+                    if (barrelAnimator.ValueRO.curentGatlingRotation >= (barrelAnimator.ValueRO.gatlingRotationSpeed / 2))
                     {
-                        if(!barrelAnimator.ValueRO.animationPlaying) barrelAnimator.ValueRW.animationPlaying = true;
+                        weaponFireTime.ValueRW.burstDelay -= SystemAPI.Time.DeltaTime;
+                        if (weaponFireTime.ValueRO.burstDelay <= 0)
+                        {
+                            if (!barrelAnimator.ValueRO.animationPlaying) barrelAnimator.ValueRW.animationPlaying = true;
+                            weaponFireTime.ValueRW.burstDelay = weaponFireTime.ValueRO.burstDelayMax;
+                        }
+                        else
+                        {
+                            if (barrelAnimator.ValueRO.animationPlaying) barrelAnimator.ValueRW.animationPlaying = false;
+                        }
                     }
                     else
                     {
                         if (barrelAnimator.ValueRO.animationPlaying) barrelAnimator.ValueRW.animationPlaying = false;
+                        weapon.ValueRW.startFire = false;
                     }
                     break;
             }

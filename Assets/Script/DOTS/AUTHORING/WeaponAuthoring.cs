@@ -51,6 +51,7 @@ public struct Weapon : IComponentData
     public bool projectileUsePrediction;
     public int impactLayer;
     public bool startFire;
+    public bool startGatling;
 }
 
 

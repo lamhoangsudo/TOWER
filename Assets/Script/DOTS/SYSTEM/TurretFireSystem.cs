@@ -170,6 +170,15 @@ partial struct TurretFireSystem : ISystem
                     weaponWritter.startFire = shouldFire;
                     ecb.SetComponent<Weapon>(sortkey, weaponBuffers[turretFireTime.indexWeapons].weaponBuffer, weaponWritter);
                     break;
+                case Enum.TurretFiringPattern.Gatling:
+                    foreach (WeaponBuffer weaponBuffer in weaponBuffers)
+                    {
+                        weaponWritter = componentLookupWeapon[weaponBuffer.weaponBuffer];
+                        if (weaponWritter.startFire == shouldFire) continue;
+                        weaponWritter.startFire = shouldFire;
+                        ecb.SetComponent<Weapon>(sortkey, weaponBuffer.weaponBuffer, weaponWritter);
+                    }
+                    break;
             }
             return;
         }

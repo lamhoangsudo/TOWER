@@ -2,7 +2,7 @@
 - Project name: TOWER
 - Unity version: Unity 6000.1.11f1
 - Active game object:
-  - Name: Gun_S07_Gatling
+  - Name: Gun_S07_GatlingECS
   - Tag: Untagged
   - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
