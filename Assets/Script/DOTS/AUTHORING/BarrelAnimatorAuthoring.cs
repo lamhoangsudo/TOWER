@@ -108,6 +108,7 @@ public struct BarrelAnimator : IComponentData
     public float gatlingRotationSpeed;
     public float curentGatlingRotation;
     public float gatlingRotationSpeedChange;
+    public float accumulatedGatlingAngle;
 
     public float lastFireTime;
     public bool animationPlaying;

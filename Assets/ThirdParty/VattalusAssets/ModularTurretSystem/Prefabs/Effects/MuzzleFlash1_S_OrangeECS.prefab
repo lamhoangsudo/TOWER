@@ -26,7 +26,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.85, y: 0.85, z: 0.95}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2482966007852023435}
@@ -80,15 +80,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lightEffect: {fileID: 2321277155883260270}
   muzzleFlashEffect: {fileID: 1017765989719446098}
-  scaleVariance: 0.4
-  lengthVariance: 0.3
-  muzzleFlashDuration: 0.03
-  elapsedTime: 0
-  startScale: 0
-  endScale: 0
-  startLength: 0
-  endLength: 0
-  lightIntensity: 4
+  scaleVariance: 0.05
+  lengthVariance: 0.05
+  muzzleFlashDuration: 0.01
+  lightIntensity: 3
 --- !u!1 &2321277155883260264
 GameObject:
   m_ObjectHideFlags: 0

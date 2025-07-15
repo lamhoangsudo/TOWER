@@ -16,6 +16,7 @@ partial struct TargetMovementSystem : ISystem
     {
         foreach((RefRW<LocalTransform> localTransform, RefRW<Target> target) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<Target>>())
         {
+            if(!target.ValueRO.test) continue;
             target.ValueRW.time -= SystemAPI.Time.DeltaTime;
             if(target.ValueRO.time <= 0f)
             {
@@ -23,9 +24,9 @@ partial struct TargetMovementSystem : ISystem
                 float3 targetPosition = new float3 (random.NextFloat(-50f, 50f), random.NextFloat(0f, 10f), 30f);
                 target.ValueRW.TargetPosition = targetPosition;
                 target.ValueRW.RandomGenerator = random;
-                target.ValueRW.time = 200f;
+                target.ValueRW.time = 1f;
             }
-            localTransform.ValueRW.Position = math.lerp(localTransform.ValueRO.Position, target.ValueRO.TargetPosition, SystemAPI.Time.DeltaTime * 10f);
+            localTransform.ValueRW.Position = math.lerp(localTransform.ValueRO.Position, target.ValueRO.TargetPosition, SystemAPI.Time.DeltaTime * 0.1f);
         }
     }
 

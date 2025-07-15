@@ -1,40 +1,46 @@
+using FMOD.Studio;
 using Unity.Burst;
 using Unity.Entities;
-using UnityEngine;
+using Unity.Transforms;
+using System.Collections.Generic;
 [UpdateAfter(typeof(TurretHeadingElevationSoundSystem))]
-partial struct PlayAndStopSoundHeadingSystem : ISystem
+public partial class PlayAndStopSoundHeadingSystem : SystemBase
 {
-    private float headingRotationSFXInitialPitch;
-    private float headingRotationSFXInitialVolume;
+    private Dictionary<Entity, EventInstance> _SoundHeadingEventInstanceDictionary = new();
     [BurstCompile]
-    public void OnCreate(ref SystemState state)
+    protected override void OnCreate()
     {
 
     }
 
-    public void OnUpdate(ref SystemState state)
+    protected override void OnUpdate()
     {
-        foreach ((RefRO<SFX_Heading> sfx_Heading, Entity entity) in SystemAPI.Query<RefRO<SFX_Heading>>().WithEntityAccess())
+        foreach ((RefRW<SFX_Heading> sfx_Heading, RefRO<LocalToWorld> localToWorld, Entity entity) in SystemAPI.Query<RefRW<SFX_Heading>, RefRO<LocalToWorld>>().WithEntityAccess())
         {
-            headingRotationSFXInitialPitch = sfx_Heading.ValueRO.headingRotationSFXInitialPitch;
-            headingRotationSFXInitialVolume = sfx_Heading.ValueRO.headingRotationSFXInitialVolume;
-            AudioSource audioSource = state.World.EntityManager.GetComponentObject<AudioSource>(entity);
-            if (sfx_Heading.ValueRO.isPlaying)
+            if (!_SoundHeadingEventInstanceDictionary.ContainsKey(entity))
             {
-                if (!audioSource.isPlaying) audioSource.Play();
-
-                audioSource.pitch = headingRotationSFXInitialPitch;
-                audioSource.volume = headingRotationSFXInitialVolume;
+                EventInstance eventInstance = FmodSoundManager.GetEventInstance(sfx_Heading.ValueRO.soundEventReferenceGUID);
+                FmodSoundManager.SetPositionEventInstance(eventInstance, localToWorld.ValueRO.Position);
+                _SoundHeadingEventInstanceDictionary.Add(entity, eventInstance);
             }
             else
             {
-                if (audioSource.isPlaying) audioSource.Stop();
+                EventInstance eventInstance = _SoundHeadingEventInstanceDictionary[entity];
+                if (sfx_Heading.ValueRO.isPlaying)
+                {
+                    FmodSoundManager.SetParameterSoundEffectLoop(eventInstance, "SpeedHeadingFactor", sfx_Heading.ValueRO.headingSpeedFactor);
+                    FmodSoundManager.PlaySoundEffectLoop(eventInstance);
+                }
+                else
+                {
+                    FmodSoundManager.StopSoundEffectLoop(eventInstance, STOP_MODE.ALLOWFADEOUT);
+                }
             }
         }
     }
 
     [BurstCompile]
-    public void OnDestroy(ref SystemState state)
+    protected override void OnDestroy()
     {
 
     }

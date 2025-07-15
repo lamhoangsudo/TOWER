@@ -11,7 +11,7 @@ public class TargetAuthoring : MonoBehaviour
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
             AddComponent(entity, new Target
             {
-                time = 200f,
+                time = 1f,
                 TargetPosition = authoring.transform.position,
                 RandomGenerator = new Unity.Mathematics.Random((uint)entity.Index),
             });
@@ -23,6 +23,7 @@ public struct Target : IComponentData
     public float3 TargetPosition;
     public float time;
     public Unity.Mathematics.Random RandomGenerator;
+    public bool test;
 }
 
 

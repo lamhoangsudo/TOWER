@@ -1,10 +1,8 @@
-﻿using System;
-using Unity.Burst;
+﻿using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
-using UnityEngine.UIElements.Experimental;
 [UpdateAfter(typeof(WeaponSystem))]
 partial struct BarrelAnimatorSystem : ISystem
 {
@@ -16,19 +14,56 @@ partial struct BarrelAnimatorSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        foreach ((RefRW<BarrelAnimator> barrelAnimator, RefRO<Weapon> weapon, DynamicBuffer<BarrelTipEntityBuffer> tipBuffers, DynamicBuffer<PointShotEntityBuffer> pointShotBuffers, RefRO<WeaponFireTime> weaponFireTime)
-            in
-            SystemAPI.Query<RefRW<BarrelAnimator>, RefRO<Weapon>, DynamicBuffer<BarrelTipEntityBuffer>, DynamicBuffer<PointShotEntityBuffer>, RefRO<WeaponFireTime>>())
+        EntityCommandBuffer ecb = new(Allocator.TempJob);
+        BarrelAnimatorSystemJob barrelAnimatorSystemJob = new()
         {
+            ElapsedTime = (float)SystemAPI.Time.ElapsedTime,
+            DeltaTime = SystemAPI.Time.DeltaTime,
+            _LocalTransformLookUp = SystemAPI.GetComponentLookup<LocalTransform>(isReadOnly: false),
+            _EffectWeaponShootLookUp = SystemAPI.GetComponentLookup<EffectWeaponShoot>(isReadOnly: false),
+            _ParentLookUp = SystemAPI.GetComponentLookup<Parent>(isReadOnly: false),
+            _SoundWeaponEffectShootLookUp = SystemAPI.GetComponentLookup<SoundWeaponEffectShoot>(isReadOnly: false),
+            _SFX_GatlingSpinLookUp = SystemAPI.GetComponentLookup<SFX_GatlingSpin>(isReadOnly: false),
+            ecb = ecb.AsParallelWriter(),
+        };
+        barrelAnimatorSystemJob.ScheduleParallel();
+        state.Dependency.Complete();
+        ecb.Playback(state.EntityManager);
+        ecb.Dispose();
+    }
+    [BurstCompile]
+    public void OnDestroy(ref SystemState state)
+    {
 
-            switch (weapon.ValueRO.firingPattern)
+    }
+    [BurstCompile]
+    public partial struct BarrelAnimatorSystemJob : IJobEntity
+    {
+        public float ElapsedTime;
+        public float DeltaTime;
+        [ReadOnly] public ComponentLookup<LocalTransform> _LocalTransformLookUp;
+        [ReadOnly] public ComponentLookup<EffectWeaponShoot> _EffectWeaponShootLookUp;
+        [ReadOnly] public ComponentLookup<Parent> _ParentLookUp;
+        [ReadOnly] public ComponentLookup<SoundWeaponEffectShoot> _SoundWeaponEffectShootLookUp;
+        [ReadOnly] public ComponentLookup<SFX_GatlingSpin> _SFX_GatlingSpinLookUp;
+        public EntityCommandBuffer.ParallelWriter ecb;
+        public void Execute(
+            [ChunkIndexInQuery] int sortkey,
+            ref BarrelAnimator barrelAnimator,
+            in Weapon weapon,
+            DynamicBuffer<BarrelTipEntityBuffer> tipBuffers,
+            DynamicBuffer<PointShotEntityBuffer> pointShotBuffers,
+            in WeaponFireTime weaponFireTime
+            )
+        {
+            switch (weapon.firingPattern)
             {
                 case Enum.WeaponFiringPattern.MissileLauncher:
                 case Enum.WeaponFiringPattern.Individual:
-                    if (!barrelAnimator.ValueRO.animationPlaying) break;
-                    float elapsed = (float)SystemAPI.Time.ElapsedTime - barrelAnimator.ValueRO.lastFireTime;
-                    float progress = math.clamp(elapsed / barrelAnimator.ValueRO.animationDuration, 0f, 1f);
-                    ref BarrelAnimatorCurveBlob blob = ref barrelAnimator.ValueRO.curveBlob.Value;
+                    if (!barrelAnimator.animationPlaying) break;
+                    float elapsed = ElapsedTime - barrelAnimator.lastFireTime;
+                    float progress = math.clamp(elapsed / barrelAnimator.animationDuration, 0f, 1f);
+                    ref BarrelAnimatorCurveBlob blob = ref barrelAnimator.curveBlob.Value;
                     int sampleCount = blob.sampleCount;
                     float sampleT = progress * (sampleCount - 1);
                     int idx0 = (int)math.floor(sampleT);
@@ -36,83 +71,88 @@ partial struct BarrelAnimatorSystem : ISystem
                     float frac = sampleT - idx0;
                     float slideValue = math.lerp(blob.slideCurve[idx0], blob.slideCurve[idx1], frac);
                     float rotationValue = math.lerp(blob.rotationCurve[idx0], blob.rotationCurve[idx1], frac);
-                    if (barrelAnimator.ValueRO.barrelBaseEntity != Entity.Null && SystemAPI.HasComponent<LocalTransform>(barrelAnimator.ValueRO.barrelBaseEntity))
+                    LocalTransform baseTransformWritter = _LocalTransformLookUp[barrelAnimator.barrelBaseEntity];
+                    if (barrelAnimator.barrelBaseEntity != Entity.Null)
                     {
-                        RefRW<LocalTransform> baseTransform = SystemAPI.GetComponentRW<LocalTransform>(barrelAnimator.ValueRO.barrelBaseEntity);
-                        float3 basePos = new(0f, 0f, -slideValue * barrelAnimator.ValueRO.baseSlideDistance);
-                        baseTransform.ValueRW.Position = basePos;
+                        float3 basePos = new(0f, 0f, -slideValue * barrelAnimator.baseSlideDistance);
+                        baseTransformWritter.Position = basePos;
                     }
-                    BarrelTipEntityBuffer tip = tipBuffers[weaponFireTime.ValueRO.barrelTipIndex];
-                    PointShotEntityBuffer pointShotEntityBuffer = pointShotBuffers[weaponFireTime.ValueRO.pointShootIndex];
-                    RefRW<LocalTransform> tipTransform = SystemAPI.GetComponentRW<LocalTransform>(tip.barrelTipEntity);
+                    BarrelTipEntityBuffer tip = tipBuffers[weaponFireTime.barrelTipIndex];
+                    PointShotEntityBuffer pointShotEntityBuffer = pointShotBuffers[weaponFireTime.pointShootIndex];
+                    LocalTransform tipTransformWritter = _LocalTransformLookUp[tip.barrelTipEntity];
                     if (tip.tipInitialPosition.Equals(float3.zero) && tip.tipInitialRotation.Equals(float3.zero))
                     {
-                        tip.tipInitialPosition = tipTransform.ValueRO.Position;
-                        tip.tipInitialRotation = math.Euler(tipTransform.ValueRO.Rotation);
-                        tipBuffers.ElementAt(weaponFireTime.ValueRO.barrelTipIndex) = tip;
+                        tip.tipInitialPosition = tipTransformWritter.Position;
+                        tip.tipInitialRotation = math.Euler(tipTransformWritter.Rotation);
+                        tipBuffers.ElementAt(weaponFireTime.barrelTipIndex) = tip;
                     }
-                    float tipY = tip.tipInitialPosition.y + slideValue * barrelAnimator.ValueRO.tipSlideAmountDistance;
-                    tipTransform.ValueRW.Position = new float3(
+                    float tipY = tip.tipInitialPosition.y + slideValue * barrelAnimator.tipSlideAmountDistance;
+                    tipTransformWritter.Position = new float3(
                         tip.tipInitialPosition.x,
                         tipY,
                         tip.tipInitialPosition.z
                     );
-                    if (barrelAnimator.ValueRO.tipRotateDegrees != 0f)
+                    if (barrelAnimator.tipRotateDegrees != 0f)
                     {
                         float tipRotY = tip.tipInitialRotation.y;
-                        tipRotY = math.lerp(barrelAnimator.ValueRO.tipRotationAtFire,
-                            barrelAnimator.ValueRO.tipRotationAtFire + barrelAnimator.ValueRO.tipRotateDegrees,
+                        tipRotY = math.lerp(barrelAnimator.tipRotationAtFire,
+                            barrelAnimator.tipRotationAtFire + barrelAnimator.tipRotateDegrees,
                             rotationValue);
-                        tipTransform.ValueRW.Rotation = quaternion.Euler(
+                        tipTransformWritter.Rotation = quaternion.Euler(
                             math.radians(tip.tipInitialRotation.x),
                             math.radians(tipRotY),
                             math.radians(tip.tipInitialRotation.z)
                         );
                     }
-                    if (!barrelAnimator.ValueRO.flashSpawned)
+                    if (!barrelAnimator.flashSpawned)
                     {
                         Entity pointShoot = pointShotEntityBuffer.pointShoot;
-                        LocalTransform spawnLocalTransform = SystemAPI.GetComponent<LocalTransform>(pointShoot);
-                        Unity.Mathematics.Random random = barrelAnimator.ValueRO.random;
-                        Entity entityEffect = barrelAnimator.ValueRO.muzzleFlashEntity;
-                        RefRW<LocalToWorld> localToWorld = SystemAPI.GetComponentRW<LocalToWorld>(entityEffect);
-                        RefRW<EffectWeaponShoot> effect = SystemAPI.GetComponentRW<EffectWeaponShoot>(entityEffect);
-                        float startScale = 1f + random.NextFloat(-1f, 1f) * effect.ValueRO.scaleVariance / 2f;
+                        LocalTransform spawnLocalTransform = _LocalTransformLookUp[pointShoot];
+                        Unity.Mathematics.Random random = barrelAnimator.random;
+                        Entity entityEffect = barrelAnimator.muzzleFlashEntity;
+                        EffectWeaponShoot effectWritter = _EffectWeaponShootLookUp[entityEffect];
+                        float startScale = 1f + random.NextFloat(-1f, 1f) * effectWritter.scaleVariance / 2f;
                         float endScale = startScale * random.NextFloat(0.6f, 0.8f);
-                        float startLength = 1f + random.NextFloat(-1f, 1f) * effect.ValueRO.lengthVariance / 2f;
+                        float startLength = 1f + random.NextFloat(-1f, 1f) * effectWritter.lengthVariance / 2f;
                         float endLength = startLength * random.NextFloat(1.75f, 3f);
                         float randomZ = random.NextFloat(-180f, 180f);
-                        float pitch = math.clamp(barrelAnimator.ValueRO.sfxPitch + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
-                        float volume = math.clamp(barrelAnimator.ValueRO.sfxVolume + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
-                        effect.ValueRW.startScale = startScale;
-                        effect.ValueRW.endScale = endScale;
-                        effect.ValueRW.startLength = startLength;
-                        effect.ValueRW.endLength = endLength;
-                        effect.ValueRW.sfxPitch = pitch;
-                        effect.ValueRW.sfxVolume = volume;
-                        effect.ValueRW.elapsedTime = effect.ValueRO.muzzleFlashDuration;
-                        if (effect.ValueRO.isPlayOneShot == false) effect.ValueRW.isPlayOneShot = true;
-                        effect.ValueRW.SpawnPosition = spawnLocalTransform.Position;
-                        effect.ValueRW.SpawnRandomRotation = spawnLocalTransform.RotateZ(randomZ).Rotation;
-                        SystemAPI.GetComponentRW<Parent>(entityEffect).ValueRW.Value = tip.barrelTipEntity;
-                        barrelAnimator.ValueRW.random = random;
-                        RefRW<SoundWeaponEffectShoot> soundWeaponEffectShoot = SystemAPI.GetComponentRW<SoundWeaponEffectShoot>(pointShoot);
-                        soundWeaponEffectShoot.ValueRW.pitch = barrelAnimator.ValueRO.sfxPitch;
-                        soundWeaponEffectShoot.ValueRW.volume = barrelAnimator.ValueRO.sfxVolume;
-                        soundWeaponEffectShoot.ValueRW.isPlayOneShot = true;
-                        barrelAnimator.ValueRW.flashSpawned = true;
+                        float pitch = math.clamp(barrelAnimator.sfxPitch + random.NextFloat(-1f, 1f) * 0.05f / 2f, 0.2f, 4f);
+                        float volume = math.clamp(barrelAnimator.sfxVolume + random.NextFloat(-1f, 1f) * 0.05f / 2f, 0.2f, 4f);
+                        effectWritter.startScale = startScale;
+                        effectWritter.endScale = endScale;
+                        effectWritter.startLength = startLength;
+                        effectWritter.endLength = endLength;
+                        effectWritter.sfxPitch = pitch;
+                        effectWritter.sfxVolume = volume;
+                        effectWritter.elapsedTime = effectWritter.muzzleFlashDuration;
+                        if (effectWritter.isPlayOneShot == false) effectWritter.isPlayOneShot = true;
+                        effectWritter.SpawnPosition = spawnLocalTransform.Position;
+                        effectWritter.SpawnRandomRotation = spawnLocalTransform.RotateZ(randomZ).Rotation;
+                        Parent parentEntityEffectWritter = _ParentLookUp[entityEffect];
+                        parentEntityEffectWritter.Value = tip.barrelTipEntity;
+                        barrelAnimator.random = random;
+                        SoundWeaponEffectShoot soundWeaponEffectShootWritter = _SoundWeaponEffectShootLookUp[pointShoot];
+                        soundWeaponEffectShootWritter.pitch = barrelAnimator.sfxPitch;
+                        soundWeaponEffectShootWritter.volume = barrelAnimator.sfxVolume;
+                        soundWeaponEffectShootWritter.isPlayOneShot = true;
+                        barrelAnimator.flashSpawned = true;
+                        ecb.SetComponent<EffectWeaponShoot>(sortkey, entityEffect, effectWritter);
+                        ecb.SetComponent<Parent>(sortkey, entityEffect, parentEntityEffectWritter);
+                        ecb.SetComponent<SoundWeaponEffectShoot>(sortkey, pointShoot, soundWeaponEffectShootWritter);
                     }
                     if (progress >= 1f)
                     {
-                        barrelAnimator.ValueRW.animationPlaying = false;
-                        barrelAnimator.ValueRW.flashSpawned = false;
+                        barrelAnimator.animationPlaying = false;
+                        barrelAnimator.flashSpawned = false;
                     }
+                    ecb.SetComponent<LocalTransform>(sortkey, barrelAnimator.barrelBaseEntity, baseTransformWritter);
+                    ecb.SetComponent<LocalTransform>(sortkey, tip.barrelTipEntity, tipTransformWritter);
                     break;
                 case Enum.WeaponFiringPattern.Simultaneous:
-                    if (!barrelAnimator.ValueRO.animationPlaying) continue;
-                    float elapsedSimultaneous = (float)SystemAPI.Time.ElapsedTime - barrelAnimator.ValueRO.lastFireTime;
-                    float progressSimultaneous = math.clamp(elapsedSimultaneous / barrelAnimator.ValueRO.animationDuration, 0f, 1f);
-                    ref BarrelAnimatorCurveBlob blobSimultaneous = ref barrelAnimator.ValueRO.curveBlob.Value;
+                    if (!barrelAnimator.animationPlaying) break;
+                    float elapsedSimultaneous = ElapsedTime - barrelAnimator.lastFireTime;
+                    float progressSimultaneous = math.clamp(elapsedSimultaneous / barrelAnimator.animationDuration, 0f, 1f);
+                    ref BarrelAnimatorCurveBlob blobSimultaneous = ref barrelAnimator.curveBlob.Value;
                     int sampleCountSimultaneous = blobSimultaneous.sampleCount;
                     float sampleTSimultaneous = progressSimultaneous * (sampleCountSimultaneous - 1);
                     int idx0Simultaneous = (int)math.floor(sampleTSimultaneous);
@@ -120,138 +160,143 @@ partial struct BarrelAnimatorSystem : ISystem
                     float fracSimultaneous = sampleTSimultaneous - idx0Simultaneous;
                     float slideValueSimultaneous = math.lerp(blobSimultaneous.slideCurve[idx0Simultaneous], blobSimultaneous.slideCurve[idx1Simultaneous], fracSimultaneous);
                     float rotationValueSimultaneous = math.lerp(blobSimultaneous.rotationCurve[idx0Simultaneous], blobSimultaneous.rotationCurve[idx0Simultaneous], fracSimultaneous);
-                    if (barrelAnimator.ValueRO.barrelBaseEntity != Entity.Null && SystemAPI.HasComponent<LocalTransform>(barrelAnimator.ValueRO.barrelBaseEntity))
+                    LocalTransform baseTransformSimultaneousWritter = _LocalTransformLookUp[barrelAnimator.barrelBaseEntity];
+                    if (barrelAnimator.barrelBaseEntity != Entity.Null)
                     {
-                        RefRW<LocalTransform> baseTransform = SystemAPI.GetComponentRW<LocalTransform>(barrelAnimator.ValueRO.barrelBaseEntity);
-                        float3 basePos = new(0f, 0f, -slideValueSimultaneous * barrelAnimator.ValueRO.baseSlideDistance);
-                        baseTransform.ValueRW.Position = basePos;
+                        float3 basePos = new(0f, 0f, -slideValueSimultaneous * barrelAnimator.baseSlideDistance);
+                        baseTransformSimultaneousWritter.Position = basePos;
                     }
                     for (int index = 0; index < tipBuffers.Length; index++)
                     {
                         BarrelTipEntityBuffer tipSimultaneous = tipBuffers[index];
                         PointShotEntityBuffer pointShotEntityBufferSimultaneous = pointShotBuffers[index];
-                        RefRW<LocalTransform> tipTransformSimultaneous = SystemAPI.GetComponentRW<LocalTransform>(tipSimultaneous.barrelTipEntity);
+                        LocalTransform tipTransformSimultaneousWritter = _LocalTransformLookUp[tipSimultaneous.barrelTipEntity];
                         if (tipSimultaneous.tipInitialPosition.Equals(float3.zero) && tipSimultaneous.tipInitialRotation.Equals(float3.zero))
                         {
-                            tip.tipInitialPosition = tipTransformSimultaneous.ValueRO.Position;
-                            tip.tipInitialRotation = math.Euler(tipTransformSimultaneous.ValueRO.Rotation);
+                            tip.tipInitialPosition = tipTransformSimultaneousWritter.Position;
+                            tip.tipInitialRotation = math.Euler(tipTransformSimultaneousWritter.Rotation);
                             tipBuffers.ElementAt(index) = tipSimultaneous;
                         }
-                        float tipYSimultaneous = tipSimultaneous.tipInitialPosition.y + slideValueSimultaneous * barrelAnimator.ValueRO.tipSlideAmountDistance;
-                        tipTransformSimultaneous.ValueRW.Position = new float3(
+                        float tipYSimultaneous = tipSimultaneous.tipInitialPosition.y + slideValueSimultaneous * barrelAnimator.tipSlideAmountDistance;
+                        tipTransformSimultaneousWritter.Position = new float3(
                             tipSimultaneous.tipInitialPosition.x,
                             tipYSimultaneous,
                             tipSimultaneous.tipInitialPosition.z
                         );
-                        if (barrelAnimator.ValueRO.tipRotateDegrees != 0f)
+                        if (barrelAnimator.tipRotateDegrees != 0f)
                         {
                             float tipRotYSimultaneous = tipSimultaneous.tipInitialRotation.y;
-                            tipRotYSimultaneous = math.lerp(barrelAnimator.ValueRO.tipRotationAtFire,
-                                barrelAnimator.ValueRO.tipRotationAtFire + barrelAnimator.ValueRO.tipRotateDegrees,
+                            tipRotYSimultaneous = math.lerp(barrelAnimator.tipRotationAtFire,
+                                barrelAnimator.tipRotationAtFire + barrelAnimator.tipRotateDegrees,
                                 rotationValueSimultaneous);
-                            tipTransformSimultaneous.ValueRW.Rotation = quaternion.Euler(
+                            tipTransformSimultaneousWritter.Rotation = quaternion.Euler(
                                 math.radians(tipSimultaneous.tipInitialRotation.x),
                                 math.radians(tipRotYSimultaneous),
                                 math.radians(tipSimultaneous.tipInitialRotation.z)
                             );
                         }
-                        if (!barrelAnimator.ValueRO.flashSpawned)
+                        if (!barrelAnimator.flashSpawned)
                         {
                             Entity pointShoot = pointShotEntityBufferSimultaneous.pointShoot;
-                            LocalTransform spawnLocalTransform = SystemAPI.GetComponent<LocalTransform>(pointShoot);
-                            Unity.Mathematics.Random random = barrelAnimator.ValueRO.random;
-                            Entity entityEffect = barrelAnimator.ValueRO.muzzleFlashEntity;
-                            RefRW<LocalToWorld> localToWorld = SystemAPI.GetComponentRW<LocalToWorld>(entityEffect);
-                            RefRW<EffectWeaponShoot> effect = SystemAPI.GetComponentRW<EffectWeaponShoot>(entityEffect);
-                            float startScale = 1f + random.NextFloat(-1f, 1f) * effect.ValueRO.scaleVariance / 2f;
+                            LocalTransform spawnLocalTransform = _LocalTransformLookUp[pointShoot];
+                            Unity.Mathematics.Random random = barrelAnimator.random;
+                            Entity entityEffect = barrelAnimator.muzzleFlashEntity;
+                            EffectWeaponShoot effectWritter = _EffectWeaponShootLookUp[entityEffect];
+                            float startScale = 1f + random.NextFloat(-1f, 1f) * effectWritter.scaleVariance / 2f;
                             float endScale = startScale * random.NextFloat(0.6f, 0.8f);
-                            float startLength = 1f + random.NextFloat(-1f, 1f) * effect.ValueRO.lengthVariance / 2f;
+                            float startLength = 1f + random.NextFloat(-1f, 1f) * effectWritter.lengthVariance / 2f;
                             float endLength = startLength * random.NextFloat(1.75f, 3f);
                             float randomZ = random.NextFloat(-180f, 180f);
-                            float pitch = math.clamp(barrelAnimator.ValueRO.sfxPitch + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
-                            float volume = math.clamp(barrelAnimator.ValueRO.sfxVolume + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
-                            effect.ValueRW.startScale = startScale;
-                            effect.ValueRW.endScale = endScale;
-                            effect.ValueRW.startLength = startLength;
-                            effect.ValueRW.endLength = endLength;
-                            effect.ValueRW.sfxPitch = pitch;
-                            effect.ValueRW.sfxVolume = volume;
-                            effect.ValueRW.elapsedTime = effect.ValueRO.muzzleFlashDuration;
-                            if (effect.ValueRO.isPlayOneShot == false) effect.ValueRW.isPlayOneShot = true;
-                            effect.ValueRW.SpawnPosition = spawnLocalTransform.Position;
-                            effect.ValueRW.SpawnRandomRotation = spawnLocalTransform.RotateZ(randomZ).Rotation;
-                            SystemAPI.GetComponentRW<Parent>(entityEffect).ValueRW.Value = tipSimultaneous.barrelTipEntity;
-                            barrelAnimator.ValueRW.random = random;
-                            RefRW<SoundWeaponEffectShoot> soundWeaponEffectShoot = SystemAPI.GetComponentRW<SoundWeaponEffectShoot>(pointShoot);
-                            soundWeaponEffectShoot.ValueRW.pitch = barrelAnimator.ValueRO.sfxPitch;
-                            soundWeaponEffectShoot.ValueRW.volume = barrelAnimator.ValueRO.sfxVolume;
-                            soundWeaponEffectShoot.ValueRW.isPlayOneShot = true;
-                            barrelAnimator.ValueRW.flashSpawned = true;
+                            float pitch = math.clamp(barrelAnimator.sfxPitch + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
+                            float volume = math.clamp(barrelAnimator.sfxVolume + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
+                            effectWritter.startScale = startScale;
+                            effectWritter.endScale = endScale;
+                            effectWritter.startLength = startLength;
+                            effectWritter.endLength = endLength;
+                            effectWritter.sfxPitch = pitch;
+                            effectWritter.sfxVolume = volume;
+                            effectWritter.elapsedTime = effectWritter.muzzleFlashDuration;
+                            if (effectWritter.isPlayOneShot == false) effectWritter.isPlayOneShot = true;
+                            effectWritter.SpawnPosition = spawnLocalTransform.Position;
+                            effectWritter.SpawnRandomRotation = spawnLocalTransform.RotateZ(randomZ).Rotation;
+                            Parent parentEntityEffectWritter = _ParentLookUp[entityEffect];
+                            parentEntityEffectWritter.Value = tipSimultaneous.barrelTipEntity;
+                            barrelAnimator.random = random;
+                            SoundWeaponEffectShoot soundWeaponEffectShootWritter = _SoundWeaponEffectShootLookUp[pointShoot];
+                            soundWeaponEffectShootWritter.pitch = barrelAnimator.sfxPitch;
+                            soundWeaponEffectShootWritter.volume = barrelAnimator.sfxVolume;
+                            soundWeaponEffectShootWritter.isPlayOneShot = true;
+                            barrelAnimator.flashSpawned = true;
+                            ecb.SetComponent<EffectWeaponShoot>(sortkey, entityEffect, effectWritter);
+                            ecb.SetComponent<Parent>(sortkey, entityEffect, parentEntityEffectWritter);
+                            ecb.SetComponent<SoundWeaponEffectShoot>(sortkey, pointShoot, soundWeaponEffectShootWritter);
                         }
-                        if (progressSimultaneous >= 1f)
-                        {
-                            barrelAnimator.ValueRW.animationPlaying = false;
-                            barrelAnimator.ValueRW.flashSpawned = false;
-                        }
+                        ecb.SetComponent<LocalTransform>(sortkey, tipSimultaneous.barrelTipEntity, tipTransformSimultaneousWritter);
                     }
+                    if (progressSimultaneous >= 1f)
+                    {
+                        barrelAnimator.animationPlaying = false;
+                        barrelAnimator.flashSpawned = false;
+                    }
+                    ecb.SetComponent<LocalTransform>(sortkey, barrelAnimator.barrelBaseEntity, baseTransformSimultaneousWritter);
+
                     break;
                 case Enum.WeaponFiringPattern.Gatling:
-                    float gatlingRotationFactor = barrelAnimator.ValueRO.curentGatlingRotation / barrelAnimator.ValueRO.gatlingRotationSpeed;
-                    RefRW<LocalTransform> tipTransformGatling = SystemAPI.GetComponentRW<LocalTransform>(tipBuffers[0].barrelTipEntity);
-                    tipTransformGatling.ValueRW = tipTransformGatling.ValueRW.WithRotation(quaternion.Euler(0f, math.radians(barrelAnimator.ValueRO.curentGatlingRotation * SystemAPI.Time.DeltaTime), 0f));
-                    RefRW<SFX_GatlingSpin> sfx_GatlingSpin = SystemAPI.GetComponentRW<SFX_GatlingSpin>(barrelAnimator.ValueRO.audioGatlingEffect);
+                    float gatlingRotationFactor = barrelAnimator.curentGatlingRotation / barrelAnimator.gatlingRotationSpeed;
+                    LocalTransform tipTransformGatlingWritter = _LocalTransformLookUp[tipBuffers[0].barrelTipEntity];
+                    barrelAnimator.accumulatedGatlingAngle += barrelAnimator.curentGatlingRotation * DeltaTime;
+                    tipTransformGatlingWritter = tipTransformGatlingWritter.WithRotation(quaternion.Euler(0f, math.radians(math.fmod(barrelAnimator.accumulatedGatlingAngle, 1800)), 0f));
+                    SFX_GatlingSpin sfx_GatlingSpinWritter = _SFX_GatlingSpinLookUp[barrelAnimator.audioGatlingEffect];
                     if (gatlingRotationFactor > 0.05f)
                     {
-                        sfx_GatlingSpin.ValueRW.isPlaying = true;
-                        sfx_GatlingSpin.ValueRW.gatlingRotationFactor = barrelAnimator.ValueRO.curentGatlingRotation / barrelAnimator.ValueRO.gatlingRotationSpeed;
-                        sfx_GatlingSpin.ValueRW.curentGatlingRotation = barrelAnimator.ValueRO.curentGatlingRotation;
+                        sfx_GatlingSpinWritter.isPlaying = true;
+                        sfx_GatlingSpinWritter.gatlingRotationFactor = barrelAnimator.curentGatlingRotation / barrelAnimator.gatlingRotationSpeed;
                     }
                     else
                     {
-                        sfx_GatlingSpin.ValueRW.isPlaying = false;
+                        sfx_GatlingSpinWritter.isPlaying = false;
                     }
-                    if (barrelAnimator.ValueRO.animationPlaying)
+                    if (barrelAnimator.animationPlaying)
                     {
                         BarrelTipEntityBuffer tipSimultaneous = tipBuffers[0];
                         PointShotEntityBuffer pointShotEntityBufferSimultaneous = pointShotBuffers[0];
                         Entity pointShoot = pointShotEntityBufferSimultaneous.pointShoot;
-                        LocalTransform spawnLocalTransform = SystemAPI.GetComponent<LocalTransform>(pointShoot);
-                        Unity.Mathematics.Random random = barrelAnimator.ValueRO.random;
-                        Entity entityEffect = barrelAnimator.ValueRO.muzzleFlashEntity;
-                        RefRW<LocalToWorld> localToWorld = SystemAPI.GetComponentRW<LocalToWorld>(entityEffect);
-                        RefRW<EffectWeaponShoot> effect = SystemAPI.GetComponentRW<EffectWeaponShoot>(entityEffect);
-                        float startScale = 1f + random.NextFloat(-1f, 1f) * effect.ValueRO.scaleVariance / 2f;
+                        LocalTransform spawnLocalTransform = _LocalTransformLookUp[pointShoot];
+                        Random random = barrelAnimator.random;
+                        Entity entityEffect = barrelAnimator.muzzleFlashEntity;
+                        EffectWeaponShoot effectWritter = _EffectWeaponShootLookUp[entityEffect];
+                        float startScale = 1f + random.NextFloat(-1f, 1f) * effectWritter.scaleVariance / 2f;
                         float endScale = startScale * random.NextFloat(0.6f, 0.8f);
-                        float startLength = 1f + random.NextFloat(-1f, 1f) * effect.ValueRO.lengthVariance / 2f;
+                        float startLength = 1f + random.NextFloat(-1f, 1f) * effectWritter.lengthVariance / 2f;
                         float endLength = startLength * random.NextFloat(1.75f, 3f);
                         float randomZ = random.NextFloat(-180f, 180f);
-                        float pitch = barrelAnimator.ValueRO.sfxPitch;
-                        float volume = barrelAnimator.ValueRO.sfxVolume;
-                        effect.ValueRW.startScale = startScale;
-                        effect.ValueRW.endScale = endScale;
-                        effect.ValueRW.startLength = startLength;
-                        effect.ValueRW.endLength = endLength;
-                        effect.ValueRW.sfxPitch = pitch;
-                        effect.ValueRW.sfxVolume = volume;
-                        effect.ValueRW.elapsedTime = effect.ValueRO.muzzleFlashDuration;
-                        if (effect.ValueRO.isPlayOneShot == false) effect.ValueRW.isPlayOneShot = true;
-                        effect.ValueRW.SpawnPosition = spawnLocalTransform.Position;
-                        effect.ValueRW.SpawnRandomRotation = spawnLocalTransform.RotateZ(randomZ).Rotation;
-                        SystemAPI.GetComponentRW<Parent>(entityEffect).ValueRW.Value = tipSimultaneous.barrelTipEntity;
-                        barrelAnimator.ValueRW.random = random;
-                        RefRW<SoundWeaponEffectShoot> soundWeaponEffectShoot = SystemAPI.GetComponentRW<SoundWeaponEffectShoot>(pointShoot);
-                        soundWeaponEffectShoot.ValueRW.pitch = barrelAnimator.ValueRO.sfxPitch;
-                        soundWeaponEffectShoot.ValueRW.volume = barrelAnimator.ValueRO.sfxVolume;
-                        soundWeaponEffectShoot.ValueRW.isPlayOneShot = true;
+                        float pitch = math.clamp(barrelAnimator.sfxPitch + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
+                        float volume = math.clamp(barrelAnimator.sfxVolume + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
+                        effectWritter.startScale = startScale;
+                        effectWritter.endScale = endScale;
+                        effectWritter.startLength = startLength;
+                        effectWritter.endLength = endLength;
+                        effectWritter.sfxPitch = pitch;
+                        effectWritter.sfxVolume = volume;
+                        effectWritter.elapsedTime = effectWritter.muzzleFlashDuration;
+                        if (effectWritter.isPlayOneShot == false) effectWritter.isPlayOneShot = true;
+                        effectWritter.SpawnPosition = spawnLocalTransform.Position;
+                        effectWritter.SpawnRandomRotation = spawnLocalTransform.RotateZ(randomZ).Rotation;
+                        Parent parentEntityEffectWritter = _ParentLookUp[entityEffect];
+                        parentEntityEffectWritter.Value = tipSimultaneous.barrelTipEntity;
+                        barrelAnimator.random = random;
+                        SoundWeaponEffectShoot soundWeaponEffectShootWritter = _SoundWeaponEffectShootLookUp[pointShoot];
+                        soundWeaponEffectShootWritter.pitch = barrelAnimator.sfxPitch;
+                        soundWeaponEffectShootWritter.volume = barrelAnimator.sfxVolume;
+                        soundWeaponEffectShootWritter.isPlayOneShot = true;
+                        ecb.SetComponent<EffectWeaponShoot>(sortkey, entityEffect, effectWritter);
+                        ecb.SetComponent<Parent>(sortkey, entityEffect, parentEntityEffectWritter);
+                        ecb.SetComponent<SoundWeaponEffectShoot>(sortkey, pointShoot, soundWeaponEffectShootWritter);
                     }
+                    ecb.SetComponent<LocalTransform>(sortkey, tipBuffers[0].barrelTipEntity, tipTransformGatlingWritter);
+                    ecb.SetComponent<SFX_GatlingSpin>(sortkey, barrelAnimator.audioGatlingEffect, sfx_GatlingSpinWritter);
                     break;
             }
-
         }
-    }
-    [BurstCompile]
-    public void OnDestroy(ref SystemState state)
-    {
-
     }
 }

@@ -1,41 +1,46 @@
+using FMOD.Studio;
 using Unity.Burst;
 using Unity.Entities;
-using Unity.Mathematics;
-using UnityEngine;
-
-partial struct PlayAndStopSoundGatlingSpinSystem : ISystem
+using Unity.Transforms;
+using System.Collections.Generic;
+[UpdateAfter(typeof(BarrelAnimatorSystem))]
+public partial class PlayAndStopSoundGatlingSpinSystem : SystemBase
 {
-    private float GatlingSpinSFXInitialPitch;
-    private float GatlingSpinSFXInitialVolume;
+    private Dictionary<Entity, EventInstance> _SoundGatlingSpinEventInstanceDictionary = new();
     [BurstCompile]
-    public void OnCreate(ref SystemState state)
+    protected override void OnCreate()
     {
-        
-    }
 
-    public void OnUpdate(ref SystemState state)
+    }
+    protected override void OnUpdate()
     {
-        foreach ((RefRO<SFX_GatlingSpin> sfx_GatlingSpin, Entity entity) in SystemAPI.Query<RefRO<SFX_GatlingSpin>>().WithEntityAccess())
+        foreach ((RefRO<SFX_GatlingSpin> sfx_GatlingSpin, RefRO<LocalToWorld> localToWorld, Entity entity) in SystemAPI.Query<RefRO<SFX_GatlingSpin>, RefRO<LocalToWorld>>().WithEntityAccess())
         {
-            GatlingSpinSFXInitialPitch = 2f;
-            GatlingSpinSFXInitialVolume = sfx_GatlingSpin.ValueRO.gatlingSpinAudioVolume;
-            AudioSource audioSource = state.World.EntityManager.GetComponentObject<AudioSource>(entity);
-            if (sfx_GatlingSpin.ValueRO.isPlaying)
+            if (!_SoundGatlingSpinEventInstanceDictionary.ContainsKey(entity))
             {
-                if (!audioSource.isPlaying) audioSource.Play();
-                audioSource.pitch = sfx_GatlingSpin.ValueRO.gatlingSpinAudioPitch * sfx_GatlingSpin.ValueRO.gatlingRotationFactor;
-                audioSource.volume = math.lerp(0f, 1f, sfx_GatlingSpin.ValueRO.gatlingRotationFactor);
+                EventInstance eventInstance = FmodSoundManager.GetEventInstance(sfx_GatlingSpin.ValueRO.soundEventReferenceGatlingSpinGUID);
+                FmodSoundManager.SetPositionEventInstance(eventInstance, localToWorld.ValueRO.Position);
+                _SoundGatlingSpinEventInstanceDictionary.Add(entity, eventInstance);
             }
             else
             {
-                if (audioSource.isPlaying) audioSource.Stop();
+                EventInstance eventInstance = _SoundGatlingSpinEventInstanceDictionary[entity];
+                if (sfx_GatlingSpin.ValueRO.isPlaying)
+                {
+                    FmodSoundManager.SetParameterSoundEffectLoop(eventInstance, "SpeedGatlingSpinSpeedFactor", sfx_GatlingSpin.ValueRO.gatlingRotationFactor);
+                    FmodSoundManager.PlaySoundEffectLoop(eventInstance);
+                }
+                else
+                {
+                    FmodSoundManager.StopSoundEffectLoop(eventInstance, STOP_MODE.ALLOWFADEOUT);
+                }
             }
         }
     }
 
     [BurstCompile]
-    public void OnDestroy(ref SystemState state)
+    protected override void OnDestroy()
     {
-        
+
     }
 }

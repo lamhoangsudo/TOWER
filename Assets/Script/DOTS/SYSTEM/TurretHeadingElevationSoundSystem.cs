@@ -4,7 +4,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 [UpdateAfter(typeof(TurretHeadingSystem))]
-[UpdateAfter(typeof(TurretPitchSystem))]
+[UpdateAfter(typeof(TurretElevationSystem))]
 partial struct TurretHeadingElevationSoundSystem : ISystem
 {
     [BurstCompile]
@@ -90,8 +90,7 @@ public partial struct TurretHeadingSoundJob : IJobEntity
         if (turret.IsHeadingRotationSFX)
         {
             if (!SFX_Heading.isPlaying) SFX_Heading.isPlaying = true;
-            SFX_Heading.headingRotationSFXInitialPitch = math.lerp(0f, 0.55f, turret.headingSpeedFactor);
-            SFX_Heading.headingRotationSFXInitialVolume = math.lerp(0f, 1f, turret.headingSpeedFactor);
+            SFX_Heading.headingSpeedFactor = turret.headingSpeedFactor;
         }
         else
         {
@@ -109,11 +108,10 @@ public partial struct TurretElevationSoundJob : IJobEntity
     public void Execute(ref SFX_Elevation SFX_Elevation)
     {
         Turret turret = turretLookup[SFX_Elevation.turretEntity];
-        if (turret.IsHeadingRotationSFX)
+        if (turret.IsElevationRotationSFX)
         {
             if (!SFX_Elevation.isPlaying) SFX_Elevation.isPlaying = true;
-            SFX_Elevation.elevationRotationSFXInitialPitch = math.lerp(0f, 0.75f, turret.elevationSpeedFactor);
-            SFX_Elevation.elevationRotationSFXInitialVolume = math.lerp(0f, 1f, turret.elevationSpeedFactor);
+            SFX_Elevation.elevationSpeedFactor = turret.elevationSpeedFactor;
         }
         else
         {

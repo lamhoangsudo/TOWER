@@ -222,7 +222,10 @@ public partial struct WeaponSystem : ISystem
             }
         }
         */
-        foreach ((RefRW<Weapon> weapon, RefRW<WeaponFireTime> weaponFireTime, RefRW<BarrelAnimator> barrelAnimator, DynamicBuffer<BarrelTipEntityBuffer> barrelTipEntityBuffers, DynamicBuffer<PointShotEntityBuffer> pointShotEntityBuffers) in SystemAPI.Query<RefRW<Weapon>, RefRW<WeaponFireTime>, RefRW<BarrelAnimator>, DynamicBuffer<BarrelTipEntityBuffer>, DynamicBuffer<PointShotEntityBuffer>>())
+        /*
+        foreach ((RefRW<Weapon> weapon, RefRW<WeaponFireTime> weaponFireTime, RefRW<BarrelAnimator> barrelAnimator, DynamicBuffer<BarrelTipEntityBuffer> barrelTipEntityBuffers, DynamicBuffer<PointShotEntityBuffer> pointShotEntityBuffers) 
+            in 
+            SystemAPI.Query<RefRW<Weapon>, RefRW<WeaponFireTime>, RefRW<BarrelAnimator>, DynamicBuffer<BarrelTipEntityBuffer>, DynamicBuffer<PointShotEntityBuffer>>())
         {
             if (!weapon.ValueRO.startFire) continue;
             switch (weapon.ValueRO.firingPattern)
@@ -309,7 +312,7 @@ public partial struct WeaponSystem : ISystem
                         if (weapon.ValueRO.startGatling) weapon.ValueRW.startGatling = false;
                     }
                     barrelAnimator.ValueRW.gatlingRotationSpeed = weapon.ValueRO.gatlingRotationSpeed;
-                    barrelAnimator.ValueRW.gatlingRotationSpeedChange = barrelAnimator.ValueRO.gatlingRotationSpeed * SystemAPI.Time.DeltaTime;
+                    barrelAnimator.ValueRW.gatlingRotationSpeedChange = barrelAnimator.ValueRO.gatlingRotationSpeed * SystemAPI.Time.DeltaTime * (1f / barrelAnimator.ValueRO.animationDuration);
                     if (weapon.ValueRO.startGatling)
                     {
                         if (barrelAnimator.ValueRO.curentGatlingRotation < barrelAnimator.ValueRO.gatlingRotationSpeed)
@@ -330,27 +333,182 @@ public partial struct WeaponSystem : ISystem
                         weaponFireTime.ValueRW.burstDelay -= SystemAPI.Time.DeltaTime;
                         if (weaponFireTime.ValueRO.burstDelay <= 0)
                         {
+                            Random random = barrelAnimator.ValueRO.random;
                             if (!barrelAnimator.ValueRO.animationPlaying) barrelAnimator.ValueRW.animationPlaying = true;
-                            weaponFireTime.ValueRW.burstDelay = weaponFireTime.ValueRO.burstDelayMax;
+                            weaponFireTime.ValueRW.burstDelay = weaponFireTime.ValueRO.burstDelayMax + random.NextFloat(-0.1f, 0.1f);
+                            barrelAnimator.ValueRW.random = random;
                         }
                         else
                         {
                             if (barrelAnimator.ValueRO.animationPlaying) barrelAnimator.ValueRW.animationPlaying = false;
                         }
                     }
-                    else
+                    else if (barrelAnimator.ValueRO.curentGatlingRotation > 0f && barrelAnimator.ValueRO.curentGatlingRotation < (barrelAnimator.ValueRO.gatlingRotationSpeed / 2))
                     {
                         if (barrelAnimator.ValueRO.animationPlaying) barrelAnimator.ValueRW.animationPlaying = false;
+                    }
+                    else
+                    {
                         weapon.ValueRW.startFire = false;
+                        weaponFireTime.ValueRW.timeOverHeat = 0f;
+                        if (barrelAnimator.ValueRO.animationPlaying) barrelAnimator.ValueRW.animationPlaying = false;
                     }
                     break;
             }
         }
+        */
+        WeaponSystemJob weaponSystemJob = new()
+        {
+            DeltaTime = SystemAPI.Time.DeltaTime,
+            ElapsedTime = (float)SystemAPI.Time.ElapsedTime,
+        };
+        weaponSystemJob.ScheduleParallel();
     }
 
     [BurstCompile]
     public void OnDestroy(ref SystemState state)
     {
 
+    }
+    [BurstCompile] 
+    public partial struct WeaponSystemJob : IJobEntity
+    {
+        public float DeltaTime;
+        public float ElapsedTime;
+        public void Execute(ref Weapon weapon, 
+            ref WeaponFireTime weaponFireTime, 
+            ref BarrelAnimator barrelAnimator, 
+            DynamicBuffer<BarrelTipEntityBuffer> barrelTipEntityBuffers, 
+            DynamicBuffer<PointShotEntityBuffer> pointShotEntityBuffers)
+        {
+            if (!weapon.startFire) return;
+            switch (weapon.firingPattern)
+            {
+                case Enum.WeaponFiringPattern.Individual:
+                    if (weaponFireTime.burstCount >= weaponFireTime.burstCountMax && !barrelAnimator.animationPlaying)
+                    {
+                        weaponFireTime.burstCount = 0;
+                        weaponFireTime.burstDelay = 0;
+                        weapon.startFire = false;
+                        break;
+                    }
+                    if (barrelTipEntityBuffers.Length != pointShotEntityBuffers.Length) break;
+                    weaponFireTime.burstDelay += DeltaTime;
+                    if (weaponFireTime.burstDelay < weaponFireTime.burstDelayMax) break;
+                    if (barrelAnimator.animationPlaying == false)
+                    {
+                        barrelAnimator.animationPlaying = true;
+                        barrelAnimator.lastFireTime = ElapsedTime;
+                        weaponFireTime.barrelTipIndex++;
+                        weaponFireTime.pointShootIndex++;
+                        weaponFireTime.burstCount++;
+                        weaponFireTime.burstCount = math.clamp(weaponFireTime.burstCount, 0, weaponFireTime.burstCountMax);
+                        if (weaponFireTime.barrelTipIndex >= barrelTipEntityBuffers.Length) weaponFireTime.barrelTipIndex = 0;
+                        if (weaponFireTime.pointShootIndex >= pointShotEntityBuffers.Length) weaponFireTime.pointShootIndex = 0;
+                    }
+                    break;
+                case Enum.WeaponFiringPattern.Simultaneous:
+                    if (barrelTipEntityBuffers.Length <= 1) break;
+                    if (barrelTipEntityBuffers.Length != pointShotEntityBuffers.Length) break;
+                    if (weaponFireTime.burstCount >= weaponFireTime.burstCountMax)
+                    {
+                        weaponFireTime.burstCount = 0;
+                        weaponFireTime.burstDelay = 0;
+                        weapon.startFire = false;
+                        break;
+                    }
+                    weaponFireTime.burstDelay += DeltaTime;
+                    if (weaponFireTime.burstDelay < weaponFireTime.burstDelayMax) break;
+                    weaponFireTime.barrelTipIndex = weaponFireTime.burstCount % weaponFireTime.burstCountMax;
+                    weaponFireTime.pointShootIndex = weaponFireTime.burstCount % weaponFireTime.burstCountMax;
+                    if (barrelAnimator.animationPlaying == false)
+                    {
+                        barrelAnimator.animationPlaying = true;
+                        barrelAnimator.lastFireTime = ElapsedTime;
+                    }
+                    weaponFireTime.burstCount += barrelTipEntityBuffers.Length;
+                    weaponFireTime.burstCount = math.clamp(weaponFireTime.burstCount, 0, weaponFireTime.burstCountMax);
+
+                    weaponFireTime.burstCount += barrelTipEntityBuffers.Length;
+                    break;
+                case Enum.WeaponFiringPattern.MissileLauncher:
+                    if (barrelTipEntityBuffers.Length > 1) break;
+                    if (weaponFireTime.burstCount >= weaponFireTime.burstCountMax && !barrelAnimator.animationPlaying)
+                    {
+                        weaponFireTime.burstCount = 0;
+                        weaponFireTime.burstDelay = 0;
+                        weapon.startFire = false;
+                        break;
+                    }
+                    weaponFireTime.burstDelay += DeltaTime;
+                    if (weaponFireTime.burstDelay > weaponFireTime.burstDelayMax)
+                    {
+                        if (barrelAnimator.animationPlaying == false)
+                        {
+                            barrelAnimator.animationPlaying = true;
+                            barrelAnimator.lastFireTime = ElapsedTime;
+                            weaponFireTime.burstDelay = 0;
+                            weaponFireTime.pointShootIndex++;
+                            weaponFireTime.burstCount++;
+                            weaponFireTime.burstCount = math.clamp(weaponFireTime.burstCount, 0, weaponFireTime.burstCountMax);
+                            if (weaponFireTime.pointShootIndex >= pointShotEntityBuffers.Length) weaponFireTime.pointShootIndex = 0;
+                        }
+                    }
+                    break;
+                case Enum.WeaponFiringPattern.Gatling:
+                    if (weaponFireTime.timeOverHeat < weaponFireTime.timeOverHeatMax)
+                    {
+                        weaponFireTime.timeOverHeat += DeltaTime;
+                        if (!weapon.startGatling) weapon.startGatling = true;
+                    }
+                    else
+                    {
+                        if (weapon.startGatling) weapon.startGatling = false;
+                    }
+                    barrelAnimator.gatlingRotationSpeed = weapon.gatlingRotationSpeed;
+                    barrelAnimator.gatlingRotationSpeedChange = barrelAnimator.gatlingRotationSpeed * DeltaTime * (1f / barrelAnimator.animationDuration);
+                    if (weapon.startGatling)
+                    {
+                        if (barrelAnimator.curentGatlingRotation < barrelAnimator.gatlingRotationSpeed)
+                        {
+                            barrelAnimator.curentGatlingRotation += barrelAnimator.gatlingRotationSpeedChange;
+                        }
+                    }
+                    else
+                    {
+                        if (barrelAnimator.curentGatlingRotation > 0)
+                        {
+                            barrelAnimator.curentGatlingRotation -= barrelAnimator.gatlingRotationSpeedChange;
+                        }
+                    }
+                    barrelAnimator.curentGatlingRotation = math.clamp(barrelAnimator.curentGatlingRotation, 0f,     barrelAnimator.gatlingRotationSpeed);
+                    if (barrelAnimator.curentGatlingRotation >= (barrelAnimator.gatlingRotationSpeed / 2))
+                    {
+                        weaponFireTime.burstDelay -= DeltaTime;
+                        if (weaponFireTime.burstDelay <= 0)
+                        {
+                            Random random = barrelAnimator.random;
+                            if (!barrelAnimator.animationPlaying) barrelAnimator.animationPlaying = true;
+                            weaponFireTime.burstDelay = weaponFireTime.burstDelayMax + random.NextFloat(-0.1f, 0.1f);
+                            barrelAnimator.random = random;
+                        }
+                        else
+                        {
+                            if (barrelAnimator.animationPlaying) barrelAnimator.animationPlaying = false;
+                        }
+                    }
+                    else if (barrelAnimator.curentGatlingRotation > 0f && barrelAnimator.curentGatlingRotation < (barrelAnimator.gatlingRotationSpeed / 2))
+                    {
+                        if (barrelAnimator.animationPlaying) barrelAnimator.animationPlaying = false;
+                    }
+                    else
+                    {
+                        weapon.startFire = false;
+                        weaponFireTime.timeOverHeat = 0f;
+                        if (barrelAnimator.animationPlaying) barrelAnimator.animationPlaying = false;
+                    }
+                    break;
+            }
+        }
     }
 }
