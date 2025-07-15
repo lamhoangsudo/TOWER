@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2242553201865189910}
   - component: {fileID: 2250264148074347376}
   - component: {fileID: 8372163946696113231}
+  - component: {fileID: 2365382400325221238}
   m_Layer: 0
   m_Name: Gun_M05ECS
   m_TagString: Untagged
@@ -48,9 +49,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firingPattern: 0
-  burstShots: 1
-  burstDelay: 0.2
-  cooldown: 1.9
   spreadAngle: 0
   gatlingRotationSpeed: 0
   projectilePrefab: {fileID: 2803319171636174522, guid: be3aa323acf996c4f98b807c92dab3b5, type: 3}
@@ -60,12 +58,6 @@ MonoBehaviour:
   projectileMaxSpeed: 300
   projectileUsePrediction: 0
   impactLayer: 0
-  isFiring: 0
-  currentCooldown: 0
-  burstCounter: 0
-  bustTime: 0
-  BarrelAnimator:
-  - {fileID: 2242553201865189913}
 --- !u!114 &8372163946696113231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -150,6 +142,22 @@ MonoBehaviour:
     m_RotationOrder: 4
   sfxPitch: 1
   sfxVolume: 1
+  audioGatlingEffect: {fileID: 0}
+--- !u!114 &2365382400325221238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2242553201865189913}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 602626577bea6304baf1c8710a2fd3b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  burstDelayMax: 0
+  burstCountMax: 1
+  timeOverHeatMax: 0
 --- !u!1 &4695084346473888658
 GameObject:
   m_ObjectHideFlags: 0
@@ -159,7 +167,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5192659207308595320}
-  - component: {fileID: 50595942898738450}
   - component: {fileID: 4002592419991921187}
   m_Layer: 0
   m_Name: PointShoot
@@ -183,103 +190,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2580103350532304664}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!82 &50595942898738450
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4695084346473888658}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: f240b1e124d06a24cb05d277e0dcdb54, type: 3}
-  m_Resource: {fileID: 8300000, guid: f240b1e124d06a24cb05d277e0dcdb54, type: 3}
-  m_PlayOnAwake: 0
-  m_Volume: 1
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
 --- !u!114 &4002592419991921187
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -292,6 +202,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f881a6c580588754bbd228c8989ff375, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  soundEventReferenceSoundWeaponEffectShoot:
+    Guid:
+      Data1: -342328094
+      Data2: 1248344637
+      Data3: -1551693123
+      Data4: -1942715468
+    Path: event:/TurretEvent_SFX/WeaponShot/WeaponShot1
 --- !u!1001 &2108030293970968967
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -24,8 +24,6 @@ public class TurretAuthoring : MonoBehaviour
     public float targetAquiredAngle;
     public bool resetOrientation;
     public Entity turretEntity { get; private set; }
-
-    public GameObject[] weapons;
     public class TurretAuthoringBaker : Baker<TurretAuthoring>
     {
         public override void Bake(TurretAuthoring authoring)
@@ -56,12 +54,6 @@ public class TurretAuthoring : MonoBehaviour
                 isElevationRotationTarget = false,
                 isHeadingRotationTarget = false,
             });
-            DynamicBuffer<WeaponItemBuffer> weaponItemBuffers = AddBuffer<WeaponItemBuffer>(entity);
-            foreach (GameObject weapon in authoring.weapons)
-            {
-                Entity weaponEntity = GetEntity(weapon, TransformUsageFlags.Dynamic);
-                weaponItemBuffers.Add(new WeaponItemBuffer { weaponEntity = weaponEntity });
-            }
             authoring.turretEntity = entity;
         }
     }
@@ -101,11 +93,6 @@ public struct Turret : IComponentData
     public bool IsHeadingRotationSFX;
     public bool IsElevationRotationSFX;
     public Unity.Mathematics.Random random; // Used for sound pitch variation
-}
-[InternalBufferCapacity(8)]
-public struct WeaponItemBuffer : IBufferElementData
-{
-    public Entity weaponEntity;
 }
 
 

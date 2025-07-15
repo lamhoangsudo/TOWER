@@ -139,7 +139,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4969473683629901365}
-  - component: {fileID: 4969473683629901362}
   - component: {fileID: 9044363396699001409}
   m_Layer: 0
   m_Name: SFX_Heading
@@ -163,148 +162,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4969473682298969667}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!82 &4969473683629901362
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4969473683629901364}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: e8b02bb4f1ec68c45bf5449063282412, type: 3}
-  m_Resource: {fileID: 8300000, guid: e8b02bb4f1ec68c45bf5449063282412, type: 3}
-  m_PlayOnAwake: 0
-  m_Volume: 1
-  m_Pitch: 0.55
-  Loop: 1
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 3
-  MaxDistance: 300
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0.0075
-      value: 1
-      inSlope: -133.38666
-      outSlope: -133.38666
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.015
-      value: 0.5
-      inSlope: -33.346664
-      outSlope: -33.346664
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.03
-      value: 0.25
-      inSlope: -8.336666
-      outSlope: -8.336666
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.06
-      value: 0.125
-      inSlope: -2.0841665
-      outSlope: -2.0841665
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.12
-      value: 0.0625
-      inSlope: -0.52104163
-      outSlope: -0.52104163
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.24
-      value: 0.03125
-      inSlope: -0.13026041
-      outSlope: -0.13026041
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: -0.007502991
-      outSlope: -0.007502991
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0.25
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
 --- !u!114 &9044363396699001409
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -318,6 +175,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   turretAuthoring: {fileID: 4992795495340850638}
+  soundEventReference:
+    Guid:
+      Data1: -1853897006
+      Data2: 1167640788
+      Data3: -1104569438
+      Data4: -198666597
+    Path: event:/TurretEvent_SFX/ServoLooped/SFX_Heading
 --- !u!1 &4969473683846292623
 GameObject:
   m_ObjectHideFlags: 0
@@ -375,7 +239,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4969473683962304505}
-  - component: {fileID: 4969473683962304262}
   - component: {fileID: 5987409694329584154}
   m_Layer: 0
   m_Name: SFX_Elevation
@@ -399,148 +262,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4969473682298969667}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!82 &4969473683962304262
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4969473683962304504}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 5f552150df10c7640b99c2a96db8db32, type: 3}
-  m_Resource: {fileID: 8300000, guid: 5f552150df10c7640b99c2a96db8db32, type: 3}
-  m_PlayOnAwake: 0
-  m_Volume: 1
-  m_Pitch: 0.75
-  Loop: 1
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 3
-  MaxDistance: 300
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0.0075
-      value: 1
-      inSlope: -133.38666
-      outSlope: -133.38666
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.015
-      value: 0.5
-      inSlope: -33.346664
-      outSlope: -33.346664
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.03
-      value: 0.25
-      inSlope: -8.336666
-      outSlope: -8.336666
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.06
-      value: 0.125
-      inSlope: -2.0841665
-      outSlope: -2.0841665
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.12
-      value: 0.0625
-      inSlope: -0.52104163
-      outSlope: -0.52104163
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.24
-      value: 0.03125
-      inSlope: -0.13026041
-      outSlope: -0.13026041
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: -0.007502991
-      outSlope: -0.007502991
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0.25
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
 --- !u!114 &5987409694329584154
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -554,6 +275,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   turretAuthoring: {fileID: 4992795495340850638}
+  soundEventReference:
+    Guid:
+      Data1: 666239417
+      Data2: 1252742951
+      Data3: 221795260
+      Data4: -262601138
+    Path: event:/TurretEvent_SFX/ServoLooped/SFX_Elevation
 --- !u!1001 &4969473682391891124
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -656,98 +384,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4969473683420496669}
     m_Modifications:
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: baseSlideDistance
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: tipSlideAmountDistance
-      value: 0.15
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: rotationCurve.m_Curve.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.data[1].time
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.data[2].time
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.data[1].value
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: rotationCurve.m_Curve.Array.data[1].time
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.data[0].inSlope
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.data[1].inSlope
-      value: 0.002469679
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.data[2].inSlope
-      value: -2.894988
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.data[0].outSlope
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.data[1].inWeight
-      value: 0.33333334
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.data[1].outSlope
-      value: 0.002469679
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.data[2].inWeight
-      value: 0.04048197
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.data[2].outSlope
-      value: -2.894988
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.data[1].outWeight
-      value: 0.06717688
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: rotationCurve.m_Curve.Array.data[1].inWeight
-      value: 0.33333334
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: slideCurve.m_Curve.Array.data[0].tangentMode
-      value: 65
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: rotationCurve.m_Curve.Array.data[0].outWeight
-      value: 0.33333334
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: rotationCurve.m_Curve.Array.data[0].tangentMode
-      value: 34
-      objectReference: {fileID: 0}
-    - target: {fileID: 5308959467167847902, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: rotationCurve.m_Curve.Array.data[1].tangentMode
-      value: 34
-      objectReference: {fileID: 0}
-    - target: {fileID: 5614726156978237291, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-      propertyPath: burstDelayMax
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6836354282534631581, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
       propertyPath: m_Name
       value: Launcher_L01_8MECS
