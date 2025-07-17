@@ -156,14 +156,14 @@ namespace AssetInventory
         private void RenderAssignTag(int width)
         {
             GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(UIStyles.Content("Assign Tag", "Will assign a tag to all found packages. This makes it easy to filter for them later on."), EditorStyles.boldLabel, GUILayout.Width(width));
+            EditorGUILayout.LabelField(UIStyles.Content("Assign Tags", "Will assign tags to all found packages. This makes it easy to filter for them later on."), EditorStyles.boldLabel, GUILayout.Width(width));
             _spec.assignTag = EditorGUILayout.Toggle(_spec.assignTag);
             GUILayout.EndHorizontal();
 
             if (_spec.assignTag)
             {
                 GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField(UIStyles.Content("Tag", "Tag to assign to each package."), EditorStyles.boldLabel, GUILayout.Width(width));
+                EditorGUILayout.LabelField(UIStyles.Content("Tags", "Tags to assign to each package, seperated by coma (e.g. essential,2d)."), EditorStyles.boldLabel, GUILayout.Width(width));
                 _spec.tag = EditorGUILayout.TextField(_spec.tag);
                 GUILayout.EndHorizontal();
             }

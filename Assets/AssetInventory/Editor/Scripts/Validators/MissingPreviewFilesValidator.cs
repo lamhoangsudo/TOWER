@@ -10,6 +10,7 @@ namespace AssetInventory
         public MissingPreviewFilesValidator()
         {
             Type = ValidatorType.DB;
+            Speed = ValidatorSpeed.Slow;
             Name = "Missing Preview Files";
             Description = "Scans all indexed files that are supposed to have previews if the files actually still exist on the file system.";
             FixCaption = "Schedule Recreation";

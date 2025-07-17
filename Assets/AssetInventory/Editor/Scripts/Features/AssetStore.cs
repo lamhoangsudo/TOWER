@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
@@ -37,8 +38,28 @@ namespace AssetInventory
         {
             string token = CloudProjectSettings.accessToken;
             string newEtag = eTag;
-            AssetDetails result = await AssetUtils.FetchAPIData<AssetDetails>($"{URL_ASSET_DETAILS}/{id}", token, eTag, newCacheTag => newEtag = newCacheTag, 1, null, suppressErrors);
+            AssetDetails result = await AssetUtils.FetchAPIData<AssetDetails>($"{URL_ASSET_DETAILS}/{id}", "GET", null, token, eTag, newCacheTag => newEtag = newCacheTag, 1, null, suppressErrors);
             if (result != null) result.ETag = newEtag;
+
+            return result;
+        }
+
+        public static async Task<AssetUpdateResult> RetrieveAssetUpdates(List<Asset> assets)
+        {
+            string token = CloudProjectSettings.accessToken;
+
+            // build bulk update request
+            List<AssetUpdateRequest> aurs = new List<AssetUpdateRequest>();
+            foreach (Asset asset in assets)
+            {
+                AssetUpdateRequest aur = new AssetUpdateRequest();
+                aur.id = asset.ForeignId.ToString();
+                aur.local_path = asset.GetLocation(true);
+                aur.upload_id = asset.UploadId.ToString();
+                aur.version = asset.Version;
+                aurs.Add(aur);
+            }
+            AssetUpdateResult result = await AssetUtils.FetchAPIData<AssetUpdateResult>(URL_ASSET_UPDATE, "POST", JsonConvert.SerializeObject(aurs), token);
 
             return result;
         }
@@ -46,7 +67,7 @@ namespace AssetInventory
         public static async Task<DownloadInfo> RetrieveAssetDownloadInfo(int id, Action<long> responseIssueCodeCallback = null)
         {
             string token = CloudProjectSettings.accessToken;
-            DownloadInfoResult result = await AssetUtils.FetchAPIData<DownloadInfoResult>($"{URL_ASSET_DOWNLOAD}/{id}", token, null, null, 1, responseIssueCodeCallback);
+            DownloadInfoResult result = await AssetUtils.FetchAPIData<DownloadInfoResult>($"{URL_ASSET_DOWNLOAD}/{id}", "GET", null, token, null, null, 1, responseIssueCodeCallback);
 
             // special handling of "." also in AssetStoreDownloadInfo
             // null values in content itself should never happen, only one known case:
@@ -276,7 +297,7 @@ namespace AssetInventory
 
         public static string GetAssetCacheFolder()
         {
-#if UNITY_2022_2_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
             Assembly assembly = Assembly.Load("UnityEditor.CoreModule");
             Type asc = assembly.GetType("UnityEditorInternal.AssetStoreCachePathManager");
             MethodInfo openURL = asc.GetMethod("GetConfig", BindingFlags.Public | BindingFlags.Static);

@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 #if UNITY_2021_2_OR_NEWER
-#if UNITY_EDITOR_WIN
+#if UNITY_EDITOR_WIN && NET_4_6
 using System.Drawing;
 #else
 using SixLabors.ImageSharp.PixelFormats;
@@ -30,6 +30,7 @@ namespace AssetInventory
         {
             string[] packages = await Task.Run(() => Directory.GetFiles(spec.GetLocation(true), "*.unitypackage", SearchOption.AllDirectories));
 
+            bool tagsChanged = false;
             MainCount = packages.Length;
             for (int i = 0; i < packages.Length; i++)
             {
@@ -43,11 +44,9 @@ namespace AssetInventory
                 Asset asset = HandlePackage(fromAssetStore, package, i, force);
                 if (asset == null) continue;
 
-                if (spec.assignTag && !string.IsNullOrWhiteSpace(spec.tag))
-                {
-                    Tagging.AddAssignment(asset.Id, spec.tag, TagAssignment.Target.Package, fromAssetStore);
-                }
+                if (ApplyPackageTags(spec, asset, fromAssetStore)) tagsChanged = true;
             }
+            if (tagsChanged) Tagging.LoadAssignments();
         }
 
         internal Asset HandlePackage(bool fromAssetStore, string package, int currentIndex, bool force = false, Asset parent = null, AssetFile subPackage = null)
@@ -296,7 +295,6 @@ namespace AssetInventory
             // extract
             string tempPath = AI.GetMaterializedAssetPath(asset);
             bool wasCachedAlready = Directory.Exists(tempPath);
-            await RemovePersistentCacheEntry(asset);
             tempPath = await AI.ExtractAsset(asset);
 
             if (string.IsNullOrEmpty(tempPath))
@@ -424,7 +422,7 @@ namespace AssetInventory
                         && (AI.IsFileType(fileName, AI.AssetGroup.Models) || AI.IsFileType(fileName, AI.AssetGroup.Prefabs) || AI.IsFileType(fileName, AI.AssetGroup.Materials))
                        )
                     {
-#if UNITY_EDITOR_WIN
+#if UNITY_EDITOR_WIN && NET_4_6
                         using (Bitmap image = new Bitmap(IOUtils.ToLongPath(previewFile)))
 #else
                         using (Image<Rgba32> image = Image.Load<Rgba32>(IOUtils.ToLongPath(previewFile)))

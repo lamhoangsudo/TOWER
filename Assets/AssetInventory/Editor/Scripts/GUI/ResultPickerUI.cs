@@ -13,6 +13,7 @@ namespace AssetInventory
             window.searchMode = true;
             window.fixedSearchType = searchType;
             window.instantSelection = true;
+            window.hideMainNavigation = true;
             window.hideDetailsPane = true;
             window.disablePings = true;
             window.searchModeCallback = callback;
@@ -21,7 +22,7 @@ namespace AssetInventory
 
             return window;
         }
-        
+
         public static ResultPickerUI ShowTextureSelection(Action<Dictionary<string, string>> callback, string searchPhrase = null)
         {
             ResultPickerUI window = GetWindow<ResultPickerUI>("Asset Inventory");
@@ -30,6 +31,7 @@ namespace AssetInventory
             window.textureMode = true;
             window.fixedSearchType = "Images";
             window.instantSelection = true;
+            window.hideMainNavigation = true;
             window.hideDetailsPane = true;
             window.disablePings = true;
             window.searchModeTextureCallback = callback;
@@ -37,6 +39,6 @@ namespace AssetInventory
             window.SetInitialSearch(searchPhrase);
 
             return window;
-        }        
+        }
     }
 }

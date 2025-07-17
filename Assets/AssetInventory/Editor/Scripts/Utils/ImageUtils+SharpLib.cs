@@ -1,4 +1,4 @@
-﻿#if UNITY_2021_2_OR_NEWER && !UNITY_EDITOR_WIN
+﻿#if UNITY_2021_2_OR_NEWER && (!UNITY_EDITOR_WIN || !NET_4_6)
 using System;
 using System.IO;
 using UnityEngine;

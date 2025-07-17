@@ -4,73 +4,147 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2025-08-??
+
+- tbd
+
+## [3.2.1] - 2025-07-16
+
+- Fix GUI errors in console when selecting unextracted search results
+
+## [3.2.0] - 2025-07-15
+
+- Asset Browser, Saved Searches & In-Memory Mode
+  - High-Speed in-memory browsing mode
+  - Show saved searches on top of search bar
+  - Store Saved Searches in the database (existing ones will be upgraded)
+  - Allow editing saved search name, color and setting an icon
+  - Highlight currently active saved search
+  - Dedicated Asset Browser window only containing search
+  - Introduction of Workspaces as a way to limit which saved searches should be visible (e.g. for a GameJam, 2D or 3D games...)
+- Performance
+  - Improve cache by also adding version, leading to much better cache utilization and fewer package extractions
+  - Upgrade existing cache to new format
+  - Allow most actions for not-downloaded items if they are cached already
+  - Reduce UI hickups by extracting in the background
+  - Allow DB to use more memory for caching
+  - Optimize database even better by forcing planner to analyze indices
+  - Search performance increase due to faster preview image load termination
+  - New search setting: Search without input, allowing to skip initial search when displaying the window leading to much faster loading times
+  - Add index collation to tags and metadata
+- AI
+  - Experimental Plain English Search: formulate what you want to find and the AI will translate it into a search phrase
+  - Allow refreshing Ollama detection if it was previously inactive
+  - Warn if AI model is probably bigger than available memory
+  - New AI setting for max caption length
+- Tags
+  - Significantly speed up bulk tag assignment
+  - Support assigning and removing tags via hotkey
+  - Show hotkeys in tags dropdown
+  - Add confirmations when deleting tags or metadata in management UIs
+  - Allow changing capitalization of tags
+  - Disallow / in tag names
+  - Allow specifying multiple tags to add in additional folders settings
+- Show tile size slider under search results
+- Delete unneeded cache directories in the background
+- Ability to cancel some first extraction actions
+- Allow playing/stopping audio previews while extraction is in progress
+- Allow exporting selected files from search page
+- Option to show package details sections also in compact mode
+- New settings tab in package view to group settings in instead of hidden buttons
+- New export option to flatten the directory structure and copy all files into the root
+- New maintenance option to select all older/newer duplicates, or items without relative location
+- Ability to run only quick maintenance checks
+- Move optional tutorials installation to help section
+- Warn when opening or revealing many files at once
+- Support .NET Standard on Windows (Unity 6.1+)
+- Show warning that image processing is slower on Windows without .NET Framework
+- Change order of initialization to reduce chance of data corruption
+- Use smaller buttons for view settings instead of tab
+- Detect custom asset cache location in 2022.1 already instead of only 2022.2
+- Show indicator on top if UI customization mode is active
+- Improve packages and reporting list size calculation to not overlap inspector or other areas
+- Don't show missing audio length validation again after clicking fix
+- Fail gracefully if export target is locked by another application
+- Suppress treeview warnings in 6.2
+- Fix search field text not reflecting true value due to repainting issues
+- Fix single-file-extraction not working anymore
+- Fix package needlessly extracted for dependency scan although selected file does not have dependencies
+- Fix type column containing invalid entries for files without extensions
+- Fix target folder in export cleared incorrectly again during export
+- Fix double-clicks in grid view detected outside grid as well
+- Fix warning for unmapped relative location being shown although mapping was not used
+- Fix preview validator getting stuck
+- Fix hidden packages from Asset Store not appearing anymore in package list
+- Fix update link pointing to 2.x version of asset
+
 ## [3.1.0] - 2025-06-15
 
-* Ollama support as a new AI backend
-  * Select from top-tier models, better descriptions
-  * Much easier to install, support for AMD GPUs, faster, more efficient
-  * Allow to explicitly enable or disable Ollama support
-  * Improved error handling
-  * Interactive model tester with sample images
-  * Configurable prompt
-  * Upscale caption images to min size required
-  * Allow model download cancellation
-  * Warn before deleting models
-  * New third party: Microsoft AI
-  * New third party: OllamaSharp
-* Improved preview handling
-  * Auto-detect invalid previews (default Unity icons) packaged with assets instead of real previews
-  * Automatically active during indexing (new setting "Verify Previews")
-  * Much better search experience
-  * Run verifier after preview creation
-  * New Verifier: Incorrect Previews which will cause rescheduling
-  * Detect pink shader previews and mark them erroneous
-  * Allow using preview wizard also on not downloaded packages
-  * Report back if preview could not be recreated
-  * Warn when preview recreation is run on wrong render pipeline and don't persist incorrect previews then
-  * New option to set the Keep Cached flag on packages automatically whenever an audio file from that package is played
-* New image manipulation backend
-  * GDI+ based System.Drawing is only used on Windows (performance), Mac and Linux now use ImageSharp
-  * New third party dependency ImageSharp, supports not only Windows but also Mac and Linux on Unity 2021.2+
-  * Many indexing shortcuts and performance improvements now also on Non-Windows
-  * Better resizing algorithm, better memory consumption
-  * Dimensions shown for tga images
-* Packages
-  * Big performance boost extracting unity archives
-  * Upgrade SharpCompress to 0.40 and use it for tar as well on Unity 2021.2+
-  * Allow triggering downloads from sub-packages
-  * Allow activating AI captioning automatically for new packages
-  * Support uninstalling packages of a feature with one click
-  * Use create date as purchase date for custom assets and archives
-  * Add package media support for additional types (vimeo, soundcloud, attached etc)
-  * New package columns: ModifiedDate, ModifiedDateRelative, ReleaseDateRelative, PurchaseDateRelative, UpdateDateRelative
-  * Support handling embedded packages in bulk removal
-* Make search grid selection react much more reliable to clicks
-* Support dependency analysis for VFX assets
-* Support UNC targets including long paths on Windows
-* Greatly improve performance of updating only a single asset's metadata, e.g. upon click on packages list
-* Remove think tags from captions
-* Allow to cancel validators
-* Support dependency analysis for override controllers
-* Create stable package details links in HTML export using asset store ids where applicable
-* New template environment setting "internalIdsOnly"
-* New custom action step: Uninstall feature by name
-* Allow entering multi-line text in debug and messagebox action steps
-* Ensure UI sections are always initialized
-* Show error that moving database to different drive is not currently supported and should be done manually
-* Allow disabling drag and drop to optimize selection behavior
-* Do not start indexing sub-packages if already aborted
-* Auto-heal preview state for broken textures
-* Alternate background colors in actions and additional folders for better usability
-* Improve asset cache location working also in threads
-* Improve initial dimensions of setup wizard
-* Add action tooltips
-* Show informative warning when selecting custom asset cache location
-* Fix import into selected folder throwing errors if selection got lost
-* Fix custom folder selection in Import UI not working on some systems
-* Fix incompatible download shown for patch version differences
-* Fix persistent package cache calculation
-* Fix dates inside package data getting lost upon script reload
+- Ollama support as a new AI backend
+  - Select from top-tier models, better descriptions
+  - Much easier to install, support for AMD GPUs, faster, more efficient
+  - Allow to explicitly enable or disable Ollama support
+  - Improved error handling
+  - Interactive model tester with sample images
+  - Configurable prompt
+  - Upscale caption images to min size required
+  - Allow model download cancellation
+  - Warn before deleting models
+  - New third party: Microsoft AI
+  - New third party: OllamaSharp
+- Improved preview handling
+  - Auto-detect invalid previews (default Unity icons) packaged with assets instead of real previews
+  - Automatically active during indexing (new setting "Verify Previews")
+  - Much better search experience
+  - Run verifier after preview creation
+  - New Verifier: Incorrect Previews which will cause rescheduling
+  - Detect pink shader previews and mark them erroneous
+  - Allow using preview wizard also on not downloaded packages
+  - Report back if preview could not be recreated
+  - Warn when preview recreation is run on wrong render pipeline and don't persist incorrect previews then
+  - New option to set the Keep Cached flag on packages automatically whenever an audio file from that package is played
+- New image manipulation backend
+  - GDI+ based System.Drawing is only used on Windows (performance), Mac and Linux now use ImageSharp
+  - New third party dependency ImageSharp, supports not only Windows but also Mac and Linux on Unity 2021.2+
+  - Many indexing shortcuts and performance improvements now also on Non-Windows
+  - Better resizing algorithm, better memory consumption
+  - Dimensions shown for tga images
+- Packages
+  - Big performance boost extracting unity archives
+  - Upgrade SharpCompress to 0.40 and use it for tar as well on Unity 2021.2+
+  - Allow triggering downloads from sub-packages
+  - Allow activating AI captioning automatically for new packages
+  - Support uninstalling packages of a feature with one click
+  - Use create date as purchase date for custom assets and archives
+  - Add package media support for additional types (vimeo, soundcloud, attached etc)
+  - New package columns: ModifiedDate, ModifiedDateRelative, ReleaseDateRelative, PurchaseDateRelative, UpdateDateRelative
+  - Support handling embedded packages in bulk removal
+- Make search grid selection react much more reliable to clicks
+- Support dependency analysis for VFX assets
+- Support UNC targets including long paths on Windows
+- Greatly improve performance of updating only a single asset's metadata, e.g. upon click on packages list
+- Remove think tags from captions
+- Allow to cancel validators
+- Support dependency analysis for override controllers
+- Create stable package details links in HTML export using asset store ids where applicable
+- New template environment setting "internalIdsOnly"
+- New custom action step: Uninstall feature by name
+- Allow entering multi-line text in debug and messagebox action steps
+- Ensure UI sections are always initialized
+- Show error that moving database to different drive is not currently supported and should be done manually
+- Allow disabling drag and drop to optimize selection behavior
+- Do not start indexing sub-packages if already aborted
+- Auto-heal preview state for broken textures
+- Alternate background colors in actions and additional folders for better usability
+- Improve asset cache location working also in threads
+- Improve initial dimensions of setup wizard
+- Add action tooltips
+- Show informative warning when selecting custom asset cache location
+- Fix import into selected folder throwing errors if selection got lost
+- Fix custom folder selection in Import UI not working on some systems
+- Fix incompatible download shown for patch version differences
+- Fix persistent package cache calculation
+- Fix dates inside package data getting lost upon script reload
 
 ## [3.0.0] - 2025-05-12
 

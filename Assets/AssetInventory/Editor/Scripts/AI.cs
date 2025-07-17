@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 #if !ASSET_INVENTORY_NOAUDIO
 using JD.EditorAudioUtils;
@@ -25,16 +26,17 @@ namespace AssetInventory
 {
     public static class AI
     {
-        public const string VERSION = "3.1.0";
+        public const string VERSION = "3.2.1";
         public const string DEFINE_SYMBOL = "ASSET_INVENTORY";
         public const string DEFINE_SYMBOL_OLLAMA = DEFINE_SYMBOL + "_OLLAMA";
 
-        internal const string ASSET_STORE_LINK = "https://u3d.as/3e4D?" + AFFILIATE_PARAM;
+        internal const string ASSET_STORE_LINK = "https://u3d.as/3sCf?" + AFFILIATE_PARAM;
         internal const string HOME_LINK = "https://www.wetzold.com/tool";
         internal const string DISCORD_LINK = "https://discord.com/invite/uzeHzEMM4B";
         internal const string ASSET_STORE_FOLDER_NAME = "Asset Store-5.x";
         internal const string TEMP_FOLDER = "_AssetInventoryTemp";
         internal const int ASSET_STORE_ID = 308224;
+        internal const string SEPARATOR = "-~-";
         internal const string TAG_START = "[";
         internal const string TAG_END = "]";
         internal static readonly bool DEBUG_MODE = false;
@@ -153,20 +155,28 @@ namespace AssetInventory
             {
                 if (_cacheLimiter == null)
                 {
-                    _cacheLimiter = new DirectorySizeManager(GetMaterializeFolder(), Config.cacheLimit, path =>
+                    _cacheLimiter = new DirectorySizeManager(GetMaterializeFolder(), Config.cacheLimit, pathToDelete =>
                     {
-                        // folder will contain asset Id at the end
-                        if (int.TryParse(path.Split('-').Last().Trim(), out int assetId))
+                        // folder will contain asset Id and optional version, e.g. "MyAsset-~-12345-~-1.0.0"
+                        string[] segments = pathToDelete.Split(SEPARATOR);
+                        if (segments.Length < 2) return true; // not a valid path, can be removed
+                        if (!int.TryParse(segments[1].Trim(), out int assetId)) return true; // not a valid asset Id, can be removed
+                        string version = segments.Length > 2 ? segments.Last() : null;
+
+                        Asset asset = DBAdapter.DB.Find<Asset>(assetId);
+                        if (asset != null)
                         {
-                            Asset asset = DBAdapter.DB.Find<Asset>(assetId);
-                            if (asset != null &&
-                                (asset.KeepExtracted ||
-                                    asset.CurrentState == Asset.State.InProcess ||
-                                    asset.CurrentState == Asset.State.SubInProcess))
+                            // if version is different, this cache entry can be cleaned up
+                            if (version != null && asset.GetSafeVersion() != version) return true;
+
+                            if (asset.KeepExtracted ||
+                                asset.CurrentState == Asset.State.InProcess ||
+                                asset.CurrentState == Asset.State.SubInProcess)
                             {
                                 return false;
                             }
                         }
+
                         return true;
                     });
                     _cacheLimiter.Enabled = Config.limitCacheSize;
@@ -295,12 +305,15 @@ namespace AssetInventory
                 }
             }
             UnityPreviewGenerator.CleanUp();
+
+            GetAssetCacheFolder(); // cache into main thread since GetConfig is not available from threads
+            UpdateSystemData();
+            LoadRelativeLocations();
+
             UpgradeUtil.PerformUpgrades();
+
             Tagging.LoadAssignments(null, false);
             Metadata.LoadAssignments(null, false);
-            LoadRelativeLocations();
-            UpdateSystemData();
-            GetAssetCacheFolder(); // cache into main thread since GetConfig is not available from threads
             AssetStore.FillBufferOnDemand(true);
             Actions.Init(force);
 
@@ -460,10 +473,16 @@ namespace AssetInventory
         public static string GetMaterializedAssetPath(Asset asset)
         {
             // append the ID to support identically named packages in different locations
-            return IOUtils.ToLongPath(IOUtils.PathCombine(GetMaterializeFolder(), asset.SafeName + " - " + asset.Id));
+            // also append version if available to support different efficient caching without having to delete the whole folder all the time
+            string version = asset.GetSafeVersion();
+            return IOUtils.ToLongPath(IOUtils.PathCombine(GetMaterializeFolder(),
+                asset.SafeName
+                + SEPARATOR
+                + asset.Id
+                + (!string.IsNullOrWhiteSpace(version) ? SEPARATOR + version : "")));
         }
 
-        public static async Task<string> ExtractAsset(Asset asset, AssetFile assetFile = null, bool fileOnly = false)
+        public static async Task<string> ExtractAsset(Asset asset, AssetFile assetFile = null, bool fileOnly = false, CancellationToken ct = default(CancellationToken))
         {
             if (string.IsNullOrEmpty(asset.GetLocation(true))) return null;
 
@@ -484,9 +503,13 @@ namespace AssetInventory
             }
 
             string tempPath = GetMaterializedAssetPath(asset);
+            string indicator = Path.Combine(tempPath, PARTIAL_INDICATOR);
+
+            // don't extract again if already done and version is known
+            if (!string.IsNullOrWhiteSpace(asset.GetSafeVersion()) && Directory.Exists(tempPath) && !File.Exists(indicator)) return tempPath;
 
             // delete existing cache if interested in whole bundle to make sure everything is there
-            if (assetFile == null || !fileOnly || asset.KeepExtracted)
+            if (assetFile == null || !fileOnly || asset.KeepExtracted) // if only asset file but asset should be kept extracted, then treat as full package
             {
                 int retries = 0;
                 while (retries < 5 && Directory.Exists(tempPath))
@@ -509,9 +532,9 @@ namespace AssetInventory
                     if (asset.AssetSource == Asset.Source.Archive)
                     {
 #if UNITY_2021_2_OR_NEWER
-                        if (!await Task.Run(() => IOUtils.ExtractArchive(archivePath, tempPath)))
+                        if (!await Task.Run(() => IOUtils.ExtractArchive(archivePath, tempPath, ct)))
                         {
-                            // stop here when archive could not be extracted (e.g. path too long) as otherwise files get removed from index
+                            // stop here when archive could not be extracted (e.g. path too long, canceled) as otherwise files get removed from index
                             return null;
                         }
 #else
@@ -525,7 +548,7 @@ namespace AssetInventory
                     else
                     {
                         // special handling for Tar as that will throw null errors with SharpCompress
-                        await Task.Run(() => TarUtil.ExtractGz(archivePath, tempPath));
+                        await Task.Run(() => TarUtil.ExtractGz(archivePath, tempPath, ct));
                     }
 
                     // safety delay in case this is a network drive which needs some time to unlock all files
@@ -551,7 +574,7 @@ namespace AssetInventory
                 {
                     // TODO: switch to single file
 #if UNITY_2021_2_OR_NEWER
-                    await Task.Run(() => IOUtils.ExtractArchive(archivePath, tempPath));
+                    await Task.Run(() => IOUtils.ExtractArchive(archivePath, tempPath, ct));
 #else
                     if (asset.Location.ToLowerInvariant().EndsWith(".zip"))
                     {
@@ -563,9 +586,11 @@ namespace AssetInventory
                 else
                 {
                     // special handling for Tar as that will throw null errors with SharpCompress
-                    await Task.Run(() => TarUtil.ExtractGzFile(archivePath, assetFile.GetSourcePath(true), tempPath));
-                    string indicator = Path.Combine(tempPath, PARTIAL_INDICATOR);
-                    if (!File.Exists(indicator)) File.WriteAllText(indicator, DateTime.Now.ToString(CultureInfo.InvariantCulture));
+                    await Task.Run(() => TarUtil.ExtractGzFile(archivePath, assetFile.GetSourcePath(true), tempPath, ct));
+                    if (!File.Exists(indicator) && Directory.Exists(tempPath))
+                    {
+                        File.WriteAllText(indicator, DateTime.Now.ToString(CultureInfo.InvariantCulture));
+                    }
                 }
 
                 // safety delay in case this is a network drive which needs some time to unlock all files
@@ -595,19 +620,21 @@ namespace AssetInventory
                 if (assetFile == null) return false;
                 return Directory.Exists(Path.Combine(assetPath, assetFile.Guid));
             }
-            return assetFile != null
-                ? File.Exists(Path.Combine(assetPath, assetFile.GetSourcePath(true)))
-                : Directory.Exists(assetPath);
+
+            if (assetFile != null) return File.Exists(Path.Combine(assetPath, assetFile.GetSourcePath(true)));
+
+            string indicator = Path.Combine(assetPath, PARTIAL_INDICATOR);
+            return Directory.Exists(assetPath) && !File.Exists(indicator);
         }
 
-        public static async Task<string> EnsureMaterializedAsset(AssetInfo info, bool fileOnly = false)
+        public static async Task<string> EnsureMaterializedAsset(AssetInfo info, bool fileOnly = false, CancellationToken ct = default(CancellationToken))
         {
-            string targetPath = await EnsureMaterializedAsset(info.ToAsset(), info, fileOnly);
+            string targetPath = await EnsureMaterializedAsset(info.ToAsset(), info, fileOnly, ct);
             info.IsMaterialized = IsMaterialized(info.ToAsset(), info);
             return targetPath;
         }
 
-        public static async Task<string> EnsureMaterializedAsset(Asset asset, AssetFile assetFile = null, bool fileOnly = false)
+        public static async Task<string> EnsureMaterializedAsset(Asset asset, AssetFile assetFile = null, bool fileOnly = false, CancellationToken ct = default(CancellationToken))
         {
             if (asset.AssetSource == Asset.Source.Directory || asset.AssetSource == Asset.Source.RegistryPackage)
             {
@@ -640,13 +667,16 @@ namespace AssetInventory
                 return targetPath;
             }
 
-            // ensure parent hierarchy is extracted first
-            string archivePath = IOUtils.ToLongPath(await asset.GetLocation(true, true));
-            if (string.IsNullOrEmpty(archivePath) || !File.Exists(archivePath)) return null;
-
             targetPath = GetMaterializedAssetPath(asset);
-            if (!Directory.Exists(targetPath) || File.Exists(Path.Combine(targetPath, PARTIAL_INDICATOR))) await ExtractAsset(asset);
-            if (!Directory.Exists(targetPath)) return null;
+            if (!Directory.Exists(targetPath) || File.Exists(Path.Combine(targetPath, PARTIAL_INDICATOR)))
+            {
+                // ensure parent hierarchy is extracted first
+                string archivePath = IOUtils.ToLongPath(await asset.GetLocation(true, true));
+                if (string.IsNullOrEmpty(archivePath) || !File.Exists(archivePath)) return null;
+
+                await Task.Run(() => ExtractAsset(asset, assetFile, fileOnly, ct));
+                if (!Directory.Exists(targetPath)) return null;
+            }
 
             if (assetFile != null)
             {
@@ -691,10 +721,10 @@ namespace AssetInventory
             return targetPath;
         }
 
-        public static async Task CalculateDependencies(AssetInfo info)
+        public static async Task CalculateDependencies(AssetInfo info, CancellationToken ct = default(CancellationToken))
         {
             DependencyAnalysis da = new DependencyAnalysis();
-            await da.Analyze(info);
+            await da.Analyze(info, ct);
         }
 
         public static List<AssetInfo> LoadAssets()
@@ -1591,7 +1621,7 @@ namespace AssetInventory
             }
         }
 
-        public static async Task PlayAudio(AssetInfo info)
+        public static async Task PlayAudio(AssetInfo info, CancellationToken ct = default(CancellationToken))
         {
             string targetPath;
 
@@ -1602,7 +1632,7 @@ namespace AssetInventory
             }
             else
             {
-                targetPath = await EnsureMaterializedAsset(info, Config.extractSingleFiles);
+                targetPath = await EnsureMaterializedAsset(info, Config.extractSingleFiles, ct);
                 if (targetPath != null && !Config.extractSingleFiles && Config.keepExtractedOnAudio && !info.KeepExtracted)
                 {
                     // ensure extraction is set to true for future audio playback
@@ -1875,13 +1905,18 @@ namespace AssetInventory
 
             foreach (RelativeLocation location in RelativeLocations)
             {
+                string segment = $"{TAG_START}{location.Key}{TAG_END}";
+
                 if (string.IsNullOrWhiteSpace(location.Location))
                 {
-                    if (emptyIfMissing) return null;
+                    if (emptyIfMissing && path.Contains(segment))
+                    {
+                        return null;
+                    }
                     continue;
                 }
 
-                path = path.Replace($"{TAG_START}{location.Key}{TAG_END}", location.Location);
+                path = path.Replace(segment, location.Location);
             }
 
             // check if some rule caught it

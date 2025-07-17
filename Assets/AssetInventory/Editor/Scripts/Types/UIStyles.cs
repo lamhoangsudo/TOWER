@@ -1,8 +1,9 @@
 ﻿// reference for built-in icons: https://github.com/halak/unity-editor-icons
-// alternative: https://github.com/Doppelkeks/Unity-Editor-Icons
+// new version: https://github.com/Doppelkeks/Unity-Editor-Icons/tree/2019.4
 
 using System;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -81,6 +82,18 @@ namespace AssetInventory
         {
             alignment = TextAnchor.MiddleRight
         };
+        private static readonly Func<Rect> getVisibleRect;
+
+        static UIStyles()
+        {
+            // cache the visible rect getter for performance
+            Type clipType = typeof (GUI).Assembly.GetType("UnityEngine.GUIClip");
+            PropertyInfo prop = clipType.GetProperty("visibleRect", BindingFlags.Static | BindingFlags.NonPublic);
+            MethodInfo getter = prop.GetGetMethod(true);
+            getVisibleRect = (Func<Rect>)Delegate.CreateDelegate(typeof (Func<Rect>), getter);
+        }
+
+        public static Rect GetCurrentVisibleRect() => getVisibleRect();
 
         public static Texture2D LoadTexture(string name)
         {
@@ -282,10 +295,10 @@ namespace AssetInventory
             EditorGUILayout.EndVertical();
         }
 
-        public static GUIContent Content(string t)
+        public static GUIContent Content(string text)
         {
             GUIText.image = null;
-            GUIText.text = t;
+            GUIText.text = text;
             GUIText.tooltip = null;
             return GUIText;
         }
@@ -298,19 +311,19 @@ namespace AssetInventory
             return GUIText;
         }
 
-        public static GUIContent Content(Texture i)
+        public static GUIContent Content(Texture texture)
         {
-            GUIImage.image = i;
+            GUIImage.image = texture;
             GUIImage.text = null;
             GUIImage.tooltip = null;
             return GUIImage;
         }
 
-        public static GUIContent Content(string t, Texture i)
+        public static GUIContent Content(string text, Texture texture, string tip = null)
         {
-            GUITextImage.image = i;
-            GUITextImage.text = t;
-            GUITextImage.tooltip = null;
+            GUITextImage.image = texture;
+            GUITextImage.text = " " + text; // otherwise text too close to image
+            GUITextImage.tooltip = tip;
             return GUITextImage;
         }
 

@@ -2,8 +2,10 @@
 using System.Linq;
 using System.Threading.Tasks;
 #if UNITY_2021_2_OR_NEWER
+using System;
 using System.IO;
-#if UNITY_EDITOR_WIN
+using UnityEngine;
+#if UNITY_EDITOR_WIN && NET_4_6
 using System.Drawing;
 #else
 using SixLabors.ImageSharp.PixelFormats;
@@ -20,6 +22,7 @@ namespace AssetInventory
         public IncorrectPreviewsValidator()
         {
             Type = ValidatorType.DB;
+            Speed = ValidatorSpeed.Slow;
             Name = "Incorrect Previews";
             Description = "Scans all previews for either pink shaders or default preview icons instead of real previews.";
             FixCaption = "Schedule Recreation";
@@ -71,37 +74,44 @@ namespace AssetInventory
             // TODO: parallelize this loop but when done currently there are many main thread required exceptions
             foreach (AssetInfo file in files)
             {
-                Progress++;
-                MetaProgress.Report(ProgressId, Progress, MaxProgress, file.FileName);
-                if (CancellationRequested) break;
-                if (Progress % 50 == 0) await Task.Yield();
-
-                string previewFile = file.GetPreviewFile(previewFolder);
-                if (!PreviewManager.IsPreviewable(previewFile, true)) continue;
-                if (!File.Exists(previewFile)) continue;
-
-#if UNITY_EDITOR_WIN
-                using (Bitmap image = new Bitmap(IOUtils.ToLongPath(previewFile))) 
-#else
-                using (Image<Rgba32> image = Image.Load<Rgba32>(IOUtils.ToLongPath(previewFile)))
-#endif
+                try
                 {
-                    // scan for both issues in one go for performance
-                    // use URP flag to differentiate between default cube and error shader issues
-                    if (file.PreviewState == AssetFile.PreviewOptions.Provided)
+                    Progress++;
+                    MetaProgress.Report(ProgressId, Progress, MaxProgress, file.FileName);
+                    if (CancellationRequested) break;
+                    if (Progress % 50 == 0) await Task.Yield();
+
+                    string previewFile = file.GetPreviewFile(previewFolder);
+                    if (!PreviewManager.IsPreviewable(previewFile, true)) continue;
+                    if (!File.Exists(previewFile)) continue;
+
+#if UNITY_EDITOR_WIN && NET_4_6
+                    using (Bitmap image = new Bitmap(IOUtils.ToLongPath(previewFile)))
+#else
+                    using (Image<Rgba32> image = Image.Load<Rgba32>(IOUtils.ToLongPath(previewFile)))
+#endif
                     {
-                        if (PreviewManager.IsDefaultIcon(image))
+                        // scan for both issues in one go for performance
+                        // use URP flag to differentiate between default cube and error shader issues
+                        if (file.PreviewState == AssetFile.PreviewOptions.Provided)
                         {
-                            file.URPCompatible = true;
+                            if (PreviewManager.IsDefaultIcon(image))
+                            {
+                                file.URPCompatible = true;
+                                result.Add(file);
+                                continue;
+                            }
+                        }
+                        if (PreviewManager.IsErrorShader(image))
+                        {
+                            file.URPCompatible = false;
                             result.Add(file);
-                            continue;
                         }
                     }
-                    if (PreviewManager.IsErrorShader(image))
-                    {
-                        file.URPCompatible = false;
-                        result.Add(file);
-                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Skipping validation for '{file.FileName}': {e.Message}");
                 }
             }
             MetaProgress.Remove(ProgressId);

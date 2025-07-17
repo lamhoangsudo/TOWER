@@ -48,10 +48,11 @@ namespace AssetInventory
             _validators.Add(new CorruptDatabaseValidator());
         }
 
-        private void ScanAll()
+        private void ScanAll(bool fastOnly)
         {
             _validators.ForEach(v =>
             {
+                if (fastOnly && v.Speed != Validator.ValidatorSpeed.Fast) return;
                 if (v.CurrentState == Validator.State.Idle || v.CurrentState == Validator.State.Completed)
                 {
                     v.CancellationRequested = false;
@@ -81,9 +82,13 @@ namespace AssetInventory
 
             EditorGUILayout.Space();
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Scan All", GUILayout.ExpandWidth(false), GUILayout.Height(40)))
+            if (GUILayout.Button("Run All", GUILayout.ExpandWidth(false), GUILayout.Height(40)))
             {
-                ScanAll();
+                ScanAll(false);
+            }
+            if (GUILayout.Button("Run Only Fast Scans*", GUILayout.ExpandWidth(false), GUILayout.Height(40)))
+            {
+                ScanAll(true);
             }
             EditorGUI.BeginDisabledGroup(_fixeableItems == 0);
             if (GUILayout.Button("Fix All", GUILayout.ExpandWidth(false), GUILayout.Height(40)))
@@ -98,7 +103,7 @@ namespace AssetInventory
             _checksScrollPos = GUILayout.BeginScrollView(_checksScrollPos, false, false, GUIStyle.none, GUI.skin.verticalScrollbar, GUILayout.ExpandWidth(true));
             foreach (Validator validator in _validators)
             {
-                EditorGUILayout.LabelField(validator.Name, EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(validator.Name + (validator.Speed == Validator.ValidatorSpeed.Fast ? "*" : ""), EditorStyles.boldLabel);
                 EditorGUILayout.LabelField(validator.Description, EditorStyles.wordWrappedMiniLabel);
 
                 EditorGUILayout.BeginHorizontal();

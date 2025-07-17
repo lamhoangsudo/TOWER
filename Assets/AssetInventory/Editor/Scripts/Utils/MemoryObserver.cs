@@ -13,7 +13,7 @@ namespace AssetInventory
 
         private long _curSize;
 
-        public MemoryObserver(long targetSize, int interval = 1)
+        public MemoryObserver(long targetSize, int interval = 5)
         {
             _lastClean = DateTime.Now;
             _interval = interval;

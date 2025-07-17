@@ -78,7 +78,27 @@ namespace AssetInventory
             input = Regex.Replace(input, escapePattern, "$1 ESCAPE '\\'", RegexOptions.IgnoreCase);
 
             return input;
+        }
 
+        // drop-in for Unity 2019 where splitting is only possible by char and Contains does not support StringComparison
+#if !UNITY_2021_2_OR_NEWER
+        public static string[] Split(this string source, string separator, StringSplitOptions options = StringSplitOptions.None)
+            => source.Split(new[] {separator}, options);
+
+        public static bool Contains(this string source, string toCheck, StringComparison comparison)
+        {
+            if (source == null || toCheck == null) return false;
+            return source.IndexOf(toCheck, comparison) >= 0;
+        }
+#endif
+
+        public static string Truncate(this string value, int maxLength)
+        {
+            if (value == null) return null;
+
+            return value.Length <= maxLength
+                ? value
+                : value.Substring(0, maxLength);
         }
 
         public static string[] Split(string input, char[] separators)

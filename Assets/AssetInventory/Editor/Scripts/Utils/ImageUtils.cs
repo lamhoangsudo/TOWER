@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 #if UNITY_2021_2_OR_NEWER
-#if UNITY_EDITOR_WIN
+#if UNITY_EDITOR_WIN && NET_4_6
 using System.Drawing;
 #else
 using SixLabors.ImageSharp;
@@ -277,7 +277,7 @@ namespace AssetInventory
                     }
                 }
 
-#if UNITY_EDITOR_WIN
+#if UNITY_EDITOR_WIN && NET_4_6
                 using (Image originalImage = Image.FromFile(path))
                 {
                     return Tuple.Create(originalImage.Width, originalImage.Height);

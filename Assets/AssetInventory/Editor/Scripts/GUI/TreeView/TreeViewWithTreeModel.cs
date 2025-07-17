@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace AssetInventory
 {

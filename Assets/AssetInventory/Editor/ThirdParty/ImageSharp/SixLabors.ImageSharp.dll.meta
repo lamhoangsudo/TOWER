@@ -72,6 +72,6 @@ AssetOrigin:
   serializedVersion: 1
   productId: 308224
   packageName: Asset Inventory 3
-  packageVersion: 3.1
+  packageVersion: 3.2.1
   assetPath: Assets/AssetInventory/Editor/ThirdParty/ImageSharp/SixLabors.ImageSharp.dll
-  uploadId: 764568
+  uploadId: 772729

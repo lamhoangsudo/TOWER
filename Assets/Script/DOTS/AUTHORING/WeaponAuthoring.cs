@@ -4,17 +4,18 @@ using UnityEngine;
 public class WeaponAuthoring : MonoBehaviour
 {
     public Enum.WeaponFiringPattern firingPattern;
-    public float spreadAngle;
-
     public float gatlingRotationSpeed;
-
+    [Header("Projec Tile Set Up")]
     public GameObject projectilePrefab;
-    public float projectileSpeed;
-    public float projectileLifetime;
-    public float projectileAcceleration;
+    public float projectileMaxLifetime;
     public float projectileMaxSpeed;
-    public bool projectileUsePrediction;
     public int impactLayer;
+    [Header("Projec Tile Missile Set Up")]
+    public float projectileStartSpeed;
+    public float projectileAcceleration;
+    public bool projectileUsePrediction;
+    [Header("Projec Tile Gatling Set Up")]
+    public float spreadAngle;
     public class WeaponAuthoringBaker : Baker<WeaponAuthoring>
     {
 
@@ -27,8 +28,8 @@ public class WeaponAuthoring : MonoBehaviour
                 spreadAngle = authoring.spreadAngle,
                 gatlingRotationSpeed = authoring.gatlingRotationSpeed,
                 projectilePrefab = GetEntity(authoring.projectilePrefab, TransformUsageFlags.Dynamic),
-                projectileSpeed = authoring.projectileSpeed,
-                projectileLifetime = authoring.projectileLifetime,
+                projectileStartSpeed = authoring.projectileStartSpeed,
+                projectileMaxLifetime = authoring.projectileMaxLifetime,
                 projectileAcceleration = authoring.projectileAcceleration,
                 projectileMaxSpeed = authoring.projectileMaxSpeed,
                 projectileUsePrediction = authoring.projectileUsePrediction,
@@ -44,8 +45,8 @@ public struct Weapon : IComponentData
     public float spreadAngle;
     public float gatlingRotationSpeed;
     public Entity projectilePrefab;
-    public float projectileSpeed;
-    public float projectileLifetime;
+    public float projectileStartSpeed;
+    public float projectileMaxLifetime;
     public float projectileAcceleration;
     public float projectileMaxSpeed;
     public bool projectileUsePrediction;

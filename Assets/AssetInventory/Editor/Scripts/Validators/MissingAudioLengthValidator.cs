@@ -23,7 +23,7 @@ namespace AssetInventory
             await Task.Yield();
 
             // query all asset files that do not have an asset id that is contained in the asset table
-            string query = "select * from AssetFile where Length = 0 and Type in ('" + string.Join("','", AI.TypeGroups[AI.AssetGroup.Audio]) + "')";
+            string query = "SELECT AF.* FROM AssetFile AF JOIN Asset A ON AF.AssetId = A.Id where A.CurrentState = 2 and AF.Length = 0 and AF.Type in ('" + string.Join("','", AI.TypeGroups[AI.AssetGroup.Audio]) + "')";
             DBIssues = DBAdapter.DB.Query<AssetInfo>(query);
 
             CurrentState = State.Completed;
@@ -38,10 +38,10 @@ namespace AssetInventory
             List<AssetInfo> assets = DBAdapter.DB.Query<AssetInfo>($"select Distinct(AssetId) from AssetFile where Length = 0 and Type in ({audioTypes})");
             string affectedPackages = string.Join(",", assets.Select(a => a.AssetId));
             DBAdapter.DB.Execute($"update Asset set CurrentState=? where Id in ({affectedPackages})", Asset.State.InProcess);
-            
-            int fileCount =  DBAdapter.DB.Execute($"update AssetFile set Size = 0 where Length = 0 and Type in ({audioTypes})");
+
+            int fileCount = DBAdapter.DB.Execute($"update AssetFile set Size = 0 where Length = 0 and Type in ({audioTypes})");
             Debug.Log($"Marked {fileCount} files across {affectedPackages} packages for reindexing.");
-            
+
             EditorUtility.DisplayDialog("Success", $"During the next index update, up to {fileCount} audio files will be reindexed to try to read the length again.", "OK");
 
             await Validate();

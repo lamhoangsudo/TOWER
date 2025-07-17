@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -36,13 +37,13 @@ namespace AssetInventory
             return ScanDependencies.Contains(type) || ScanMetaDependencies.Contains(type);
         }
 
-        public async Task Analyze(AssetInfo info)
+        public async Task Analyze(AssetInfo info, CancellationToken ct)
         {
             info.DependencyState = DependencyStateOptions.Calculating;
             info.Dependencies = new List<AssetFile>();
             info.CrossPackageDependencies = new List<Asset>();
 
-            string targetPath = await AI.EnsureMaterializedAsset(info);
+            string targetPath = await AI.EnsureMaterializedAsset(info, false, ct);
             if (targetPath == null)
             {
                 info.DependencyState = DependencyStateOptions.Failed;
@@ -56,7 +57,7 @@ namespace AssetInventory
             if (info.SRPMainReplacement != null)
             {
                 workInfo.CopyFrom(info.SRPSupportPackage, info.SRPMainReplacement);
-                targetPath = await AI.EnsureMaterializedAsset(workInfo);
+                targetPath = await AI.EnsureMaterializedAsset(workInfo, false, ct);
                 if (targetPath == null)
                 {
                     info.DependencyState = DependencyStateOptions.Failed;
@@ -66,7 +67,7 @@ namespace AssetInventory
 
             // calculate
             ConcurrentDictionary<string, bool> processedGuids = new ConcurrentDictionary<string, bool>();
-            List<AssetFile> deps = await DoCalculateDependencies(workInfo, targetPath, processedGuids);
+            List<AssetFile> deps = await DoCalculateDependencies(workInfo, targetPath, processedGuids, null, ct);
 
             // free up memory
             if (!workInfo.SRPUsed)
@@ -106,7 +107,7 @@ namespace AssetInventory
             if (info.DependencyState == DependencyStateOptions.Calculating) info.DependencyState = DependencyStateOptions.Done; // otherwise error along the way
         }
 
-        private async Task<List<AssetFile>> DoCalculateDependencies(AssetInfo info, string path, ConcurrentDictionary<string, bool> processedGuids, List<AssetFile> result = null)
+        private async Task<List<AssetFile>> DoCalculateDependencies(AssetInfo info, string path, ConcurrentDictionary<string, bool> processedGuids, List<AssetFile> result = null, CancellationToken ct = default(CancellationToken))
         {
             if (result == null) result = new List<AssetFile>();
 
@@ -140,7 +141,7 @@ namespace AssetInventory
             if (ScanMetaDependencies.Contains(extension))
             {
                 string metaPath = path + ".meta";
-                if (File.Exists(metaPath)) await DoCalculateDependencies(info, metaPath, processedGuids, result);
+                if (File.Exists(metaPath)) await DoCalculateDependencies(info, metaPath, processedGuids, result, ct);
 
                 if (AI.Config.scanFBXDependencies && extension == "fbx")
                 {

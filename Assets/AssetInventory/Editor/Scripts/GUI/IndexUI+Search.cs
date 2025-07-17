@@ -26,14 +26,25 @@ namespace AssetInventory
         private const float DRAG_THRESHOLD = 5f; // pixels
         private const float DRAG_DELAY = 0.5f; // seconds
 
+        private enum InMemoryModeState
+        {
+            None,
+            Init,
+            Active
+        }
+
         // customizable interaction modes, search mode will only show search tab contents and no actions except "Select"
         public bool searchMode;
+
+        // will show additional workspace layer
+        public bool workspaceMode;
 
         // special mode that will return accompanying textures to the selected one, trying to identify normal, metallic etc. 
         public bool textureMode;
 
-        // will hide detail pane
+        // will hide right-side inspector pane
         public bool hideDetailsPane;
+        public bool hideMainNavigation;
 
         // will not select items in the project window upon selection
         public bool disablePings;
@@ -49,10 +60,25 @@ namespace AssetInventory
         protected Action<Dictionary<string, string>> searchModeTextureCallback;
 
         private List<AssetInfo> _files;
+        private IEnumerable<AssetInfo> _filteredFiles;
 
-        private readonly GridControl _sgrid = new GridControl();
-        private int _resultCount;
+        private GridControl SGrid
+        {
+            get
+            {
+                if (_sgrid == null)
+                {
+                    _sgrid = new GridControl();
+                    _sgrid.OnDoubleClick += OnSearchDoubleClick;
+                }
+                return _sgrid;
+            }
+        }
+        private GridControl _sgrid;
+
+        private InMemoryModeState _inMemoryMode = InMemoryModeState.None;
         private string _searchPhrase;
+        private string _searchPhraseInMemory;
         private string _searchWidth;
         private string _searchHeight;
         private string _searchLength;
@@ -77,14 +103,18 @@ namespace AssetInventory
         private Vector2 _searchScrollPos;
         private Vector2 _inspectorScrollPos;
 
+        private int _resultCount;
+        private int _originalResultCount;
         private int _curPage = 1;
         private int _pageCount;
 
         private CancellationTokenSource _textureLoading;
         private CancellationTokenSource _textureLoading2;
         private CancellationTokenSource _textureLoading3;
+        private CancellationTokenSource _extraction;
 
         private AssetInfo _selectedEntry;
+        private Workspace _selectedWorkspace;
 
         private SearchField SearchField => _searchField = _searchField ?? new SearchField();
         private SearchField _searchField;
@@ -93,13 +123,13 @@ namespace AssetInventory
         private float _nextSearchTime;
         private Rect _pageButtonRect;
         private Rect _querySamplesButtonRect;
+        private Rect _wsButtonRect;
         private DateTime _lastTileSizeChange;
         private string _searchError;
         private bool _searchDone;
         private bool _lockSelection;
         private string _curOperation;
         private int _fixedSearchTypeIdx;
-        private bool _mouseOverSearchResultRect;
         private bool _draggingPossible;
         private bool _dragging;
         private Vector2 _dragStartPosition;
@@ -113,9 +143,91 @@ namespace AssetInventory
         private int _assetFileAMProjectCount;
         private int _assetFileAMCollectionCount;
 
+        // Track the currently active saved search
+        private int _activeSavedSearchId = -1;
+
+        private List<SavedSearch> Searches
+        {
+            get
+            {
+                if (_searches == null || !_searchesLoaded)
+                {
+                    _searches = DBAdapter.DB.Table<SavedSearch>().ToList();
+                    _searchesLoaded = true;
+                }
+                return _searches;
+            }
+        }
+        private List<SavedSearch> _searches;
+        private bool _searchesLoaded;
+
+        private List<Workspace> Workspaces
+        {
+            get
+            {
+                if (_workspaces == null || !_workspacesLoaded)
+                {
+                    _workspaces = DBAdapter.DB.Table<Workspace>().ToList();
+                    _workspacesLoaded = true;
+                }
+                return _workspaces;
+            }
+        }
+        private List<Workspace> _workspaces;
+        private bool _workspacesLoaded;
+
+        private void InitWorkspace()
+        {
+            if (!workspaceMode || AI.Config.workspace <= 0)
+            {
+                _selectedWorkspace = null;
+                return;
+            }
+            SetWorkspace(Workspaces.FirstOrDefault(ws => ws.Id == AI.Config.workspace));
+        }
+
+        private void SetWorkspace(Workspace ws)
+        {
+            _selectedWorkspace = ws;
+            List<WorkspaceSearch> searches = _selectedWorkspace?.LoadSearches();
+            if (searches == null || searches.Count == 0)
+            {
+                // deactivate current in-memory mode if no searches are available
+                _inMemoryMode = InMemoryModeState.None;
+                _searchPhrase = "";
+                _requireSearchUpdate = true;
+            }
+
+            int oldWorkspace = AI.Config.workspace;
+            AI.Config.workspace = ws == null ? 0 : ws.Id;
+            if (oldWorkspace != AI.Config.workspace) AI.SaveConfig();
+        }
+
         protected void SetInitialSearch(string searchPhrase)
         {
             _searchPhrase = searchPhrase;
+        }
+
+        private void OnSearchDoubleClick(AssetInfo obj)
+        {
+            if ((searchMode || AI.Config.doubleClickBehavior > 0) && _selectedEntry != null)
+            {
+                if (searchMode)
+                {
+                    ExecuteSingleAction();
+                }
+                else
+                {
+                    if ((AI.Config.doubleClickBehavior == 1 && !Event.current.alt) || (AI.Config.doubleClickBehavior == 2 && Event.current.alt))
+                    {
+                        _ = PerformCopyTo(_selectedEntry, _importFolder);
+                    }
+                    else
+                    {
+                        Open(_selectedEntry);
+                    }
+                }
+            }
         }
 
         private void RecreatePreviewEditor()
@@ -151,7 +263,7 @@ namespace AssetInventory
                 EditorGUILayout.Space(30);
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
-                GUILayout.Box(Logo, EditorStyles.centeredGreyMiniLabel, GUILayout.MaxWidth(300), GUILayout.MaxHeight(300));
+                GUILayout.Box(Logo, EditorStyles.centeredGreyMiniLabel, GUILayout.MaxWidth(250), GUILayout.MaxHeight(250));
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 
@@ -215,93 +327,339 @@ namespace AssetInventory
             else
             {
                 bool dirty = false;
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Search:", GUILayout.Width(50));
-                EditorGUIUtility.labelWidth = 60;
-                EditorGUI.BeginChangeCheck();
-                _searchPhrase = SearchField.OnGUI(_searchPhrase, GUILayout.ExpandWidth(true));
-                if (EditorGUI.EndChangeCheck())
+
+                // saved searches bar
+                if (Searches.Count > 0)
                 {
-                    // delay search to allow fast typing
-                    _nextSearchTime = Time.realtimeSinceStartup + AI.Config.searchDelay;
-                }
-                else if (_nextSearchTime > 0 && Time.realtimeSinceStartup > _nextSearchTime)
-                {
-                    _nextSearchTime = 0;
-                    if (AI.Config.searchAutomatically && !_searchPhrase.StartsWith("=")) dirty = true;
-                }
-                if (_allowLogic && (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter))
-                {
-                    PerformSearch();
-                }
-                if (!AI.Config.searchAutomatically)
-                {
-                    if (GUILayout.Button("Go", GUILayout.Width(30))) PerformSearch();
+                    GUILayout.BeginHorizontal();
+                    GUILayout.BeginVertical();
+                    GUILayout.Space(5);
+
+                    // Calculate available width for wrapping
+                    float availableWidth = position.width - 50; // Account for margins + workspace dropdown
+                    float currentX = 0;
+
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Space(10);
+
+                    // Get the searches to display, respecting workspace order if in workspace mode
+                    IEnumerable<SavedSearch> searchesToDisplay;
+                    if (workspaceMode && _selectedWorkspace != null && _selectedWorkspace.Searches != null)
+                    {
+                        // In workspace mode, use the order from _selectedWorkspace.Searches
+                        searchesToDisplay = _selectedWorkspace.Searches
+                            .OrderBy(ws => ws.OrderIdx)
+                            .Select(ws => Searches.FirstOrDefault(s => s.Id == ws.SavedSearchId))
+                            .Where(s => s != null);
+                    }
+                    else
+                    {
+                        // Normal mode, use all searches
+                        searchesToDisplay = Searches;
+                    }
+
+                    foreach (SavedSearch search in searchesToDisplay)
+                    {
+                        Color oldCol = GUI.backgroundColor;
+
+                        float buttonHeight = EditorStyles.miniButton.CalcSize(GUIContent.none).y;
+                        Vector2 oldIconSize = EditorGUIUtility.GetIconSize();
+                        EditorGUIUtility.SetIconSize(new Vector2(buttonHeight, buttonHeight));
+
+                        // Check if this search is currently active
+                        bool isActive = search.Id == _activeSavedSearchId;
+                        if (isActive && _activeSavedSearchId == -1)
+                        {
+                            _activeSavedSearchId = search.Id;
+                        }
+
+                        // Apply search color
+                        if (ColorUtility.TryParseHtmlString($"#{search.Color}", out Color color))
+                        {
+                            GUI.backgroundColor = color;
+                        }
+
+                        bool searchIsActive = search.Id == _activeSavedSearchId;
+
+                        GUIContent content;
+                        if (string.IsNullOrWhiteSpace(search.Name))
+                        {
+                            content = EditorGUIUtility.IconContent(search.Icon, "|" + search.SearchPhrase);
+                        }
+                        else if (string.IsNullOrWhiteSpace(search.Icon))
+                        {
+                            content = UIStyles.Content(search.Name, search.SearchPhrase);
+                        }
+                        else
+                        {
+                            content = UIStyles.Content(search.Name, EditorGUIUtility.IconContent(search.Icon, "|" + search.SearchPhrase).image, search.SearchPhrase);
+                        }
+
+                        // Calculate button width based on content
+                        Vector2 contentSize = EditorStyles.miniButton.CalcSize(content);
+                        EditorGUIUtility.SetIconSize(oldIconSize);
+                        float buttonWidth = contentSize.x + 20; // Add padding
+                        float settingsButtonWidth = 20;
+                        float totalWidth = buttonWidth + settingsButtonWidth + 5; // 5 for spacing between buttons
+
+                        // Check if we need to wrap to next line
+                        if (currentX + totalWidth > availableWidth && currentX > 0)
+                        {
+                            GUILayout.EndHorizontal();
+                            GUILayout.BeginHorizontal();
+                            GUILayout.Space(10);
+                            currentX = 10; // Reset to margin
+                        }
+
+                        if (GUILayout.Button(content, EditorStyles.miniButtonLeft, GUILayout.Width(buttonWidth)))
+                        {
+                            if (workspaceMode && AI.Config.wsSavedSearchInMemory)
+                            {
+                                _inMemoryMode = InMemoryModeState.Init;
+                            }
+                            LoadSearch(search);
+                        }
+
+                        if (GUILayout.Button(EditorGUIUtility.IconContent("icon dropdown", "|Settings"), EditorStyles.miniButtonRight, GUILayout.Width(settingsButtonWidth)))
+                        {
+                            GenericMenu menu = new GenericMenu();
+                            menu.AddItem(new GUIContent("Edit..."), false, () =>
+                            {
+                                SavedSearchUI savedSearchUI = SavedSearchUI.ShowWindow();
+                                savedSearchUI.Init(search);
+                            });
+                            // menu.AddItem(new GUIContent("Override with current search"), false, () => { });
+                            menu.AddSeparator("");
+                            menu.AddItem(new GUIContent("Delete"), false, () =>
+                            {
+                                if (!EditorUtility.DisplayDialog("Confirm", $"Do you really want to delete the saved search '{search.Name}'?", "Yes", "No")) return;
+
+                                DBAdapter.DB.Delete(search);
+                                Searches.Remove(search);
+                                DBAdapter.DB.Execute("delete from WorkspaceSearch where SavedSearchId = ?", search.Id);
+                                _selectedWorkspace?.LoadSearches();
+                            });
+                            menu.ShowAsContext();
+                        }
+                        GUI.backgroundColor = oldCol;
+
+                        // Draw glowing border for active search after both buttons are drawn
+                        if (searchIsActive && Event.current.type == EventType.Repaint)
+                        {
+                            Rect mainButtonRect = GUILayoutUtility.GetLastRect();
+                            // Get the rect of the main button (we need to calculate it since we only have the dropdown rect)
+                            Rect mainButtonRectCalculated = new Rect(mainButtonRect.x - buttonWidth, mainButtonRect.y, buttonWidth, mainButtonRect.height);
+
+                            // Calculate the combined rect that encompasses both buttons
+                            Rect combinedRect = new Rect(
+                                mainButtonRectCalculated.x - 3,
+                                mainButtonRectCalculated.y - 3,
+                                mainButtonRectCalculated.width + mainButtonRect.width + 6,
+                                mainButtonRectCalculated.height + 6
+                            );
+
+                            Color borderColor = Color.white;
+                            Color oldColor = GUI.color;
+                            GUI.color = borderColor;
+
+                            // Top border
+                            GUI.Box(new Rect(combinedRect.x, combinedRect.y, combinedRect.width, 4), "");
+                            // Bottom border
+                            GUI.Box(new Rect(combinedRect.x, combinedRect.y + combinedRect.height - 4, combinedRect.width, 4), "");
+                            // Left border
+                            GUI.Box(new Rect(combinedRect.x, combinedRect.y, 4, combinedRect.height), "");
+                            // Right border
+                            GUI.Box(new Rect(combinedRect.x + combinedRect.width - 4, combinedRect.y, 4, combinedRect.height), "");
+
+                            GUI.color = oldColor;
+                        }
+
+                        GUILayout.Space(5);
+                        currentX += totalWidth;
+                    }
+
+                    GUILayout.EndHorizontal();
+                    GUILayout.EndVertical();
+                    if (workspaceMode)
+                    {
+                        GUILayout.FlexibleSpace();
+                        GUILayout.BeginVertical();
+                        GUILayout.Space(5);
+                        if (GUILayout.Button(EditorGUIUtility.IconContent("icon dropdown", "|Workspaces"), EditorStyles.miniButton, GUILayout.Width(28)))
+                        {
+                            GenericMenu menu = new GenericMenu();
+                            menu.AddItem(new GUIContent("-No Workspace-"), _selectedWorkspace == null, () => SetWorkspace(null));
+                            if (Workspaces.Count > 0)
+                            {
+                                menu.AddSeparator("");
+                                foreach (Workspace ws in Workspaces)
+                                {
+                                    menu.AddItem(new GUIContent(ws.Name), _selectedWorkspace != null && _selectedWorkspace.Id == ws.Id, () => SetWorkspace(ws));
+                                }
+                            }
+                            menu.AddSeparator("");
+                            menu.AddItem(new GUIContent("New..."), false, () =>
+                            {
+                                NameUI nameUI = new NameUI();
+                                nameUI.Init("My Workspace", SaveWorkspace);
+                                PopupWindow.Show(_wsButtonRect, nameUI);
+                            });
+                            if (_selectedWorkspace != null)
+                            {
+                                menu.AddItem(new GUIContent("Edit..."), false, () =>
+                                {
+                                    WorkspaceUI workspaceUI = WorkspaceUI.ShowWindow();
+                                    workspaceUI.Init(_selectedWorkspace);
+                                });
+                                menu.AddItem(new GUIContent("Delete"), false, () =>
+                                {
+                                    if (!EditorUtility.DisplayDialog("Confirm", $"Do you really want to delete workspace '{_selectedWorkspace.Name}'?", "Yes", "No")) return;
+
+                                    Workspaces.Remove(_selectedWorkspace);
+                                    DBAdapter.DB.Execute("delete from WorkspaceSearch where WorkspaceId = ?", _selectedWorkspace.Id);
+                                    DBAdapter.DB.Delete(_selectedWorkspace);
+                                    SetWorkspace(null);
+                                });
+                            }
+                            menu.ShowAsContext();
+                        }
+                        if (Event.current.type == EventType.Repaint) _wsButtonRect = GUILayoutUtility.GetLastRect();
+                        GUILayout.EndVertical();
+                        GUILayout.Space(2);
+                    }
+                    GUILayout.EndHorizontal();
+                    EditorGUILayout.Space();
                 }
 
-                if (_searchPhrase != null && _searchPhrase.StartsWith("="))
+                // search bar
+                GUILayout.BeginHorizontal();
+                if (_inMemoryMode == InMemoryModeState.None)
                 {
+                    EditorGUILayout.LabelField("Search:", GUILayout.Width(50));
+                    EditorGUIUtility.labelWidth = 60;
                     EditorGUI.BeginChangeCheck();
-                    GUILayout.Space(2);
-                    _selectedExpertSearchField = EditorGUILayout.Popup(_selectedExpertSearchField, _expertSearchFields, GUILayout.Width(90));
+                    _searchPhrase = SearchField.OnGUI(_searchPhrase, GUILayout.ExpandWidth(true));
                     if (EditorGUI.EndChangeCheck())
                     {
-                        string field = _expertSearchFields[_selectedExpertSearchField];
-                        if (!string.IsNullOrEmpty(field) && !field.StartsWith("-"))
+                        // delay search to allow fast typing
+                        _nextSearchTime = Time.realtimeSinceStartup + AI.Config.searchDelay;
+                        // Clear active saved search when manually changing search phrase
+                        _activeSavedSearchId = -1;
+                    }
+                    else if (_nextSearchTime > 0 && Time.realtimeSinceStartup > _nextSearchTime)
+                    {
+                        _nextSearchTime = 0;
+                        if (AI.Config.searchAutomatically && !_searchPhrase.StartsWith("=")) dirty = true;
+                    }
+                    if (_allowLogic && (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter))
+                    {
+                        PerformSearch();
+                    }
+                    if (!AI.Config.searchAutomatically)
+                    {
+                        if (GUILayout.Button("Go", GUILayout.Width(30))) PerformSearch();
+                    }
+
+                    if (_searchPhrase != null && _searchPhrase.StartsWith("="))
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        GUILayout.Space(2);
+                        _selectedExpertSearchField = EditorGUILayout.Popup(_selectedExpertSearchField, _expertSearchFields, GUILayout.Width(90));
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            _searchPhrase += field.Replace('/', '.');
-                            SearchField.SetFocus();
+                            string field = _expertSearchFields[_selectedExpertSearchField];
+                            if (!string.IsNullOrEmpty(field) && !field.StartsWith("-"))
+                            {
+                                _searchPhrase += field.Replace('/', '.');
+                                SearchField.SetFocus();
+                            }
+                            _selectedExpertSearchField = 0;
                         }
-                        _selectedExpertSearchField = 0;
                     }
-                }
-                UILine("search.actions.assistant", () =>
-                {
-                    if (GUILayout.Button(UIStyles.Content("?", "Show example searches"), GUILayout.Width(20)))
+                    UILine("search.actions.assistant", () =>
                     {
-                        AdvancedSearchUI searchUI = new AdvancedSearchUI();
-                        searchUI.Init((searchPhrase, searchType) =>
+                        if (GUILayout.Button(UIStyles.Content("?", "Show example searches"), GUILayout.Width(20)))
                         {
-                            _searchPhrase = searchPhrase;
-                            if (searchType == null)
+                            AdvancedSearchUI searchUI = new AdvancedSearchUI();
+                            searchUI.Init((searchPhrase, searchType) =>
                             {
-                                AI.Config.searchType = 0;
-                            }
-                            else
-                            {
-                                int typeIdx = Array.IndexOf(_types, searchType);
-                                if (typeIdx >= 0) AI.Config.searchType = typeIdx;
-                            }
-                            _requireSearchUpdate = true;
-                        });
-                        PopupWindow.Show(_querySamplesButtonRect, searchUI);
-                    }
-                    if (Event.current.type == EventType.Repaint) _querySamplesButtonRect = GUILayoutUtility.GetLastRect();
-                });
-                if (_fixedSearchTypeIdx < 0)
-                {
-                    EditorGUI.BeginChangeCheck();
-                    GUILayout.Space(2);
-                    AI.Config.searchType = EditorGUILayout.Popup(AI.Config.searchType, _types, GUILayout.ExpandWidth(false), GUILayout.MinWidth(85));
-                    if (EditorGUI.EndChangeCheck())
+                                _searchPhrase = searchPhrase;
+                                if (searchType == null)
+                                {
+                                    AI.Config.searchType = 0;
+                                }
+                                else
+                                {
+                                    int typeIdx = Array.IndexOf(_types, searchType);
+                                    if (typeIdx >= 0) AI.Config.searchType = typeIdx;
+                                }
+                                _requireSearchUpdate = true;
+                            });
+                            PopupWindow.Show(_querySamplesButtonRect, searchUI);
+                        }
+                        if (Event.current.type == EventType.Repaint) _querySamplesButtonRect = GUILayoutUtility.GetLastRect();
+                    });
+                    if (_fixedSearchTypeIdx < 0)
                     {
-                        AI.SaveConfig();
-                        dirty = true;
-                    }
-                    GUILayout.Space(2);
-                }
-                if (!hideDetailsPane && !searchMode)
-                {
-                    UILine("search.actions.sidebar", () =>
-                    {
-                        if (GUILayout.Button(EditorGUIUtility.IconContent("d_animationvisibilitytoggleon", "|Show/Hide Details Inspector")))
+                        EditorGUI.BeginChangeCheck();
+                        GUILayout.Space(2);
+                        AI.Config.searchType = EditorGUILayout.Popup(AI.Config.searchType, _types, GUILayout.ExpandWidth(false), GUILayout.MinWidth(85));
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            AI.Config.showSearchSideBar = !AI.Config.showSearchSideBar;
                             AI.SaveConfig();
+                            dirty = true;
+                            // Clear active saved search when search type changes
+                            _activeSavedSearchId = -1;
                         }
+                    }
+                    UIBlock("asset.actions.savedsearches", () =>
+                    {
+                        if (GUILayout.Button(EditorGUIUtility.IconContent("d_saveas", "|Save current search to quickly pull up the results later again"), EditorStyles.miniButton))
+                        {
+                            NameUI nameUI = new NameUI();
+                            nameUI.Init(string.IsNullOrEmpty(_searchPhrase) ? "My Search" : _searchPhrase, SaveSearch);
+                            PopupWindow.Show(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), nameUI);
+                        }
+                        GUILayout.Space(2);
+                    });
+                    ShowInMemoryButton();
+                }
+                else
+                {
+                    UIBlock("asset.hints.inmemoryactive", () =>
+                    {
+                        EditorGUILayout.HelpBox($"In-Memory search is active. The {_originalResultCount:N0} results of the initial search are now the foundation for any subsequent, much faster, search.", MessageType.Info);
                     });
                 }
+
                 GUILayout.EndHorizontal();
+
+                if (_inMemoryMode != InMemoryModeState.None)
+                {
+                    EditorGUILayout.Space();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Refine Search:", GUILayout.Width(90));
+                    EditorGUI.BeginChangeCheck();
+                    _searchPhraseInMemory = SearchField.OnGUI(_searchPhraseInMemory, GUILayout.ExpandWidth(true));
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        // delay search to allow fast typing
+                        _nextSearchTime = Time.realtimeSinceStartup + AI.Config.inMemorySearchDelay;
+                    }
+                    else if (_nextSearchTime > 0 && Time.realtimeSinceStartup > _nextSearchTime)
+                    {
+                        _nextSearchTime = 0;
+                        UpdateFilteredFiles();
+                    }
+                    if (_allowLogic && (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter))
+                    {
+                        UpdateFilteredFiles();
+                    }
+                    ShowInMemoryButton();
+                    GUILayout.EndHorizontal();
+                }
+
+                // error display
                 if (!string.IsNullOrEmpty(_searchError))
                 {
                     GUILayout.BeginHorizontal();
@@ -314,7 +672,7 @@ namespace AssetInventory
                 GUILayout.BeginHorizontal();
 
                 // result
-                if (_sgrid == null || (_sgrid.contents != null && _sgrid.contents.Length > 0 && _files == null)) PerformSearch(); // happens during recompilation
+                if (SGrid == null || (SGrid.contents != null && SGrid.contents.Length > 0 && _files == null)) PerformSearch(); // happens during recompilation
                 GUILayout.BeginVertical();
                 GUILayout.BeginHorizontal();
 
@@ -322,7 +680,7 @@ namespace AssetInventory
                 GUILayout.FlexibleSpace();
                 GUILayout.BeginVertical();
                 bool isAudio = AI.IsFileType(_selectedEntry?.Path, AI.AssetGroup.Audio);
-                if (_sgrid.contents != null && _sgrid.contents.Length > 0)
+                if (SGrid.contents != null && SGrid.contents.Length > 0)
                 {
                     EditorGUI.BeginChangeCheck();
                     _searchScrollPos = GUILayout.BeginScrollView(_searchScrollPos, false, false);
@@ -337,18 +695,14 @@ namespace AssetInventory
                     EditorGUI.BeginChangeCheck();
 
                     int inspectorCount = (hideDetailsPane || !AI.Config.showSearchSideBar) ? 0 : 1;
-                    _sgrid.Draw(position.width, inspectorCount, AI.Config.searchTileSize, UIStyles.searchTile, UIStyles.selectedSearchTile);
+                    SGrid.Draw(position.width, inspectorCount, AI.Config.searchTileSize, UIStyles.searchTile, UIStyles.selectedSearchTile);
 
-                    if (Event.current.type == EventType.Repaint)
-                    {
-                        _mouseOverSearchResultRect = GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition);
-                    }
                     if (EditorGUI.EndChangeCheck() || (_allowLogic && _searchDone))
                     {
                         // interactions
-                        _sgrid.HandleMouseClicks();
-                        _sgrid.LimitSelection(_files.Count);
-                        _selectedEntry = _files[_sgrid.selectionTile];
+                        SGrid.HandleMouseClicks();
+                        SGrid.LimitSelection(_filteredFiles.Count());
+                        _selectedEntry = _filteredFiles.ElementAt(SGrid.selectionTile);
                         _requireSearchSelectionUpdate = true;
 
                         // Used event is thrown if user manually selected the entry
@@ -357,10 +711,11 @@ namespace AssetInventory
                     GUILayout.EndScrollView();
 
                     // navigation
+                    GUILayout.FlexibleSpace();
                     EditorGUILayout.Space();
                     GUILayout.BeginHorizontal();
 
-                    if (AI.Config.showTileSizeSlider)
+                    UILine("search.actions.tilesize", () =>
                     {
                         EditorGUI.BeginChangeCheck();
                         AI.Config.searchTileSize = EditorGUILayout.IntSlider(AI.Config.searchTileSize, 50, 300, GUILayout.Width(150));
@@ -369,7 +724,7 @@ namespace AssetInventory
                             _lastTileSizeChange = DateTime.Now;
                             AI.SaveConfig();
                         }
-                    }
+                    });
 
                     GUILayout.FlexibleSpace();
                     if (_pageCount > 1)
@@ -400,33 +755,53 @@ namespace AssetInventory
                         EditorGUILayout.LabelField($"{_resultCount:N0} results", UIStyles.centerLabel, GUILayout.ExpandWidth(true));
                     }
                     GUILayout.FlexibleSpace();
+
+                    if (!hideDetailsPane && !searchMode)
+                    {
+                        UILine("search.actions.sidebar", () =>
+                        {
+                            if (GUILayout.Button(EditorGUIUtility.IconContent("d_unityeditor.hierarchywindow", "|Show/Hide Details Inspector"), EditorStyles.miniButtonRight))
+                            {
+                                AI.Config.showSearchSideBar = !AI.Config.showSearchSideBar;
+                                AI.SaveConfig();
+                            }
+                        });
+                    }
+
                     GUILayout.EndHorizontal();
                     EditorGUILayout.Space();
                 }
                 else
                 {
                     if (!_lockSelection) _selectedEntry = null;
-                    GUILayout.Label("No matching results", UIStyles.whiteCenter, GUILayout.MinHeight(AI.Config.searchTileSize));
-
-                    bool isIndexing = AI.Actions.ActionsInProgress;
-                    bool hasHiddenExtensions = AI.Config.searchType == 0 && !string.IsNullOrWhiteSpace(AI.Config.excludedExtensions);
-                    bool hasHiddenPreviews = AI.Config.previewVisibility > 0;
-                    if (isIndexing || hasHiddenExtensions || hasHiddenPreviews)
+                    if (!SearchWithoutInput() && !IsSearchFilterActive() && string.IsNullOrWhiteSpace(_searchPhrase))
                     {
-                        GUILayout.Label("Search result is potentially limited", EditorStyles.centeredGreyMiniLabel);
-                        if (isIndexing) GUILayout.Label("Index is currently being updated", EditorStyles.centeredGreyMiniLabel);
-                        if (hasHiddenExtensions)
+                        GUILayout.Label("Enter search phrase to start searching", EditorStyles.centeredGreyMiniLabel, GUILayout.MinHeight(AI.Config.searchTileSize));
+                    }
+                    else
+                    {
+                        GUILayout.Label("No matching results", UIStyles.whiteCenter, GUILayout.MinHeight(AI.Config.searchTileSize));
+
+                        bool isIndexing = AI.Actions.ActionsInProgress;
+                        bool hasHiddenExtensions = AI.Config.searchType == 0 && !string.IsNullOrWhiteSpace(AI.Config.excludedExtensions);
+                        bool hasHiddenPreviews = AI.Config.previewVisibility > 0;
+                        if (isIndexing || hasHiddenExtensions || hasHiddenPreviews)
                         {
-                            EditorGUILayout.Space();
-                            GUILayout.Label($"Hidden extensions: {AI.Config.excludedExtensions}", EditorStyles.centeredGreyMiniLabel);
-                            GUILayout.BeginHorizontal();
-                            GUILayout.FlexibleSpace();
-                            if (GUILayout.Button("Ignore Once", GUILayout.Width(100))) PerformSearch(false, true);
-                            GUILayout.FlexibleSpace();
-                            GUILayout.EndHorizontal();
-                            EditorGUILayout.Space();
+                            GUILayout.Label("Search result is potentially limited", EditorStyles.centeredGreyMiniLabel);
+                            if (isIndexing) GUILayout.Label("Index is currently being updated", EditorStyles.centeredGreyMiniLabel);
+                            if (hasHiddenExtensions)
+                            {
+                                EditorGUILayout.Space();
+                                GUILayout.Label($"Hidden extensions: {AI.Config.excludedExtensions}", EditorStyles.centeredGreyMiniLabel);
+                                GUILayout.BeginHorizontal();
+                                GUILayout.FlexibleSpace();
+                                if (GUILayout.Button("Ignore Once", GUILayout.Width(100))) PerformSearch(false, true);
+                                GUILayout.FlexibleSpace();
+                                GUILayout.EndHorizontal();
+                                EditorGUILayout.Space();
+                            }
+                            if (hasHiddenPreviews) GUILayout.Label("Results depend on preview availability", EditorStyles.centeredGreyMiniLabel);
                         }
-                        if (hasHiddenPreviews) GUILayout.Label("Results depend on preview availability", EditorStyles.centeredGreyMiniLabel);
                     }
                     GUILayout.FlexibleSpace();
                     EditorGUILayout.Space();
@@ -442,18 +817,188 @@ namespace AssetInventory
                     int labelWidth = 95;
                     GUILayout.BeginVertical();
 
+                    GUILayout.BeginHorizontal();
                     List<string> strings = new List<string>
                     {
                         "Inspector",
-                        "Filters" + (IsSearchFilterActive() ? "*" : ""),
-                        "Settings"
+                        "Filters" + (IsSearchFilterActive() ? "*" : "")
                     };
                     _searchInspectorTab = GUILayout.Toolbar(_searchInspectorTab, strings.ToArray());
+                    UIBlock("search.actions.settings", () =>
+                    {
+                        if (GUILayout.Button(EditorGUIUtility.IconContent("Settings", "|Manage View"), EditorStyles.miniButton, GUILayout.ExpandWidth(false), GUILayout.Height(18)))
+                        {
+                            _searchInspectorTab = -1;
+                        }
+                        GUILayout.Space(2);
+                    });
+                    GUILayout.EndHorizontal();
 
                     switch (_searchInspectorTab)
                     {
+                        case -1:
+                            GUILayout.BeginVertical(GUILayout.Width(UIStyles.INSPECTOR_WIDTH));
+                            EditorGUILayout.Space();
+
+                            _inspectorScrollPos = GUILayout.BeginScrollView(_inspectorScrollPos, false, false, GUIStyle.none, GUI.skin.verticalScrollbar);
+                            EditorGUI.BeginChangeCheck();
+
+                            int width = 135;
+
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Search In", "Field to use for finding assets when doing plain searches and no expert search."), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.searchField = EditorGUILayout.Popup(AI.Config.searchField, _searchFields);
+                            GUILayout.EndHorizontal();
+
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField("", EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.searchPackageNames = EditorGUILayout.ToggleLeft(UIStyles.Content("Package Name", "Search also in package names for hits."), AI.Config.searchPackageNames);
+                            GUILayout.EndHorizontal();
+
+                            if (AI.Actions.CreateAICaptions)
+                            {
+                                GUILayout.BeginHorizontal();
+                                EditorGUILayout.LabelField("", EditorStyles.boldLabel, GUILayout.Width(width));
+                                AI.Config.searchAICaptions = EditorGUILayout.ToggleLeft(UIStyles.Content("AI Captions", "Search also in AI captions for hits."), AI.Config.searchAICaptions);
+                                GUILayout.EndHorizontal();
+                            }
+
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Sort by", "Specify the sort order. Unsorted will result in the fastest experience."), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.sortField = EditorGUILayout.Popup(AI.Config.sortField, _sortFields);
+                            if (GUILayout.Button(AI.Config.sortDescending ? UIStyles.Content("˅", "Descending") : UIStyles.Content("˄", "Ascending"), GUILayout.Width(17)))
+                            {
+                                AI.Config.sortDescending = !AI.Config.sortDescending;
+                            }
+                            GUILayout.EndHorizontal();
+
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Results", $"Maximum number of results to show. A (configurable) hard limit of {AI.Config.maxResultsLimit} will be enforced to keep Unity responsive."), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.maxResults = EditorGUILayout.Popup(AI.Config.maxResults, _resultSizes);
+                            GUILayout.EndHorizontal();
+
+                            if (ShowAdvanced())
+                            {
+                                GUILayout.BeginHorizontal();
+                                EditorGUILayout.LabelField(UIStyles.Content("In-Memory Results", "Maximum number of results to show when high-speed mode is active. The higher this value the more results you can browse but the more memory will also be consumed."), EditorStyles.boldLabel, GUILayout.Width(width));
+                                AI.Config.maxInMemoryResults = EditorGUILayout.DelayedIntField(AI.Config.maxInMemoryResults);
+                                GUILayout.EndHorizontal();
+                            }
+
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Hide Extensions", "File extensions to hide from search results when searching for all file types, e.g. asset;json;txt. These will still be indexed."), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.excludeExtensions = EditorGUILayout.Toggle(AI.Config.excludeExtensions, GUILayout.Width(16));
+                            if (AI.Config.excludeExtensions)
+                            {
+                                AI.Config.excludedExtensions = EditorGUILayout.DelayedTextField(AI.Config.excludedExtensions);
+                            }
+                            GUILayout.EndHorizontal();
+
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                dirty = true;
+                                _curPage = 1;
+                                AI.SaveConfig();
+                            }
+
+                            EditorGUI.BeginChangeCheck();
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Tile Text", "Text to be shown on the tile"), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.tileText = EditorGUILayout.Popup(AI.Config.tileText, _tileTitle);
+                            GUILayout.EndHorizontal();
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                dirty = true;
+                                AI.SaveConfig();
+                            }
+
+                            EditorGUILayout.Space();
+
+                            EditorGUI.BeginChangeCheck();
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Search While Typing", "Will search immediately while typing and update results constantly."), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.searchAutomatically = EditorGUILayout.Toggle(AI.Config.searchAutomatically);
+                            GUILayout.EndHorizontal();
+                            if (EditorGUI.EndChangeCheck()) AI.SaveConfig();
+
+                            EditorGUI.BeginChangeCheck();
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Search Without Input", "Will always show search results also when no keywords or filters are set."), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.searchWithoutInput = EditorGUILayout.Toggle(AI.Config.searchWithoutInput);
+                            GUILayout.EndHorizontal();
+
+                            if (ShowAdvanced())
+                            {
+                                GUILayout.BeginHorizontal();
+                                EditorGUILayout.LabelField(UIStyles.Content("Sub-Packages", "Will search through sub-packages as well if a filter is set for a specific package."), EditorStyles.boldLabel, GUILayout.Width(width));
+                                AI.Config.searchSubPackages = EditorGUILayout.Toggle(AI.Config.searchSubPackages);
+                                GUILayout.EndHorizontal();
+                            }
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                dirty = true;
+                                AI.SaveConfig();
+                            }
+
+                            EditorGUI.BeginChangeCheck();
+
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Auto-Play Audio", "Will automatically extract unity packages to play the sound file if they were not extracted yet. This is the most convenient option but will require sufficient hard disk space."), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.autoPlayAudio = EditorGUILayout.Toggle(AI.Config.autoPlayAudio);
+                            GUILayout.EndHorizontal();
+
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Ping Selected", "Highlight selected items in the Unity project tree if they are found in the current project."), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.pingSelected = EditorGUILayout.Toggle(AI.Config.pingSelected);
+                            GUILayout.EndHorizontal();
+
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Ping Imported", "Highlight items in the Unity project tree after import."), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.pingImported = EditorGUILayout.Toggle(AI.Config.pingImported);
+                            GUILayout.EndHorizontal();
+
+                            if (EditorGUI.EndChangeCheck()) AI.SaveConfig();
+
+                            EditorGUI.BeginChangeCheck();
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Group Lists", "Add a second level hierarchy to dropdowns if they become too long to scroll."), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.groupLists = EditorGUILayout.Toggle(AI.Config.groupLists);
+                            GUILayout.EndHorizontal();
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                AI.SaveConfig();
+                                ReloadLookups();
+                            }
+
+                            EditorGUI.BeginChangeCheck();
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Double-Click Action", "Define what should happen when double-clicking on search results. Holding ALT will trigger the not selected alternative action."), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.doubleClickBehavior = EditorGUILayout.Popup(AI.Config.doubleClickBehavior, _doubleClickOptions);
+                            GUILayout.EndHorizontal();
+                            if (EditorGUI.EndChangeCheck()) AI.SaveConfig();
+
+                            EditorGUI.BeginChangeCheck();
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Dependency Calc", "Can automatically calculate dependencies for assets that are already extracted."), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.autoCalculateDependencies = EditorGUILayout.Popup(AI.Config.autoCalculateDependencies, _dependencyOptions);
+                            GUILayout.EndHorizontal();
+
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(UIStyles.Content("Previews", "Optionally restricts search results to those with either preview images available or not."), EditorStyles.boldLabel, GUILayout.Width(width));
+                            AI.Config.previewVisibility = EditorGUILayout.Popup(AI.Config.previewVisibility, _previewOptions);
+                            GUILayout.EndHorizontal();
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                dirty = true;
+                                AI.SaveConfig();
+                            }
+
+                            GUILayout.EndScrollView();
+                            GUILayout.EndVertical();
+                            break;
+
                         case 0:
-                            if (_sgrid.selectionCount <= 1)
+                            if (SGrid.selectionCount <= 1)
                             {
                                 GUILayout.BeginVertical(GUILayout.Width(UIStyles.INSPECTOR_WIDTH));
                                 EditorGUILayout.Space();
@@ -486,7 +1031,7 @@ namespace AssetInventory
                                     if (_selectedEntry.Width > 0) UIBlock("asset.dimensions", () => GUILabelWithText("Dimensions", $"{_selectedEntry.Width}x{_selectedEntry.Height} px"));
                                     if (_selectedEntry.Length > 0) UIBlock("asset.length", () => GUILabelWithText("Length", $"{_selectedEntry.Length:N2} seconds"));
                                     if (ShowAdvanced() || _selectedEntry.InProject) GUILabelWithText("In Project", _selectedEntry.InProject ? "Yes" : "No");
-                                    if (_selectedEntry.IsDownloaded)
+                                    if (_selectedEntry.IsDownloaded || _selectedEntry.IsMaterialized)
                                     {
                                         bool needsDependencyScan = false;
                                         if (_selectedEntry.AssetSource == Asset.Source.AssetManager || DependencyAnalysis.NeedsScan(_selectedEntry.Type))
@@ -537,7 +1082,6 @@ namespace AssetInventory
                                                             DependenciesUI depUI = DependenciesUI.ShowWindow();
                                                             depUI.Init(_selectedEntry);
                                                         }
-
                                                         GUILayout.EndHorizontal();
                                                         break;
                                                 }
@@ -586,6 +1130,7 @@ namespace AssetInventory
                                                             }
                                                         }
                                                     }
+                                                    EditorGUI.EndDisabledGroup();
                                                 }
                                                 else
                                                 {
@@ -650,15 +1195,21 @@ namespace AssetInventory
 
                                         if (!searchMode)
                                         {
+                                            EditorGUI.BeginDisabledGroup(_blockingInProgress);
                                             UIBlock("asset.actions.open", () =>
                                             {
-                                                if (GUILayout.Button(UIStyles.Content("Open", "Open the file with the assigned system application"))) Open(_selectedEntry);
+                                                if (GUILayout.Button(UIStyles.Content("Open", "Open the file with the assigned system application")))
+                                                {
+                                                    Open(_selectedEntry);
+                                                }
                                             });
                                             UIBlock("asset.actions.openexplorer", () =>
                                             {
-                                                if (GUILayout.Button(Application.platform == RuntimePlatform.OSXEditor ? "Show in Finder" : "Show in Explorer")) OpenExplorer(_selectedEntry);
+                                                if (GUILayout.Button(Application.platform == RuntimePlatform.OSXEditor ? "Show in Finder" : "Show in Explorer"))
+                                                {
+                                                    OpenExplorer(_selectedEntry);
+                                                }
                                             });
-                                            EditorGUI.BeginDisabledGroup(_blockingInProgress);
                                             UIBlock("asset.actions.recreatepreview", () =>
                                             {
                                                 if (((ShowAdvanced()
@@ -674,7 +1225,9 @@ namespace AssetInventory
                                             });
                                             UIBlock("asset.actions.recreateaicaption", () =>
                                             {
-                                                if (ShowAdvanced() && AI.Actions.CreateAICaptions && GUILayout.Button(string.IsNullOrWhiteSpace(_selectedEntry.AICaption) ? "Create AI Caption" : "Recreate AI Caption"))
+                                                if (AI.Actions.CreateAICaptions
+                                                    && (ShowAdvanced() || string.IsNullOrWhiteSpace(_selectedEntry.AICaption))
+                                                    && GUILayout.Button(string.IsNullOrWhiteSpace(_selectedEntry.AICaption) ? "Create AI Caption" : "Recreate AI Caption"))
                                                 {
                                                     RecreateAICaptions(new List<AssetInfo> {_selectedEntry});
                                                 }
@@ -724,7 +1277,10 @@ namespace AssetInventory
                                             UIBlock("asset.actions.delete", () =>
                                             {
                                                 EditorGUILayout.Space();
-                                                if (GUILayout.Button(UIStyles.Content("Delete from Index", "Will delete the indexed file from the database. The package will need to be reindexed in order for it to appear again."))) DeleteFromIndex(_selectedEntry);
+                                                if (GUILayout.Button(UIStyles.Content("Delete from Index", "Will delete the indexed file from the database. The package will need to be reindexed in order for it to appear again.")))
+                                                {
+                                                    DeleteFromIndex(_selectedEntry);
+                                                }
                                             });
                                         }
                                         if (!_selectedEntry.IsMaterialized && !_blockingInProgress)
@@ -750,7 +1306,20 @@ namespace AssetInventory
                                     if (_blockingInProgress)
                                     {
                                         EditorGUI.EndDisabledGroup();
-                                        EditorGUILayout.LabelField("Working...", UIStyles.centeredWhiteMiniLabel);
+                                        EditorGUILayout.BeginHorizontal();
+                                        GUILayout.FlexibleSpace();
+                                        EditorGUILayout.LabelField("Working...", EditorStyles.miniLabel, GUILayout.Width(55));
+                                        if (_extraction != null)
+                                        {
+                                            EditorGUI.BeginDisabledGroup(_extraction.IsCancellationRequested);
+                                            if (GUILayout.Button(UIStyles.Content("x", "Cancel Activity"), EditorStyles.miniButton))
+                                            {
+                                                _extraction?.Cancel();
+                                            }
+                                            EditorGUI.EndDisabledGroup();
+                                        }
+                                        GUILayout.FlexibleSpace();
+                                        EditorGUILayout.EndHorizontal();
                                         EditorGUI.BeginDisabledGroup(_blockingInProgress);
                                     }
 
@@ -759,30 +1328,27 @@ namespace AssetInventory
                                         EditorGUILayout.LabelField(_selectedEntry.AICaption, EditorStyles.wordWrappedLabel);
                                     }
 
-                                    if (!searchMode)
+                                    UIBlock("asset.actions.tag", () =>
                                     {
-                                        UIBlock("asset.actions.tag", () =>
-                                        {
-                                            // tags
-                                            DrawAddFileTag(new List<AssetInfo> {_selectedEntry});
+                                        // tags
+                                        DrawAddFileTag(new List<AssetInfo> {_selectedEntry});
 
-                                            if (_selectedEntry.AssetTags != null && _selectedEntry.AssetTags.Count > 0)
+                                        if (_selectedEntry.AssetTags != null && _selectedEntry.AssetTags.Count > 0)
+                                        {
+                                            float x = 0f;
+                                            foreach (TagInfo tagInfo in _selectedEntry.AssetTags)
                                             {
-                                                float x = 0f;
-                                                foreach (TagInfo tagInfo in _selectedEntry.AssetTags)
+                                                x = CalcTagSize(x, tagInfo.Name);
+                                                UIStyles.DrawTag(tagInfo, () =>
                                                 {
-                                                    x = CalcTagSize(x, tagInfo.Name);
-                                                    UIStyles.DrawTag(tagInfo, () =>
-                                                    {
-                                                        Tagging.RemoveAssignment(_selectedEntry, tagInfo, true, true);
-                                                        _requireAssetTreeRebuild = true;
-                                                        _requireSearchUpdate = true;
-                                                    });
-                                                }
+                                                    Tagging.RemoveAssignment(_selectedEntry, tagInfo, true, true);
+                                                    _requireAssetTreeRebuild = true;
+                                                    _requireSearchUpdate = true;
+                                                });
                                             }
-                                            GUILayout.EndHorizontal();
-                                        });
-                                    }
+                                        }
+                                        GUILayout.EndHorizontal();
+                                    });
 
                                     EditorGUILayout.Space();
 
@@ -815,29 +1381,29 @@ namespace AssetInventory
                                 EditorGUILayout.Space();
                                 EditorGUILayout.LabelField("Bulk Actions", EditorStyles.largeLabel);
                                 _inspectorScrollPos = GUILayout.BeginScrollView(_inspectorScrollPos, false, false, GUIStyle.none, GUI.skin.verticalScrollbar);
-                                UIBlock("asset.bulk.count", () => GUILabelWithText("Selected", $"{_sgrid.selectionCount:N0}"));
-                                UIBlock("asset.bulk.packages", () => GUILabelWithText("Packages", $"{_sgrid.selectionPackageCount:N0}"));
-                                UIBlock("asset.bulk.size", () => GUILabelWithText("Size", EditorUtility.FormatBytes(_sgrid.selectionSize)));
+                                UIBlock("asset.bulk.count", () => GUILabelWithText("Selected", $"{SGrid.selectionCount:N0}"));
+                                UIBlock("asset.bulk.packages", () => GUILabelWithText("Packages", $"{SGrid.selectionPackageCount:N0}"));
+                                UIBlock("asset.bulk.size", () => GUILabelWithText("Size", EditorUtility.FormatBytes(SGrid.selectionSize)));
 
-                                int inProject = _sgrid.selectionItems.Count(item => item.InProject);
+                                int inProject = SGrid.selectionItems.Count(item => item.InProject);
                                 UIBlock("asset.bulk.inproject", () =>
                                 {
-                                    GUILabelWithText("In Project", $"{inProject:N0}/{_sgrid.selectionCount:N0}");
+                                    GUILabelWithText("In Project", $"{inProject:N0}/{SGrid.selectionCount:N0}");
                                 });
 
                                 EditorGUI.BeginDisabledGroup(_blockingInProgress);
                                 if (!searchMode && !string.IsNullOrEmpty(_importFolder))
                                 {
-                                    if (inProject < _sgrid.selectionCount)
+                                    if (inProject < SGrid.selectionCount)
                                     {
                                         UIBlock("asset.bulk.actions.import", () =>
                                         {
                                             string command = "Import";
-                                            if (inProject > 0) command += $" {_sgrid.selectionCount - inProject} Remaining";
+                                            if (inProject > 0) command += $" {SGrid.selectionCount - inProject} Remaining";
 
                                             GUILabelWithText("Import To", _importFolder, 95, null, true);
                                             EditorGUILayout.Space();
-                                            if (GUILayout.Button($"{command} Files")) ImportBulkFiles(_sgrid.selectionItems);
+                                            if (GUILayout.Button($"{command} Files")) ImportBulkFiles(SGrid.selectionItems);
                                         });
                                     }
                                 }
@@ -846,23 +1412,39 @@ namespace AssetInventory
                                 {
                                     UIBlock("asset.bulk.actions.open", () =>
                                     {
-                                        if (GUILayout.Button(UIStyles.Content("Open", "Open the files with the assigned system application"))) _sgrid.selectionItems.ForEach(Open);
+                                        if (GUILayout.Button(UIStyles.Content("Open", "Open the files with the assigned system application")))
+                                        {
+                                            bool show = true;
+                                            if (SGrid.selectionItems.Count > AI.Config.massOpenWarnThreshold)
+                                            {
+                                                show = EditorUtility.DisplayDialog("Open Files", $"You are about to open {SGrid.selectionItems.Count} files. This may take a while and will open a lot of windows.\n\nDo you want to continue?", "Continue", "Cancel");
+                                            }
+                                            if (show) SGrid.selectionItems.ForEach(Open);
+                                        }
                                     });
                                     UIBlock("asset.bulk.actions.openexplorer", () =>
                                     {
-                                        if (GUILayout.Button(Application.platform == RuntimePlatform.OSXEditor ? "Show in Finder" : "Show in Explorer")) _sgrid.selectionItems.ForEach(OpenExplorer);
+                                        if (GUILayout.Button(Application.platform == RuntimePlatform.OSXEditor ? "Show in Finder" : "Show in Explorer"))
+                                        {
+                                            bool show = true;
+                                            if (SGrid.selectionItems.Count > AI.Config.massOpenWarnThreshold)
+                                            {
+                                                show = EditorUtility.DisplayDialog("Show Files", $"You are about to open {SGrid.selectionItems.Count} locations. This may take a while and will open a lot of windows.\n\nDo you want to continue?", "Continue", "Cancel");
+                                            }
+                                            if (show) SGrid.selectionItems.ForEach(OpenExplorer);
+                                        }
                                     });
                                     UIBlock("asset.bulk.actions.recreatepreviews", () =>
                                     {
                                         EditorGUI.BeginDisabledGroup(_blockingInProgress);
-                                        if (GUILayout.Button("Recreate Previews")) RecreatePreviews(_sgrid.selectionItems);
+                                        if (GUILayout.Button("Recreate Previews")) RecreatePreviews(SGrid.selectionItems);
                                         EditorGUI.EndDisabledGroup();
                                     });
                                     UIBlock("asset.bulk.actions.recreateaicaptions", () =>
                                     {
                                         if (ShowAdvanced() && AI.Actions.CreateAICaptions && GUILayout.Button("Recreate AI Captions"))
                                         {
-                                            RecreateAICaptions(_sgrid.selectionItems);
+                                            RecreateAICaptions(SGrid.selectionItems);
                                         }
                                     });
 
@@ -877,14 +1459,14 @@ namespace AssetInventory
                                     {
                                         if (GUILayout.Button(UIStyles.Content("Delete from Project", "Delete the files from the Asset Manager project.")))
                                         {
-                                            DeleteAssetsFromProject(_sgrid.selectionItems);
+                                            DeleteAssetsFromProject(SGrid.selectionItems);
                                         }
                                     }
                                     if (_assetFileAMCollectionCount > 0)
                                     {
                                         if (GUILayout.Button(UIStyles.Content("Remove from Collection", "Remove the files from the Asset Manager collection.")))
                                         {
-                                            RemoveAssetsFromCollection(_sgrid.selectionItems);
+                                            RemoveAssetsFromCollection(SGrid.selectionItems);
                                         }
                                     }
                                 }
@@ -895,7 +1477,7 @@ namespace AssetInventory
                                         ProjectSelectionUI projectUI = new ProjectSelectionUI();
                                         projectUI.Init(project =>
                                         {
-                                            AddAssetsToProject(project, _sgrid.selectionItems);
+                                            AddAssetsToProject(project, SGrid.selectionItems);
                                         });
                                         projectUI.SetAssets(_assets);
                                         PopupWindow.Show(_amUploadButtonRect, projectUI);
@@ -905,12 +1487,20 @@ namespace AssetInventory
                                 EditorGUI.EndDisabledGroup();
                             }
 #endif
+                                    UIBlock("asset.bulk.actions.export", () =>
+                                    {
+                                        if (GUILayout.Button("Export Files..."))
+                                        {
+                                            ExportUI exportUI = ExportUI.ShowWindow();
+                                            exportUI.Init(SGrid.selectionItems, true, 2);
+                                        }
+                                    });
                                     UIBlock("asset.bulk.actions.delete", () =>
                                     {
                                         EditorGUILayout.Space();
                                         if (GUILayout.Button(UIStyles.Content("Delete from Index", "Will delete the indexed files from the database. The package will need to be reindexed in order for it to appear again.")))
                                         {
-                                            _sgrid.selectionItems.ForEach(DeleteFromIndex);
+                                            SGrid.selectionItems.ForEach(DeleteFromIndex);
                                         }
                                     });
                                 }
@@ -920,7 +1510,7 @@ namespace AssetInventory
                                 UIBlock("asset.bulk.actions.tag", () =>
                                 {
                                     // tags
-                                    DrawAddFileTag(_sgrid.selectionItems);
+                                    DrawAddFileTag(SGrid.selectionItems);
 
                                     float x = 0f;
                                     List<string> toRemove = new List<string>();
@@ -930,7 +1520,7 @@ namespace AssetInventory
                                         x = CalcTagSize(x, tagName);
                                         UIStyles.DrawTag(tagName, bulkTag.Value.Item2, () =>
                                         {
-                                            Tagging.RemoveAssetAssignments(_sgrid.selectionItems, bulkTag.Key, true);
+                                            Tagging.RemoveAssetAssignments(SGrid.selectionItems, bulkTag.Key, true);
                                             toRemove.Add(bulkTag.Key);
                                         }, UIStyles.TagStyle.Remove);
                                     }
@@ -944,6 +1534,7 @@ namespace AssetInventory
                             break;
 
                         case 1:
+                            EditorGUI.BeginDisabledGroup(_inMemoryMode != InMemoryModeState.None);
                             GUILayout.BeginVertical(GUILayout.Width(UIStyles.INSPECTOR_WIDTH));
                             EditorGUILayout.Space();
 
@@ -1040,7 +1631,12 @@ namespace AssetInventory
                             _selectedPackageSRPs = EditorGUILayout.Popup(_selectedPackageSRPs, _srpOptions, GUILayout.ExpandWidth(true));
                             GUILayout.EndHorizontal();
 
-                            if (EditorGUI.EndChangeCheck()) dirty = true;
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                dirty = true;
+                                // Clear active saved search when filters change
+                                _activeSavedSearchId = -1;
+                            }
 
                             EditorGUILayout.Space();
                             if (IsSearchFilterActive() && GUILayout.Button("Reset Filters"))
@@ -1049,209 +1645,14 @@ namespace AssetInventory
                                 _requireSearchUpdate = true;
                             }
 
-                            UIBlock("asset.actions.savedsearches", () =>
-                            {
-                                EditorGUILayout.Space();
-                                EditorGUILayout.LabelField("Saved Searches", EditorStyles.largeLabel);
-
-                                if (AI.Config.searches.Count == 0)
-                                {
-                                    EditorGUILayout.HelpBox("Save different search settings to quickly pull up the results later again.", MessageType.Info);
-                                }
-                                if (GUILayout.Button("Save current search..."))
-                                {
-                                    NameUI nameUI = new NameUI();
-                                    nameUI.Init(string.IsNullOrEmpty(_searchPhrase) ? "My Search" : _searchPhrase, SaveSearch);
-                                    PopupWindow.Show(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), nameUI);
-                                }
-
-                                EditorGUILayout.Space();
-                                Color oldCol = GUI.backgroundColor;
-                                for (int i = 0; i < AI.Config.searches.Count; i++)
-                                {
-                                    SavedSearch search = AI.Config.searches[i];
-                                    GUILayout.BeginHorizontal();
-
-                                    if (ColorUtility.TryParseHtmlString($"#{search.color}", out Color color)) GUI.backgroundColor = color;
-                                    if (GUILayout.Button(UIStyles.Content(search.name, search.searchPhrase), GUILayout.MaxWidth(250))) LoadSearch(search);
-                                    if (GUILayout.Button(EditorGUIUtility.IconContent("TrueTypeFontImporter Icon", "|Set only search text"), GUILayout.Width(30), GUILayout.Height(EditorGUIUtility.singleLineHeight + 2)))
-                                    {
-                                        _searchPhrase = search.searchPhrase;
-                                        dirty = true;
-                                    }
-                                    GUI.backgroundColor = oldCol;
-
-                                    if (GUILayout.Button(EditorGUIUtility.IconContent("TreeEditor.Trash", "|Delete saved search"), GUILayout.Width(30), GUILayout.Height(EditorGUIUtility.singleLineHeight + 2)))
-                                    {
-                                        AI.Config.searches.RemoveAt(i);
-                                        AI.SaveConfig();
-                                    }
-                                    GUILayout.EndHorizontal();
-                                }
-                            });
                             GUILayout.EndScrollView();
                             GUILayout.FlexibleSpace();
                             if (AI.DEBUG_MODE && GUILayout.Button("Reload Lookups")) ReloadLookups();
 
                             GUILayout.EndVertical();
+                            EditorGUI.EndDisabledGroup();
                             break;
 
-                        case 2:
-                            GUILayout.BeginVertical(GUILayout.Width(UIStyles.INSPECTOR_WIDTH));
-                            EditorGUILayout.Space();
-
-                            _inspectorScrollPos = GUILayout.BeginScrollView(_inspectorScrollPos, false, false, GUIStyle.none, GUI.skin.verticalScrollbar);
-                            EditorGUI.BeginChangeCheck();
-
-                            int width = 135;
-
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Search In", "Field to use for finding assets when doing plain searches and no expert search."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.searchField = EditorGUILayout.Popup(AI.Config.searchField, _searchFields);
-                            GUILayout.EndHorizontal();
-
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField("", EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.searchPackageNames = EditorGUILayout.ToggleLeft(UIStyles.Content("Package Name", "Search also in package names for hits."), AI.Config.searchPackageNames);
-                            GUILayout.EndHorizontal();
-
-                            if (AI.Actions.CreateAICaptions)
-                            {
-                                GUILayout.BeginHorizontal();
-                                EditorGUILayout.LabelField("", EditorStyles.boldLabel, GUILayout.Width(width));
-                                AI.Config.searchAICaptions = EditorGUILayout.ToggleLeft(UIStyles.Content("AI Captions", "Search also in AI captions for hits."), AI.Config.searchAICaptions);
-                                GUILayout.EndHorizontal();
-                            }
-
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Sort by", "Specify the sort order. Unsorted will result in the fastest experience."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.sortField = EditorGUILayout.Popup(AI.Config.sortField, _sortFields);
-                            if (GUILayout.Button(AI.Config.sortDescending ? UIStyles.Content("˅", "Descending") : UIStyles.Content("˄", "Ascending"), GUILayout.Width(17)))
-                            {
-                                AI.Config.sortDescending = !AI.Config.sortDescending;
-                            }
-                            GUILayout.EndHorizontal();
-
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Results", $"Maximum number of results to show. A (configurable) hard limit of {AI.Config.maxResultsLimit} will be enforced to keep Unity responsive."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.maxResults = EditorGUILayout.Popup(AI.Config.maxResults, _resultSizes);
-                            GUILayout.EndHorizontal();
-
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Hide Extensions", "File extensions to hide from search results when searching for all file types, e.g. asset;json;txt. These will still be indexed."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.excludeExtensions = EditorGUILayout.Toggle(AI.Config.excludeExtensions, GUILayout.Width(16));
-                            if (AI.Config.excludeExtensions)
-                            {
-                                AI.Config.excludedExtensions = EditorGUILayout.DelayedTextField(AI.Config.excludedExtensions);
-                            }
-                            GUILayout.EndHorizontal();
-
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                dirty = true;
-                                _curPage = 1;
-                                AI.SaveConfig();
-                            }
-
-                            EditorGUILayout.Space();
-                            EditorGUI.BeginChangeCheck();
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Tile Size", "Dimensions of search result previews. Preview images will still be 128x128 max."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.searchTileSize = EditorGUILayout.IntSlider(AI.Config.searchTileSize, 50, 300);
-                            GUILayout.EndHorizontal();
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                _lastTileSizeChange = DateTime.Now;
-                                AI.SaveConfig();
-                            }
-
-                            EditorGUI.BeginChangeCheck();
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Tile Text", "Text to be shown on the tile"), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.tileText = EditorGUILayout.Popup(AI.Config.tileText, _tileTitle);
-                            GUILayout.EndHorizontal();
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                dirty = true;
-                                AI.SaveConfig();
-                            }
-
-                            EditorGUILayout.Space();
-
-                            EditorGUI.BeginChangeCheck();
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Search While Typing", "Will search immediately while typing and update results constantly."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.searchAutomatically = EditorGUILayout.Toggle(AI.Config.searchAutomatically);
-                            GUILayout.EndHorizontal();
-                            if (EditorGUI.EndChangeCheck()) AI.SaveConfig();
-
-                            EditorGUI.BeginChangeCheck();
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Sub-Packages", "Will search through sub-packages as well if a filter is set for a specific package."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.searchSubPackages = EditorGUILayout.Toggle(AI.Config.searchSubPackages);
-                            GUILayout.EndHorizontal();
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                dirty = true;
-                                AI.SaveConfig();
-                            }
-
-                            EditorGUI.BeginChangeCheck();
-
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Auto-Play Audio", "Will automatically extract unity packages to play the sound file if they were not extracted yet. This is the most convenient option but will require sufficient hard disk space."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.autoPlayAudio = EditorGUILayout.Toggle(AI.Config.autoPlayAudio);
-                            GUILayout.EndHorizontal();
-
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Ping Selected", "Highlight selected items in the Unity project tree if they are found in the current project."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.pingSelected = EditorGUILayout.Toggle(AI.Config.pingSelected);
-                            GUILayout.EndHorizontal();
-
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Ping Imported", "Highlight items in the Unity project tree after import."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.pingImported = EditorGUILayout.Toggle(AI.Config.pingImported);
-                            GUILayout.EndHorizontal();
-
-                            if (EditorGUI.EndChangeCheck()) AI.SaveConfig();
-
-                            EditorGUI.BeginChangeCheck();
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Group Lists", "Add a second level hierarchy to dropdowns if they become too long to scroll."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.groupLists = EditorGUILayout.Toggle(AI.Config.groupLists);
-                            GUILayout.EndHorizontal();
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                AI.SaveConfig();
-                                ReloadLookups();
-                            }
-
-                            EditorGUI.BeginChangeCheck();
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Double-Click Action", "Define what should happen when double-clicking on search results. Holding ALT will trigger the not selected alternative action."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.doubleClickBehavior = EditorGUILayout.Popup(AI.Config.doubleClickBehavior, _doubleClickOptions);
-                            GUILayout.EndHorizontal();
-                            if (EditorGUI.EndChangeCheck()) AI.SaveConfig();
-
-                            EditorGUI.BeginChangeCheck();
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Dependency Calc", "Can automatically calculate dependencies for assets that are already extracted."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.autoCalculateDependencies = EditorGUILayout.Popup(AI.Config.autoCalculateDependencies, _dependencyOptions);
-                            GUILayout.EndHorizontal();
-
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(UIStyles.Content("Previews", "Optionally restricts search results to those with either preview images available or not."), EditorStyles.boldLabel, GUILayout.Width(width));
-                            AI.Config.previewVisibility = EditorGUILayout.Popup(AI.Config.previewVisibility, _previewOptions);
-                            GUILayout.EndHorizontal();
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                dirty = true;
-                                AI.SaveConfig();
-                            }
-
-                            GUILayout.EndScrollView();
-                            GUILayout.EndVertical();
-                            break;
                     }
                     if (searchMode)
                     {
@@ -1279,7 +1680,8 @@ namespace AssetInventory
                 GUILayout.EndVertical();
                 GUILayout.EndHorizontal();
 
-                _sgrid.HandleKeyboardCommands();
+                SGrid.HandleKeyboardCommands();
+                HandleTagShortcuts();
 
                 if (dirty)
                 {
@@ -1288,6 +1690,40 @@ namespace AssetInventory
                 }
                 EditorGUIUtility.labelWidth = 0;
             }
+        }
+
+        private void ShowInMemoryButton()
+        {
+            UIBlock("asset.actions.inmemorymode", () =>
+            {
+                EditorGUI.BeginDisabledGroup(_resultCount <= 0);
+                EditorGUI.BeginChangeCheck();
+                bool inMemory = _inMemoryMode != InMemoryModeState.None;
+                inMemory = GUILayout.Toggle(inMemory, EditorGUIUtility.IconContent("d_lighting", "|High-Speed Mode: Load all current results into memory for extremely fast sub-searches."), EditorStyles.miniButton, GUILayout.Width(28), GUILayout.ExpandHeight(true));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _inMemoryMode = inMemory ? InMemoryModeState.Init : InMemoryModeState.None;
+                    _requireSearchUpdate = true;
+                    _searchPhraseInMemory = "";
+
+                    RefreshSearchField();
+                }
+                EditorGUI.EndDisabledGroup();
+                GUILayout.Space(2);
+            });
+        }
+
+        private static void RefreshSearchField()
+        {
+            // force IMGUI to drop its TextEditor cache
+            GUIUtility.keyboardControl = 0;
+            GUIUtility.hotControl = 0;
+            EditorGUIUtility.editingTextField = false;
+        }
+
+        private bool SearchWithoutInput()
+        {
+            return workspaceMode ? AI.Config.wsSearchWithoutInput : AI.Config.searchWithoutInput;
         }
 
         private void HandleSearchSelectionChanged()
@@ -1311,7 +1747,10 @@ namespace AssetInventory
                 if (AI.Config.autoCalculateDependencies == 1)
                 {
                     // if entry is already materialized calculate dependencies immediately
-                    if (!_blockingInProgress && _selectedEntry.DependencyState == AssetInfo.DependencyStateOptions.Unknown && _selectedEntry.IsMaterialized)
+                    if (!_blockingInProgress &&
+                        _selectedEntry.DependencyState == AssetInfo.DependencyStateOptions.Unknown &&
+                        _selectedEntry.IsMaterialized &&
+                        DependencyAnalysis.NeedsScan(_selectedEntry.Type))
                     {
                         // must run in same thread
                         _ = CalculateDependencies(_selectedEntry);
@@ -1532,83 +1971,111 @@ namespace AssetInventory
 
         private void LoadSearch(SavedSearch search)
         {
-            _searchPhrase = search.searchPhrase;
-            _selectedPackageTypes = search.packageTypes;
-            _selectedPackageSRPs = search.packageSRPs;
-            _selectedImageType = search.imageType;
-            _selectedColorOption = search.colorOption;
-            _selectedColor = ImageUtils.FromHex(search.searchColor);
-            _searchWidth = search.width;
-            _searchHeight = search.height;
-            _searchLength = search.length;
-            _searchSize = search.size;
-            _checkMaxWidth = search.checkMaxWidth;
-            _checkMaxHeight = search.checkMaxHeight;
-            _checkMaxLength = search.checkMaxLength;
-            _checkMaxSize = search.checkMaxSize;
+            _searchPhrase = search.SearchPhrase;
+            _selectedPackageTypes = search.PackageTypes;
+            _selectedPackageSRPs = search.PackageSrPs;
+            _selectedImageType = search.ImageType;
+            _selectedColorOption = search.ColorOption;
+            _selectedColor = ImageUtils.FromHex(search.SearchColor);
+            _searchWidth = search.Width;
+            _searchHeight = search.Height;
+            _searchLength = search.Length;
+            _searchSize = search.Size;
+            _checkMaxWidth = search.CheckMaxWidth;
+            _checkMaxHeight = search.CheckMaxHeight;
+            _checkMaxLength = search.CheckMaxLength;
+            _checkMaxSize = search.CheckMaxSize;
 
-            AI.Config.searchType = Mathf.Max(0, Array.FindIndex(_types, s => s == search.type || s.EndsWith($"/{search.type}")));
-            _selectedPublisher = Mathf.Max(0, Array.FindIndex(_publisherNames, s => s == search.publisher || s.EndsWith($"/{search.publisher}")));
-            _selectedAsset = Mathf.Max(0, Array.FindIndex(_assetNames, s => s == search.package || s.EndsWith($"/{search.package}")));
-            _selectedCategory = Mathf.Max(0, Array.FindIndex(_categoryNames, s => s == search.category || s.EndsWith($"/{search.category}")));
-            _selectedPackageTag = Mathf.Max(0, Array.FindIndex(_tagNames, s => s == search.packageTag || s.EndsWith($"/{search.packageTag}")));
-            _selectedFileTag = Mathf.Max(0, Array.FindIndex(_tagNames, s => s == search.fileTag || s.EndsWith($"/{search.fileTag}")));
+            AI.Config.searchType = string.IsNullOrWhiteSpace(search.Type) ? 0 : Mathf.Max(0, Array.FindIndex(_types, s => s == search.Type || s.EndsWith($"/{search.Type}")));
+            _selectedPublisher = string.IsNullOrWhiteSpace(search.Publisher) ? 0 : Mathf.Max(0, Array.FindIndex(_publisherNames, s => s == search.Publisher || s.EndsWith($"/{search.Publisher}")));
+            _selectedAsset = string.IsNullOrWhiteSpace(search.Package) ? 0 : Mathf.Max(0, Array.FindIndex(_assetNames, s => s == search.Package || s.EndsWith($"/{search.Package}")));
+            _selectedCategory = string.IsNullOrWhiteSpace(search.Category) ? 0 : Mathf.Max(0, Array.FindIndex(_categoryNames, s => s == search.Category || s.EndsWith($"/{search.Category}")));
+            _selectedPackageTag = string.IsNullOrWhiteSpace(search.PackageTag) ? 0 : Mathf.Max(0, Array.FindIndex(_tagNames, s => s == search.PackageTag || s.EndsWith($"/{search.PackageTag}")));
+            _selectedFileTag = string.IsNullOrWhiteSpace(search.FileTag) ? 0 : Mathf.Max(0, Array.FindIndex(_tagNames, s => s == search.FileTag || s.EndsWith($"/{search.FileTag}")));
 
+            _activeSavedSearchId = search.Id;
             _requireSearchUpdate = true;
+            RefreshSearchField();
         }
 
         private void SaveSearch(string value)
         {
-            SavedSearch spec = new SavedSearch();
-            spec.name = value;
-            spec.searchPhrase = _searchPhrase;
-            spec.packageTypes = _selectedPackageTypes;
-            spec.packageSRPs = _selectedPackageSRPs;
-            spec.imageType = _selectedImageType;
-            spec.colorOption = _selectedColorOption;
-            spec.searchColor = "#" + ColorUtility.ToHtmlStringRGB(_selectedColor);
-            spec.width = _searchWidth;
-            spec.height = _searchHeight;
-            spec.length = _searchLength;
-            spec.size = _searchSize;
-            spec.checkMaxWidth = _checkMaxWidth;
-            spec.checkMaxHeight = _checkMaxHeight;
-            spec.checkMaxLength = _checkMaxLength;
-            spec.checkMaxSize = _checkMaxSize;
-            spec.color = ColorUtility.ToHtmlStringRGB(Random.ColorHSV());
+            SavedSearch search = new SavedSearch();
+            search.Name = value;
+            search.SearchPhrase = _searchPhrase;
+            search.PackageTypes = _selectedPackageTypes;
+            search.PackageSrPs = _selectedPackageSRPs;
+            search.ImageType = _selectedImageType;
+            search.ColorOption = _selectedColorOption;
+            search.SearchColor = "#" + ColorUtility.ToHtmlStringRGB(_selectedColor);
+            search.Width = _searchWidth;
+            search.Height = _searchHeight;
+            search.Length = _searchLength;
+            search.Size = _searchSize;
+            search.CheckMaxWidth = _checkMaxWidth;
+            search.CheckMaxHeight = _checkMaxHeight;
+            search.CheckMaxLength = _checkMaxLength;
+            search.CheckMaxSize = _checkMaxSize;
+            search.Color = ColorUtility.ToHtmlStringRGB(Random.ColorHSV());
 
             if (AI.Config.searchType > 0 && _types.Length > AI.Config.searchType)
             {
-                spec.type = _types[AI.Config.searchType].Split('/').LastOrDefault();
+                search.Type = _types[AI.Config.searchType].Split('/').LastOrDefault();
             }
 
             if (_selectedPublisher > 0 && _publisherNames.Length > _selectedPublisher)
             {
-                spec.publisher = _publisherNames[_selectedPublisher].Split('/').LastOrDefault();
+                search.Publisher = _publisherNames[_selectedPublisher].Split('/').LastOrDefault();
             }
 
             if (_selectedAsset > 0 && _assetNames.Length > _selectedAsset)
             {
-                spec.package = _assetNames[_selectedAsset].Split('/').LastOrDefault();
+                search.Package = _assetNames[_selectedAsset].Split('/').LastOrDefault();
             }
 
             if (_selectedCategory > 0 && _categoryNames.Length > _selectedCategory)
             {
-                spec.category = _categoryNames[_selectedCategory].Split('/').LastOrDefault();
+                search.Category = _categoryNames[_selectedCategory].Split('/').LastOrDefault();
             }
 
             if (_selectedPackageTag > 0 && _tagNames.Length > _selectedPackageTag)
             {
-                spec.packageTag = _tagNames[_selectedPackageTag].Split('/').LastOrDefault();
+                search.PackageTag = _tagNames[_selectedPackageTag].Split('/').LastOrDefault();
             }
 
             if (_selectedFileTag > 0 && _tagNames.Length > _selectedFileTag)
             {
-                spec.fileTag = _tagNames[_selectedFileTag].Split('/').LastOrDefault();
+                search.FileTag = _tagNames[_selectedFileTag].Split('/').LastOrDefault();
             }
 
-            AI.Config.searches.Add(spec);
-            AI.SaveConfig();
+            DBAdapter.DB.Insert(search);
+            Searches.Add(search);
+            _activeSavedSearchId = search.Id;
+
+            // add to current workspace as well
+            if (_selectedWorkspace != null)
+            {
+                WorkspaceSearch wsSearch = new WorkspaceSearch
+                {
+                    WorkspaceId = _selectedWorkspace.Id,
+                    SavedSearchId = search.Id,
+                    OrderIdx = _selectedWorkspace.Searches.Count
+                };
+                DBAdapter.DB.Insert(wsSearch);
+                _selectedWorkspace.Searches.Add(wsSearch);
+            }
+        }
+
+        private void SaveWorkspace(string value)
+        {
+            Workspace ws = new Workspace();
+            ws.Name = value;
+
+            DBAdapter.DB.Insert(ws);
+            Workspaces.Add(ws);
+
+            WorkspaceUI workspaceUI = WorkspaceUI.ShowWindow();
+            workspaceUI.Init(ws);
         }
 
         private async void PlayAudio(AssetInfo info)
@@ -1620,11 +2087,8 @@ namespace AssetInventory
                 return;
             }
 
-            _blockingInProgress = true;
-
-            await AI.PlayAudio(info);
-
-            _blockingInProgress = false;
+            await AI.PlayAudio(info, InitBlockingToken());
+            DisposeBlocking();
         }
 
         private async void PingAsset(AssetInfo info)
@@ -1644,14 +2108,13 @@ namespace AssetInventory
 
         private async Task CalculateDependencies(AssetInfo info)
         {
-            _blockingInProgress = true;
-            await AI.CalculateDependencies(info);
-            _blockingInProgress = false;
+            await AI.CalculateDependencies(info, InitBlockingToken());
+            DisposeBlocking();
         }
 
         private async void Open(AssetInfo info)
         {
-            if (!info.IsDownloaded) return;
+            if (!info.IsDownloaded && !info.IsMaterialized) return;
 
             _blockingInProgress = true;
             string targetPath;
@@ -1671,7 +2134,7 @@ namespace AssetInventory
 
         private async void OpenExplorer(AssetInfo info)
         {
-            if (!info.IsDownloaded) return;
+            if (!info.IsDownloaded && !info.IsMaterialized) return;
 
             _blockingInProgress = true;
             string targetPath;
@@ -1714,10 +2177,137 @@ namespace AssetInventory
             if (newPage != _curPage)
             {
                 _curPage = newPage;
-                _sgrid.DeselectAll();
+                SGrid.DeselectAll();
                 _searchScrollPos = Vector2.zero;
-                if (_curPage > 0) PerformSearch(true, ignoreExcludedExtensions);
+                if (_curPage > 0)
+                {
+                    if (_inMemoryMode == InMemoryModeState.Active)
+                    {
+                        UpdateFilteredFiles();
+                    }
+                    else
+                    {
+                        PerformSearch(true, ignoreExcludedExtensions);
+                    }
+                }
             }
+        }
+
+        private void UpdateFilteredFiles()
+        {
+            StopSearchPreviewLoading();
+
+            _filteredFiles = _files;
+            if (_inMemoryMode != InMemoryModeState.None)
+            {
+                int maxResults = GetMaxResuls();
+
+                // apply search criteria
+                if (!string.IsNullOrWhiteSpace(_searchPhraseInMemory))
+                {
+                    if (_searchPhraseInMemory.StartsWith("~")) // exact mode
+                    {
+                        string term = _searchPhraseInMemory.Substring(1);
+                        _filteredFiles = _filteredFiles.Where(a => a.Path.Contains(term, StringComparison.OrdinalIgnoreCase));
+                    }
+                    else
+                    {
+                        string[] fuzzyWords = _searchPhraseInMemory.Split(' ');
+                        foreach (string fuzzyWord in fuzzyWords.Select(s => s.Trim()).Where(s => !string.IsNullOrWhiteSpace(s)))
+                        {
+                            if (fuzzyWord.StartsWith("+"))
+                            {
+                                _filteredFiles = _filteredFiles.Where(a =>
+                                {
+                                    string phrase = fuzzyWord.Substring(1);
+                                    return a.Path.Contains(phrase, StringComparison.OrdinalIgnoreCase);
+                                });
+                            }
+                            else if (fuzzyWord.StartsWith("-"))
+                            {
+                                _filteredFiles = _filteredFiles.Where(a =>
+                                {
+                                    string phrase = fuzzyWord.Substring(1);
+                                    return !a.Path.Contains(phrase, StringComparison.OrdinalIgnoreCase);
+                                });
+                            }
+                            else
+                            {
+                                _filteredFiles = _filteredFiles.Where(a => a.Path.Contains(fuzzyWord, StringComparison.OrdinalIgnoreCase));
+                            }
+                        }
+                    }
+                }
+
+                // new pagination
+                _resultCount = _filteredFiles.Count();
+                _pageCount = AssetUtils.GetPageCount(_resultCount, GetMaxResuls());
+                if (_curPage > _pageCount) _curPage = 1;
+
+                _filteredFiles = _filteredFiles.Skip((_curPage - 1) * maxResults).Take(maxResults);
+            }
+            else
+            {
+                _pageCount = AssetUtils.GetPageCount(_resultCount, GetMaxResuls());
+            }
+
+            DisposeSearchResultTextures();
+            SGrid.contents = _filteredFiles.Select(file =>
+            {
+                string text = "";
+                int tileTextToUse = AI.Config.tileText;
+                if (tileTextToUse == 5 && string.IsNullOrEmpty(file.AICaption))
+                {
+                    tileTextToUse = 3;
+                }
+                if (tileTextToUse == 0) // intelligent
+                {
+                    if (AI.Config.searchTileSize < 70)
+                    {
+                        tileTextToUse = 6;
+                    }
+                    else if (AI.Config.searchTileSize < 90)
+                    {
+                        tileTextToUse = 4;
+                    }
+                    else if (AI.Config.searchTileSize < 150)
+                    {
+                        tileTextToUse = 3;
+                    }
+                    else
+                    {
+                        tileTextToUse = 2;
+                    }
+                }
+                switch (tileTextToUse)
+                {
+                    case 2:
+                        text = file.ShortPath;
+                        break;
+
+                    case 3:
+                        text = file.FileName;
+                        break;
+
+                    case 4:
+                        text = Path.GetFileNameWithoutExtension(file.FileName);
+                        break;
+
+                    case 5:
+                        text = file.AICaption;
+                        break;
+
+                }
+                text = text == null ? "" : text.Replace('/', Path.DirectorySeparatorChar);
+
+                return new GUIContent(text);
+            }).ToArray();
+
+            SGrid.enlargeTiles = AI.Config.enlargeTiles;
+            SGrid.centerTiles = AI.Config.centerTiles;
+            SGrid.Init(_assets, _filteredFiles, CalculateSearchBulkSelection);
+
+            UpdateSearchPreviews();
         }
 
         private bool IsFilterApplicable(string filterName)
@@ -1738,16 +2328,39 @@ namespace AssetInventory
             return searchType > 0 && _types.Length > searchType ? _types[searchType] : null;
         }
 
+        private int GetMaxResuls()
+        {
+            string selectedSize = _resultSizes[AI.Config.maxResults];
+            int.TryParse(selectedSize, out int maxResults);
+            if (maxResults <= 0 || maxResults > AI.Config.maxResultsLimit) maxResults = AI.Config.maxResultsLimit;
+
+            return maxResults;
+        }
+
         private void PerformSearch(bool keepPage = false, bool ignoreExcludedExtensions = false)
         {
             if (AI.DEBUG_MODE) Debug.LogWarning("Perform Search");
 
             _requireSearchUpdate = false;
             _keepSearchResultPage = true;
+            StopSearchPreviewLoading();
+
+            // check if something was searched for actually, good for reducing initial load time if user is not interested in seeing full catalog
+            if (!SearchWithoutInput())
+            {
+                if (!IsSearchFilterActive() && string.IsNullOrWhiteSpace(_searchPhrase))
+                {
+                    _resultCount = 0;
+                    _pageCount = 0;
+                    _curPage = 1;
+                    _filteredFiles = new List<AssetInfo>();
+                    SGrid.contents = new GUIContent[0];
+                    return;
+                }
+            }
+
             int lastCount = _resultCount; // a bit of a heuristic but works great and is very performant
-            string selectedSize = _resultSizes[AI.Config.maxResults];
-            int.TryParse(selectedSize, out int maxResults);
-            if (maxResults <= 0 || maxResults > AI.Config.maxResultsLimit) maxResults = AI.Config.maxResultsLimit;
+            int maxResults = GetMaxResuls();
             List<string> wheres = new List<string>();
             List<object> args = new List<object>();
             string packageTagJoin = "";
@@ -1854,7 +2467,7 @@ namespace AssetInventory
                     string[] arr = _tagNames[_selectedPackageTag].Split('/');
                     string tag = arr[arr.Length - 1];
                     wheres.Add("tap.TagId = ?");
-                    args.Add(_tags.First(t => t.Name == tag).Id);
+                    args.Add(_tags.FirstOrDefault(t => t.Name == tag)?.Id);
 
                     packageTagJoin = PACKAGE_TAG_JOIN_CLAUSE;
                 }
@@ -1871,7 +2484,7 @@ namespace AssetInventory
                     string[] arr = _tagNames[_selectedFileTag].Split('/');
                     string tag = arr[arr.Length - 1];
                     wheres.Add("taf.TagId = ?");
-                    args.Add(_tags.First(t => t.Name == tag).Id);
+                    args.Add(_tags.FirstOrDefault(t => t.Name == tag)?.Id);
 
                     fileTagJoin = FILE_TAG_JOIN_CLAUSE;
                 }
@@ -2198,76 +2811,35 @@ namespace AssetInventory
             string baseQuery = $"from AssetFile inner join Asset on Asset.Id = AssetFile.AssetId {packageTagJoin} {fileTagJoin} {where}";
             string countQuery = $"select count(*){computedFields} {baseQuery}";
             string dataQuery = $"select *, AssetFile.Id as Id{computedFields} {baseQuery} {orderBy}";
-            if (maxResults > 0) dataQuery += $" limit {maxResults} offset {(_curPage - 1) * maxResults}";
+            if (maxResults > 0 && _inMemoryMode == InMemoryModeState.None) dataQuery += $" limit {maxResults} offset {(_curPage - 1) * maxResults}";
             try
             {
                 _searchError = null;
                 _resultCount = DBAdapter.DB.ExecuteScalar<int>($"{countQuery}", args.ToArray());
+                _originalResultCount = _resultCount; // store original result count for later use
+
+                // restrict result set if in memory mode is active and it exceeds the limit to ensure not the whole database is accidentally loaded into memory
+                if (maxResults > 0 && _inMemoryMode != InMemoryModeState.None && _resultCount > AI.Config.maxInMemoryResults)
+                {
+                    _inMemoryMode = InMemoryModeState.None;
+                    dataQuery += $" limit {maxResults} offset {(_curPage - 1) * maxResults}";
+                    EditorUtility.DisplayDialog("Search Result Limit Exceeded",
+                        $"There are more than {AI.Config.maxInMemoryResults:N0} search results (configured in search settings). In-Memory mode was therefore disabled again.",
+                        "OK");
+                }
+
                 _files = DBAdapter.DB.Query<AssetInfo>($"{dataQuery}", args.ToArray());
             }
             catch (SQLiteException e)
             {
                 _searchError = e.Message;
             }
+            AI.ResolveParents(_files, _assets);
+            if (_inMemoryMode == InMemoryModeState.Init) _inMemoryMode = InMemoryModeState.Active;
 
             // pagination
-            _sgrid.contents = _files.Select(file =>
-            {
-                string text = "";
-                int tileTextToUse = AI.Config.tileText;
-                if (tileTextToUse == 5 && string.IsNullOrEmpty(file.AICaption))
-                {
-                    tileTextToUse = 3;
-                }
-                if (tileTextToUse == 0) // intelligent
-                {
-                    if (AI.Config.searchTileSize < 70)
-                    {
-                        tileTextToUse = 6;
-                    }
-                    else if (AI.Config.searchTileSize < 90)
-                    {
-                        tileTextToUse = 4;
-                    }
-                    else if (AI.Config.searchTileSize < 150)
-                    {
-                        tileTextToUse = 3;
-                    }
-                    else
-                    {
-                        tileTextToUse = 2;
-                    }
-                }
-                switch (tileTextToUse)
-                {
-                    case 2:
-                        text = file.ShortPath;
-                        break;
+            UpdateFilteredFiles();
 
-                    case 3:
-                        text = file.FileName;
-                        break;
-
-                    case 4:
-                        text = Path.GetFileNameWithoutExtension(file.FileName);
-                        break;
-
-                    case 5:
-                        text = file.AICaption;
-                        break;
-
-                }
-                text = text == null ? "" : text.Replace('/', Path.DirectorySeparatorChar);
-
-                return new GUIContent(text);
-            }).ToArray();
-            _sgrid.enlargeTiles = AI.Config.enlargeTiles;
-            _sgrid.centerTiles = AI.Config.centerTiles;
-            _sgrid.Init(_assets, _files, CalculateSearchBulkSelection);
-
-            AI.ResolveParents(_files, _assets);
-
-            _pageCount = AssetUtils.GetPageCount(_resultCount, maxResults);
             if (!keepPage && lastCount != _resultCount)
             {
                 SetPage(1, ignoreExcludedExtensions);
@@ -2277,12 +2849,19 @@ namespace AssetInventory
                 SetPage(_curPage, ignoreExcludedExtensions);
             }
 
-            // preview images
+            _searchDone = true;
+        }
+
+        private void StopSearchPreviewLoading()
+        {
             _textureLoading?.Cancel();
             _textureLoading = new CancellationTokenSource();
-            LoadTextures(false, _textureLoading.Token); // TODO: should be true once pages endless scrolling is in
+        }
 
-            _searchDone = true;
+        private void UpdateSearchPreviews()
+        {
+            StopSearchPreviewLoading();
+            LoadTextures(false, _textureLoading.Token); // TODO: should be true once pages endless scrolling is supported
         }
 
         private async void LoadAnimTexture(AssetInfo info)
@@ -2339,30 +2918,44 @@ namespace AssetInventory
         {
             int chunkSize = AI.Config.previewChunkSize;
 
-            List<AssetInfo> files = _files.Take(firstPageOnly ? 20 * 8 : _files.Count).ToList();
+            List<AssetInfo> files = _filteredFiles.Take(firstPageOnly ? 20 * 8 : _filteredFiles.Count()).ToList();
 
             for (int i = 0; i < files.Count; i += chunkSize)
             {
-                if (ct.IsCancellationRequested) return;
-
-                List<Task> tasks = new List<Task>();
-
-                int chunkEnd = Math.Min(i + chunkSize, files.Count);
-                for (int idx = i; idx < chunkEnd; idx++)
+                try
                 {
-                    int localIdx = idx; // capture value
-                    AssetInfo info = files[localIdx];
+                    if (ct.IsCancellationRequested) return;
 
-                    tasks.Add(ProcessAssetInfoAsync(info, localIdx, ct));
+                    List<Task> tasks = new List<Task>();
+
+                    int chunkEnd = Math.Min(i + chunkSize, files.Count);
+                    for (int idx = i; idx < chunkEnd; idx++)
+                    {
+                        if (ct.IsCancellationRequested) return;
+
+                        int localIdx = idx; // capture value
+                        AssetInfo info = files.ElementAt(localIdx);
+
+                        tasks.Add(ProcessAssetInfoAsync(info, localIdx, ct));
+                    }
+
+                    await Task.WhenAll(tasks).WithCancellation(ct);
                 }
-
-                await Task.WhenAll(tasks);
+                catch (OperationCanceledException)
+                {
+                    // Task was cancelled, exit the loop
+                    return;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Error processing asset: {e.Message}");
+                }
             }
         }
 
         private async Task ProcessAssetInfoAsync(AssetInfo info, int idx, CancellationToken ct)
         {
-            if (ct.IsCancellationRequested) return;
+            ct.ThrowIfCancellationRequested();
 
             string previewFile = null;
             if (info.HasPreview(true)) previewFile = AssetImporter.ValidatePreviewFile(info, AI.GetPreviewFolder());
@@ -2373,11 +2966,11 @@ namespace AssetInventory
                 // check if well-known extension
                 if (_staticPreviews.TryGetValue(info.Type, out string preview))
                 {
-                    _sgrid.contents[idx].image = EditorGUIUtility.IconContent(preview).image;
+                    SGrid.contents[idx].image = EditorGUIUtility.IconContent(preview).image;
                 }
                 else
                 {
-                    _sgrid.contents[idx].image = EditorGUIUtility.IconContent("d_DefaultAsset Icon").image;
+                    SGrid.contents[idx].image = EditorGUIUtility.IconContent("d_DefaultAsset Icon").image;
                 }
                 return;
             }
@@ -2385,6 +2978,7 @@ namespace AssetInventory
             Texture2D texture = await AssetUtils.LoadLocalTexture(
                 previewFile,
                 false,
+                // _inMemoryMode != InMemoryModeState.None,
                 (AI.Config.upscalePreviews && !AI.Config.upscaleLossless) ? AI.Config.upscaleSize : 0
             );
 
@@ -2393,22 +2987,22 @@ namespace AssetInventory
                 info.PreviewState = AssetFile.PreviewOptions.None;
                 DBAdapter.DB.Execute("update AssetFile set PreviewState=? where Id=?", info.PreviewState, info.Id);
             }
-            else if (_sgrid.contents.Length > idx)
+            else if (SGrid.contents.Length > idx)
             {
-                _sgrid.contents[idx].image = texture;
+                SGrid.contents[idx].image = texture;
             }
         }
 
         private void CalculateSearchBulkSelection()
         {
             _assetFileBulkTags.Clear();
-            _sgrid.selectionItems.ForEach(info => info.AssetTags?.ForEach(t =>
+            SGrid.selectionItems.ForEach(info => info.AssetTags?.ForEach(t =>
             {
                 if (!_assetFileBulkTags.ContainsKey(t.Name)) _assetFileBulkTags.Add(t.Name, new Tuple<int, Color>(0, t.GetColor()));
                 _assetFileBulkTags[t.Name] = new Tuple<int, Color>(_assetFileBulkTags[t.Name].Item1 + 1, _assetFileBulkTags[t.Name].Item2);
             }));
-            _assetFileAMProjectCount = _sgrid.selectionItems.Count(info => info.AssetSource == Asset.Source.AssetManager && string.IsNullOrEmpty(info.Location));
-            _assetFileAMCollectionCount = _sgrid.selectionItems.Count(info => info.AssetSource == Asset.Source.AssetManager && !string.IsNullOrEmpty(info.Location));
+            _assetFileAMProjectCount = SGrid.selectionItems.Count(info => info.AssetSource == Asset.Source.AssetManager && string.IsNullOrEmpty(info.Location));
+            _assetFileAMCollectionCount = SGrid.selectionItems.Count(info => info.AssetSource == Asset.Source.AssetManager && !string.IsNullOrEmpty(info.Location));
         }
 
         private void OpenInSearch(AssetInfo info, bool force = false, bool showFilterTab = true)
@@ -2477,6 +3071,9 @@ namespace AssetInventory
             _checkMaxLength = false;
             _searchSize = "";
             _checkMaxSize = false;
+
+            // Clear active saved search when resetting
+            _activeSavedSearchId = -1;
         }
 
         private async Task PerformCopyTo(AssetInfo info, string path, bool fromDragDrop = false)
@@ -2589,7 +3186,7 @@ namespace AssetInventory
             switch (Event.current.type)
             {
                 case EventType.MouseDrag:
-                    if (!_mouseOverSearchResultRect) return;
+                    if (!SGrid.IsMouseOverGrid) return;
                     if (!_draggingPossible || _dragging || _selectedEntry == null) return;
 
                     // Check if we've moved far enough and waited long enough to start dragging
@@ -2603,10 +3200,10 @@ namespace AssetInventory
                     InitDragAndDrop();
                     DragAndDrop.PrepareStartDrag();
 
-                    if (_sgrid.selectionCount > 0)
+                    if (SGrid.selectionCount > 0)
                     {
-                        DragAndDrop.SetGenericData("AssetInfo", _sgrid.selectionItems);
-                        DragAndDrop.objectReferences = _sgrid.selectionItems
+                        DragAndDrop.SetGenericData("AssetInfo", SGrid.selectionItems);
+                        DragAndDrop.objectReferences = SGrid.selectionItems
                             .Where(item => !string.IsNullOrWhiteSpace(item.ProjectPath))
                             .Select(item => AssetDatabase.LoadMainAssetAtPath(item.ProjectPath))
                             .ToArray();
@@ -2624,7 +3221,7 @@ namespace AssetInventory
                     break;
 
                 case EventType.MouseDown:
-                    if (_mouseOverSearchResultRect)
+                    if (SGrid.IsMouseOverGrid)
                     {
                         _draggingPossible = true;
                         _dragStartPosition = Event.current.mousePosition;
@@ -2653,7 +3250,7 @@ namespace AssetInventory
         {
             if (Time.realtimeSinceStartup > _nextAnimTime
                 && _animTexture != null && _selectedEntry != null
-                && _sgrid.selectionTile >= 0 && _sgrid.contents != null)
+                && SGrid.selectionTile >= 0 && SGrid.contents != null)
             {
                 if (_curAnimFrame > _animFrames.Count) _curAnimFrame = 1;
                 Rect frameRect = _animFrames[_curAnimFrame - 1];
@@ -2662,11 +3259,11 @@ namespace AssetInventory
                 Texture2D curTexture = ExtractFrame(_animTexture, frameRect);
 
                 // Destroy the previous frame texture to prevent memory leaks
-                if (_sgrid.contents[_sgrid.selectionTile].image != null)
+                if (SGrid.contents[SGrid.selectionTile].image != null)
                 {
-                    UnityEngine.Object.DestroyImmediate(_sgrid.contents[_sgrid.selectionTile].image);
+                    DestroyImmediate(SGrid.contents[SGrid.selectionTile].image);
                 }
-                _sgrid.contents[_sgrid.selectionTile].image = curTexture;
+                SGrid.contents[SGrid.selectionTile].image = curTexture;
 
                 _nextAnimTime = Time.realtimeSinceStartup + AI.Config.animationSpeed;
                 _curAnimFrame++;
@@ -2676,18 +3273,18 @@ namespace AssetInventory
 
         private void DisposeSearchResultTextures()
         {
-            if (_sgrid.contents == null) return;
+            if (SGrid.contents == null) return;
 
-            for (int i = 0; i < _sgrid.contents.Length; i++)
+            for (int i = 0; i < SGrid.contents.Length; i++)
             {
-                GUIContent content = _sgrid.contents[i];
+                GUIContent content = SGrid.contents[i];
                 if (content != null && content.image != null)
                 {
                     // Skip built-in Unity icons which shouldn't be destroyed
                     if (content.image.name != "d_DefaultAsset Icon" &&
                         !AssetDatabase.GetAssetPath(content.image).StartsWith("Library/"))
                     {
-                        UnityEngine.Object.DestroyImmediate(content.image);
+                        DestroyImmediate(content.image);
                         content.image = null;
                     }
                 }
@@ -2696,7 +3293,7 @@ namespace AssetInventory
             // Also dispose of animation texture if it exists
             if (_animTexture != null)
             {
-                UnityEngine.Object.DestroyImmediate(_animTexture);
+                DestroyImmediate(_animTexture);
                 _animTexture = null;
             }
         }

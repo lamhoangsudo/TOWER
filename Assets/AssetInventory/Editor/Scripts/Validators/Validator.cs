@@ -11,6 +11,12 @@ namespace AssetInventory
             FileSystem
         }
 
+        public enum ValidatorSpeed
+        {
+            Fast,
+            Slow
+        }
+
         public enum State
         {
             Idle,
@@ -20,7 +26,7 @@ namespace AssetInventory
         }
 
         public ValidatorType Type { get; protected set; }
-        public State CurrentState { get; protected set; }
+        public ValidatorSpeed Speed { get; protected set; } = ValidatorSpeed.Fast;
         public string Name { get; protected set; }
         public string Description { get; protected set; }
         public bool Fixable { get; protected set; } = true;
@@ -29,6 +35,7 @@ namespace AssetInventory
         public List<string> FileIssues { get; protected set; }
 
         // runtime properties
+        public State CurrentState { get; protected set; }
         public bool CancellationRequested { get; set; }
         public int Progress { get; set; }
         public int MaxProgress { get; set; }

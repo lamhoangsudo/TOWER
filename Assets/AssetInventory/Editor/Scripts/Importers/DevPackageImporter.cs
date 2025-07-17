@@ -42,10 +42,7 @@ namespace AssetInventory
 
                 if (CancellationRequested) break;
 
-                if (spec.assignTag && !string.IsNullOrWhiteSpace(spec.tag))
-                {
-                    Tagging.AddAssignment(new AssetInfo(asset), spec.tag, TagAssignment.Target.Package);
-                }
+                ApplyPackageTags(spec, asset);
             }
         }
 
@@ -85,8 +82,6 @@ namespace AssetInventory
 
         private async Task IndexPackage(Asset asset, FolderSpec spec)
         {
-            await RemovePersistentCacheEntry(asset);
-
             FolderSpec importSpec = GetDefaultImportSpec();
             importSpec.location = asset.GetLocation(true);
             importSpec.createPreviews = spec.createPreviews;

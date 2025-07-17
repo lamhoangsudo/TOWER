@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 #if UNITY_2021_2_OR_NEWER
 using SharpCompress.Common;
 using SharpCompress.Readers;
@@ -16,17 +17,22 @@ namespace AssetInventory
     {
 #if UNITY_2021_2_OR_NEWER
         // more performant implementation using SharpCompress, especially on Linux
-        public static void ExtractGz(string archiveFile, string targetFolder)
+        public static void ExtractGz(string archive, string targetFolder, CancellationToken ct)
         {
             Directory.CreateDirectory(targetFolder);
 
             try
             {
-                using FileStream stream = File.OpenRead(archiveFile);
+                using FileStream stream = File.OpenRead(archive);
                 ReaderOptions readerOptions = new ReaderOptions {LeaveStreamOpen = false};
                 using IReader reader = ReaderFactory.Open(stream, readerOptions);
                 while (reader.MoveToNextEntry())
                 {
+                    if (ct.IsCancellationRequested)
+                    {
+                        _ = IOUtils.DeleteFileOrDirectory(targetFolder);
+                        break;
+                    }
                     if (!reader.Entry.IsDirectory)
                     {
                         reader.WriteEntryToDirectory(targetFolder, new ExtractionOptions
@@ -39,32 +45,32 @@ namespace AssetInventory
             }
             catch (UnauthorizedAccessException uaEx)
             {
-                Debug.LogError($"Permission denied extracting ‘{archiveFile}’: {uaEx.Message}");
+                Debug.LogError($"Permission denied extracting ‘{archive}’: {uaEx.Message}");
             }
             catch (ArchiveException archEx)
             {
-                Debug.LogError($"Archive format error for ‘{archiveFile}’: {archEx.Message}");
+                Debug.LogError($"Archive format error for ‘{archive}’: {archEx.Message}");
             }
             catch (Exception e)
             {
-                Debug.LogError($"Could not extract archive ‘{archiveFile}’. It may be corrupted or the process was interrupted: {e.Message}");
+                Debug.LogError($"Could not extract archive ‘{archive}’. It may be corrupted or the process was interrupted: {e.Message}");
             }
         }
 #else
-        public static void ExtractGz(string archiveFile, string targetFolder)
+        public static void ExtractGz(string archive, string targetFolder, CancellationToken ct)
         {
-            Stream rawStream = File.OpenRead(archiveFile);
+            Stream rawStream = File.OpenRead(archive);
             GZipInputStream gzipStream = new GZipInputStream(rawStream);
 
             try
             {
-                TarArchive tarArchive = TarArchive.CreateInputTarArchive(IsZipped(archiveFile) ? gzipStream : rawStream, Encoding.Default);
+                TarArchive tarArchive = TarArchive.CreateInputTarArchive(IsZipped(archive) ? gzipStream : rawStream, Encoding.Default);
                 tarArchive.ExtractContents(targetFolder, true);
                 tarArchive.Close();
             }
             catch (Exception e)
             {
-                Debug.LogError($"Could not extract archive '{archiveFile}'. The process was either interrupted or the file is corrupted: {e.Message}");
+                Debug.LogError($"Could not extract archive '{archive}'. The process was either interrupted or the file is corrupted: {e.Message}");
             }
 
             gzipStream.Close();
@@ -72,9 +78,9 @@ namespace AssetInventory
         }
 #endif
 
-        public static string ExtractGzFile(string archiveFile, string fileName, string targetFolder)
+        public static string ExtractGzFile(string archive, string fileName, string targetFolder, CancellationToken ct)
         {
-            Stream rawStream = File.OpenRead(archiveFile);
+            Stream rawStream = File.OpenRead(archive);
             GZipInputStream gzipStream = new GZipInputStream(rawStream);
 
             string destFile = null;
@@ -84,7 +90,7 @@ namespace AssetInventory
 
             try
             {
-                Stream inputStream = IsZipped(archiveFile) ? gzipStream : rawStream;
+                Stream inputStream = IsZipped(archive) ? gzipStream : rawStream;
 
                 using (TarInputStream tarStream = new TarInputStream(inputStream, Encoding.Default))
                 {
@@ -92,6 +98,7 @@ namespace AssetInventory
                     bool found = false;
                     while ((entry = tarStream.GetNextEntry()) != null)
                     {
+                        if (ct.IsCancellationRequested) break;
                         if (entry.IsDirectory) continue;
                         if (entry.Name.Contains(folderName))
                         {
@@ -116,7 +123,7 @@ namespace AssetInventory
             }
             catch (Exception e)
             {
-                Debug.LogError($"Could not extract file from archive '{archiveFile}'. The process was either interrupted or the file is corrupted: {e.Message}");
+                Debug.LogError($"Could not extract file from archive '{archive}'. The process was either interrupted or the file is corrupted: {e.Message}");
             }
 
             gzipStream.Close();

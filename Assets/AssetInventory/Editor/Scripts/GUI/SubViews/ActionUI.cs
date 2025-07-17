@@ -27,7 +27,7 @@ namespace AssetInventory
             _action = action;
             _onSave = onSave;
 
-            _steps = DBAdapter.DB.Query<CustomActionStep>("SELECT * FROM CustomActionStep WHERE ActionID = ? order by OrderIdx", _action.Id);
+            _steps = DBAdapter.DB.Query<CustomActionStep>("SELECT * FROM CustomActionStep WHERE ActionId = ? order by OrderIdx", _action.Id);
             ResolveStepDefs();
 
             _serializedStepsObject = null;
@@ -245,19 +245,19 @@ namespace AssetInventory
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Save & Run", GUILayout.Height(UIStyles.BIG_BUTTON_HEIGHT)))
             {
-                SaveAction();
+                Save();
                 _ = AI.Actions.RunUserAction(_action);
                 AssetDatabase.Refresh();
             }
             if (GUILayout.Button("Save & Close", GUILayout.Height(UIStyles.BIG_BUTTON_HEIGHT)))
             {
-                SaveAction();
+                Save();
                 Close();
             }
             GUILayout.EndHorizontal();
         }
 
-        private void SaveAction()
+        private void Save()
         {
             DBAdapter.DB.Update(_action);
 
@@ -293,7 +293,7 @@ namespace AssetInventory
             CustomActionStep newStep = new CustomActionStep
             {
                 Key = step.Key,
-                ActionID = _action.Id,
+                ActionId = _action.Id,
                 OrderIdx = _steps.Count,
                 Values = step.Parameters.Select(p => new ParameterValue(p.DefaultValue)).ToList()
             };

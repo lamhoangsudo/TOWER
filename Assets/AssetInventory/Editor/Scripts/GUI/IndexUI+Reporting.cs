@@ -32,14 +32,19 @@ namespace AssetInventory
         private readonly Dictionary<string, Tuple<int, Color>> _reportBulkTags = new Dictionary<string, Tuple<int, Color>>();
 
         [SerializeField] private MultiColumnHeaderState reportMchState;
-        private Rect ReportTreeRect => new Rect(20, 0, position.width - 40, position.height - 60);
         private TreeViewWithTreeModel<AssetInfo> ReportTreeView
         {
             get
             {
+#pragma warning disable CS0618 // Type or member is obsolete
                 if (_reportTreeViewState == null) _reportTreeViewState = new TreeViewState();
+#pragma warning restore CS0618 // Type or member is obsolete
 
-                MultiColumnHeaderState headerState = CreateDefaultMultiColumnHeaderState(ReportTreeRect.width);
+                // Calculate available width dynamically (accounting for inspector width)
+                float availableWidth = position.width - UIStyles.INSPECTOR_WIDTH - 40; // 40 for margins
+                if (availableWidth < 570) availableWidth = 570; // minimum width
+                
+                MultiColumnHeaderState headerState = CreateDefaultMultiColumnHeaderState(availableWidth);
                 headerState.visibleColumns = new[] {(int)Columns.Name, (int)Columns.License, (int)Columns.Version};
                 if (MultiColumnHeaderState.CanOverwriteSerializedFields(reportMchState, headerState)) MultiColumnHeaderState.OverwriteSerializedFields(reportMchState, headerState);
                 reportMchState = headerState;
@@ -60,7 +65,9 @@ namespace AssetInventory
             }
         }
         private TreeViewWithTreeModel<AssetInfo> _reportTreeView;
+#pragma warning disable CS0618 // Type or member is obsolete
         private TreeViewState _reportTreeViewState;
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private TreeModel<AssetInfo> ReportTreeModel
         {
@@ -118,12 +125,8 @@ namespace AssetInventory
             {
                 EditorGUILayout.Space();
 
-                GUILayout.BeginVertical();
-                int left = 0;
-                int yStart = 48 + (UIShown("reporting.hints.intro") ? 50 : 0) + (UIShown("reporting.overview") ? 100 : 0) + (AI.UICustomizationMode ? 30 : 0);
-                float width = position.width - UIStyles.INSPECTOR_WIDTH - left - 5;
-                if (width < 570) width = 570;
-                ReportTreeView.OnGUI(new Rect(left, yStart, width, position.height - yStart));
+                GUILayout.BeginVertical(GUILayout.ExpandHeight(true));
+                ReportTreeView.OnGUI(GUILayoutUtility.GetRect(0, 0, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)));
                 GUILayout.EndVertical();
             }
             else
@@ -159,7 +162,7 @@ namespace AssetInventory
                 if (GUILayout.Button("Export Data..."))
                 {
                     ExportUI exportUI = ExportUI.ShowWindow();
-                    exportUI.Init(_assets, 1, reportMchState?.visibleColumns);
+                    exportUI.Init(_assets, false, 1, reportMchState?.visibleColumns);
                 }
             });
             UIBlock("reporting.actions.freebies", () =>

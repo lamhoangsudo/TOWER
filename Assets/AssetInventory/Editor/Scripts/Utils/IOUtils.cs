@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 #if UNITY_2021_2_OR_NEWER
 using SharpCompress.Archives;
@@ -23,7 +24,7 @@ namespace AssetInventory
     {
         private const string LONG_PATH_PREFIX = @"\\?\";
         private const string LONG_PATH_UNC_PREFIX = @"\\?\UNC\";
-
+        
         public static DriveInfo GetDriveInfoForPath(string folderPath)
         {
             if (string.IsNullOrEmpty(folderPath)) return null;
@@ -201,21 +202,11 @@ namespace AssetInventory
             return foundMatches.ToList();
         }
 
-        // faster helper method using also fewer allocations 
         public static string GetExtensionWithoutDot(string path)
         {
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                return string.Empty;
-            }
-
-            int dotIndex = path.LastIndexOf('.');
-            if (dotIndex >= 0 && dotIndex < path.Length - 1) // Ensure there is an extension and it's not the last character
-            {
-                return path.Substring(dotIndex + 1);
-            }
-
-            return string.Empty;
+            if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+            string ext = Path.GetExtension(path);
+            return string.IsNullOrEmpty(ext) ? string.Empty : ext.TrimStart('.');
         }
 
         public static string GetFileName(string path, bool returnOriginalOnError = true, bool quiet = true)
@@ -496,7 +487,7 @@ namespace AssetInventory
             // No entries added: creates an empty zip.
         }
 
-        public static bool ExtractArchive(string archiveFile, string targetFolder)
+        public static bool ExtractArchive(string archiveFile, string targetFolder, CancellationToken ct = default(CancellationToken))
         {
             Directory.CreateDirectory(targetFolder);
 
@@ -506,6 +497,11 @@ namespace AssetInventory
                 {
                     foreach (IArchiveEntry entry in archive.Entries)
                     {
+                        if (ct.IsCancellationRequested)
+                        {
+                            _ = DeleteFileOrDirectory(targetFolder);
+                            return false;
+                        }
                         if (string.IsNullOrEmpty(entry.Key)) continue;
 
                         if (!entry.IsDirectory)

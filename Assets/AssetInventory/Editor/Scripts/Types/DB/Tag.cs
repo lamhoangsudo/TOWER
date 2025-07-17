@@ -13,6 +13,7 @@ namespace AssetInventory
         [Indexed] [Collation("NOCASE")] public string Name { get; set; }
         public string Color { get; set; }
         public bool FromAssetStore { get; set; }
+        public string Hotkey { get; set; }  // Stores the keyboard shortcut (e.g. "1", "a", etc.)
 
         public Tag()
         {

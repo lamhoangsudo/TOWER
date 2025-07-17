@@ -194,7 +194,6 @@ namespace AssetInventory
             if (!leaveOpen) GUILayout.EndHorizontal();
         }
 
-
         private void SelectFolder(string oldValue, Action<string> newValue, string prompt = "Select folder", Func<string, bool> validator = null)
         {
             string folder = EditorUtility.OpenFolderPanel(prompt, oldValue, "");

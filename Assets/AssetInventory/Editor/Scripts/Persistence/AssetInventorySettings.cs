@@ -7,6 +7,13 @@ namespace AssetInventory
     [Serializable]
     public sealed class AssetInventorySettings
     {
+        public static class Size
+        {
+            public const long KB = 1L << 10; // 1024
+            public const long MB = 1L << 20; // 1 048 576
+            public const long GB = 1L << 30; // 1 073 741 824
+        }
+
         private const int LOG_MEDIA_DOWNLOADS = 1;
         private const int LOG_IMAGE_RESIZING = 2;
         private const int LOG_AUDIO_PARSING = 4;
@@ -22,6 +29,7 @@ namespace AssetInventory
         public bool sortDescending;
         public int maxResults = 5;
         public int maxResultsLimit = 10000;
+        public int maxInMemoryResults = 50000;
         public int timeout = 20;
         public int tileText;
         public bool autoPlayAudio = true;
@@ -32,16 +40,17 @@ namespace AssetInventory
         public bool pingImported = true;
         public int doubleClickBehavior = 1; // 0 = none, 1 = import, 2 = open
         public bool groupLists = true;
-        public bool showTileSizeSlider;
         public bool keepAutoDownloads;
         public bool limitAutoDownloads;
         public int downloadLimit = 500;
         public bool searchAutomatically = true;
+        public bool searchWithoutInput = true;
         public bool searchSubPackages;
         public bool extractSingleFiles;
         public int previewVisibility;
         public int searchTileSize = 128;
-        public float searchDelay = 0.3f;
+        public float searchDelay = 0.5f;
+        public float inMemorySearchDelay = 0.1f;
         public float hueRange = 10f;
         public int animationGrid = 4;
         public float animationSpeed = 0.1f;
@@ -52,6 +61,10 @@ namespace AssetInventory
         public bool showExtensionsList;
         public bool keepExtractedOnAudio = true;
         public bool disableDragDrop;
+
+        public int workspace;
+        public bool wsSearchWithoutInput;
+        public bool wsSavedSearchInMemory = true;
 
         public float rowHeightMultiplier = 1.1f;
         public int previewChunkSize = 20;
@@ -70,6 +83,7 @@ namespace AssetInventory
 
         public bool showSearchSideBar = true;
         public bool expandPackageDetails;
+        public bool alwaysShowPackageDetails;
         public bool showPreviews = true;
         public bool showIndexingSettings;
         public bool showFolderSettings;
@@ -85,7 +99,7 @@ namespace AssetInventory
         public int packageSearchMode; // 0 = name, 1 = name & description
         public bool showPackageStatsDetails;
         public bool onlyInProject;
-        public int projectDetailTabsMode; // 0 = tabs, 1 = list
+        public bool projectDetailTabs = true;
 
         public bool excludeHidden = true;
         public int assetStoreRefreshCycle = 3; // days
@@ -119,6 +133,7 @@ namespace AssetInventory
         public bool aiContinueOnEmpty;
         public int aiPause;
         public int aiMinSize = 32; // minimum size for AI processing, in pixels, upscales otherwise
+        public int aiMaxCaptionLength = 200; // some model outputs are extremely long and cause crashes
 
         public string ollamaModel = "qwen2.5vl";
         public string ollamaPrompt;
@@ -137,9 +152,10 @@ namespace AssetInventory
         public int cooldownInterval = 20; // minutes
         public int cooldownDuration = 20; // seconds
         public int reportingBatchSize = 500;
-        public long memoryLimit = (1024 * 1024) * 1000L; // every X megabytes
+        public long memoryLimit = 10 * Size.GB; // every X gigabytes
         public bool limitCacheSize = true;
         public int cacheLimit = 60; // in gigabyte
+        public int massOpenWarnThreshold = 7;
         public int logAreas = LOG_IMAGE_RESIZING | LOG_AUDIO_PARSING | LOG_MEDIA_DOWNLOADS | LOG_PACKAGE_PARSING | LOG_CUSTOM_ACTION;
         public int dbOptimizationPeriod = 30; // days
         public int dbOptimizationReminderPeriod = 1; // days
@@ -182,7 +198,6 @@ namespace AssetInventory
 
         public List<UpdateActionStates> actionStates = new List<UpdateActionStates>();
         public List<FolderSpec> folders = new List<FolderSpec>();
-        public List<SavedSearch> searches = new List<SavedSearch>();
 
         // log helpers
         public bool LogMediaDownloads => (logAreas & LOG_MEDIA_DOWNLOADS) != 0;
@@ -194,6 +209,9 @@ namespace AssetInventory
         // UI customization
         public List<UISection> uiSections = new List<UISection>();
         public HashSet<string> advancedUI;
+
+        // outdated
+        public List<OutdatedSavedSearch> searches = new List<OutdatedSavedSearch>();
 
         public AssetInventorySettings()
         {
@@ -256,12 +274,14 @@ namespace AssetInventory
                 "package.actions.removeassetstoreconnection",
                 "asset.actions.openexplorer",
                 "asset.actions.delete",
+                "asset.bulk.actions.export",
                 "asset.bulk.actions.delete",
                 "asset.bulk.actions.openexplorer",
                 "package.bulk.actions.refreshmetadata",
                 "package.bulk.actions.delete",
                 "package.bulk.actions.deletefile",
                 "package.bulk.actions.openlocation",
+                "search.actions.tilesize",
                 "search.actions.sidebar"
             };
         }

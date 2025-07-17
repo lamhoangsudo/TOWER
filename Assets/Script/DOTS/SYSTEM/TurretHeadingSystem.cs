@@ -25,7 +25,7 @@ partial struct TurretHeadingSystem : ISystem
                 continue;
 
             float heading = turret.ValueRW.currentHeading;
-            float speed = turret.ValueRW.currentHeadingSpeed;
+            float projecTileCurrentSpeed = turret.ValueRW.currentHeadingSpeed;
             float targetHeading;
 
             if (turret.ValueRO.target != Entity.Null)
@@ -73,17 +73,17 @@ partial struct TurretHeadingSystem : ISystem
             // tăng giảm tốc độ
             if (math.abs(deltaAngle) > 0.05f)
             {
-                speed += turret.ValueRO.headingRotationAcceleration * deltaTime;
+                projecTileCurrentSpeed += turret.ValueRO.headingRotationAcceleration * deltaTime;
             }
             else
             {
-                speed -= turret.ValueRO.headingRotationAcceleration * deltaTime;
+                projecTileCurrentSpeed -= turret.ValueRO.headingRotationAcceleration * deltaTime;
             }
 
-            speed = math.clamp(speed, 0f, turret.ValueRO.headingRotationSpeed);
+            projecTileCurrentSpeed = math.clamp(projecTileCurrentSpeed, 0f, turret.ValueRO.headingRotationSpeed);
 
             // bước xoay
-            float rotationStep = speed * deltaTime;
+            float rotationStep = projecTileCurrentSpeed * deltaTime;
 
             if (math.abs(deltaAngle) < rotationStep)
             {
@@ -104,14 +104,14 @@ partial struct TurretHeadingSystem : ISystem
                 );
                 if (heading <= turret.ValueRO.minHeadingLimit || heading >= turret.ValueRO.maxHeadingLimit)
                 {
-                    speed = 0f; // dừng xoay nếu chạm giới hạn
+                    projecTileCurrentSpeed = 0f; // dừng xoay nếu chạm giới hạn
                 }
             }
 
             // lưu state
             turret.ValueRW.currentHeading = heading;
-            turret.ValueRW.currentHeadingSpeed = speed;
-            turret.ValueRW.headingSpeedFactor = math.abs(speed) / turret.ValueRO.headingRotationSpeed;
+            turret.ValueRW.currentHeadingSpeed = projecTileCurrentSpeed;
+            turret.ValueRW.headingSpeedFactor = math.abs(projecTileCurrentSpeed) / turret.ValueRO.headingRotationSpeed;
             if (turret.ValueRO.headingSpeedFactor > 0.05f)
             {
                 turret.ValueRW.IsHeadingRotationSFX = true;

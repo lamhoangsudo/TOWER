@@ -11,6 +11,7 @@ namespace AssetInventory
         public WrongDimensionPreviewFilesValidator()
         {
             Type = ValidatorType.DB;
+            Speed = ValidatorSpeed.Slow;
             Name = "Preview Images with Incorrect Dimensions";
             Description = "Scans all preview images if they have the correct dimensions as specified under Settings/Previews. Will report them if they can be fixed (currently only image files in higher resolutions than requested for preview).";
             FixCaption = "Schedule Recreation";

@@ -13,6 +13,7 @@ namespace AssetInventory
         public string url;
         public string gaAccount;
         public string gaPrefix;
+        public string slug; // used in updates
 
         public override string ToString()
         {

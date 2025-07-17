@@ -352,7 +352,12 @@ namespace AssetInventory
         {
             file = IOUtils.ToShortPath(file);
 
-            if (useCache && PreviewCache.TryGetValue(file, out Texture2D texture) && texture != null) return texture;
+            if (useCache && PreviewCache.TryGetValue(file, out Texture2D texture))
+            {
+                if (texture != null) return texture;
+
+                PreviewCache.Remove(file); // entry became null, remove it
+            }
 
             try
             {
@@ -390,13 +395,21 @@ namespace AssetInventory
             }
         }
 
-        public static async Task<T> FetchAPIData<T>(string uri, string token = null, string etag = null, Action<string> eTagCallback = null, int retries = 1, Action<long> responseIssueCodeCallback = null, bool suppressErrors = false)
+        public static async Task<T> FetchAPIData<T>(string uri, string method = "GET", string postContent = null, string token = null, string etag = null, Action<string> eTagCallback = null, int retries = 1, Action<long> responseIssueCodeCallback = null, bool suppressErrors = false, string postType = "application/json")
         {
             Restart:
-            using (UnityWebRequest uwr = UnityWebRequest.Get(uri))
+            using (UnityWebRequest uwr = method == "GET" ? UnityWebRequest.Get(uri) : new UnityWebRequest(uri, method))
             {
                 if (!string.IsNullOrEmpty(token)) uwr.SetRequestHeader("Authorization", "Bearer " + token);
                 if (!string.IsNullOrEmpty(etag)) uwr.SetRequestHeader("If-None-Match", etag);
+                if (!string.IsNullOrEmpty(postContent))
+                {
+                    byte[] bodyRaw = Encoding.UTF8.GetBytes(postContent);
+                    uwr.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                    uwr.uploadHandler.contentType = postType;
+                    uwr.downloadHandler = new DownloadHandlerBuffer();
+                }
+                uwr.SetRequestHeader("Content-Type", postType);
                 uwr.SetRequestHeader("User-Agent", $"UnityEditor/{Application.unityVersion} ({SystemInfo.operatingSystemFamily}; {SystemInfo.operatingSystem})");
                 uwr.timeout = AI.Config.timeout;
                 UnityWebRequestAsyncOperation request = uwr.SendWebRequest();

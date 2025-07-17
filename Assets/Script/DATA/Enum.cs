@@ -15,4 +15,9 @@ public static class Enum
         Gatling,
         MissileLauncher
     }
+    public enum ProjectTileType
+    {
+        Bullet,
+        Missile,
+    }
 }

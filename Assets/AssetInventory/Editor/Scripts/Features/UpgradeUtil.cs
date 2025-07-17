@@ -10,9 +10,11 @@ namespace AssetInventory
 {
     public class UpgradeUtil : ActionProgress
     {
+        public static event Action OnUpgradeDone;
+
         public const int CURRENT_CONFIG_VERSION = 2;
 
-        private const int CURRENT_DB_VERSION = 21;
+        private const int CURRENT_DB_VERSION = 25;
 
         public bool LongUpgradeRequired { get; private set; }
         private List<string> PendingUpgrades { get; set; } = new List<string>();
@@ -187,12 +189,39 @@ namespace AssetInventory
                     DBAdapter.DB.Execute("ALTER TABLE Asset DROP COLUMN OldAssetRating");
                 });
             }
-            if (oldVersion < 21)
+            if (oldVersion < 22)
             {
+                // rename cache folders
+                requireUpgrade = new AppProperty("UpgradeRequired", "true");
+                DBAdapter.DB.InsertOrReplace(requireUpgrade);
+                LongUpgradeRequired = true;
 
+                AppProperty upgradeType = new AppProperty("UpgradeType-CacheFolderVersions", "true");
+                DBAdapter.DB.InsertOrReplace(upgradeType);
             }
+            if (oldVersion < 23)
+            {
+                ConvertSavedSearches();
+            }
+            if (oldVersion < 24)
+            {
+                DBAdapter.DB.Execute("DROP INDEX IF EXISTS Tag_Name");
+                DBAdapter.DB.Execute("CREATE INDEX \"Tag_Name\" ON \"Tag\" (\"Name\" COLLATE NOCASE)");
+
+                DBAdapter.DB.Execute("DROP INDEX IF EXISTS MetadataDefinition_Name");
+                DBAdapter.DB.Execute("CREATE INDEX \"MetadataDefinition_Name\" ON \"MetadataDefinition\" (\"Name\" COLLATE NOCASE)");
+            }
+            if (oldVersion < 25)
+            {
+                // remove invalid types from AssetFile that were created by older versions
+                DBAdapter.DB.Execute("update AssetFile set Type='' where Type like '%/%'");
+                DBAdapter.DB.Execute("update AssetFile set Type='' where Type like '%\\%'");
+            }
+
+            bool upgradeDone = false;
             if (dbVersion == null || (oldVersion < CURRENT_DB_VERSION && !LongUpgradeRequired))
             {
+                upgradeDone = true;
                 DBAdapter.DB.InsertOrReplace(new AppProperty("Version", CURRENT_DB_VERSION.ToString()));
                 if (dbVersion != null) Debug.Log($"Asset Inventory database upgraded to version {CURRENT_DB_VERSION}");
             }
@@ -209,6 +238,7 @@ namespace AssetInventory
             }
             if (oldConfigVersion < CURRENT_CONFIG_VERSION)
             {
+                upgradeDone = true;
                 AI.Config.version = CURRENT_CONFIG_VERSION;
                 AI.SaveConfig();
                 Debug.Log($"Asset Inventory configuration upgraded to version {CURRENT_CONFIG_VERSION}");
@@ -218,6 +248,46 @@ namespace AssetInventory
                 .Where(a => a.Name.StartsWith("UpgradeType-"))
                 .Select(a => a.Name.Substring(12))
                 .ToList();
+
+            if (upgradeDone) OnUpgradeDone?.Invoke();
+        }
+
+        private static void ConvertSavedSearches()
+        {
+            // convert saved searches from config to database
+            if (AI.Config.searches == null || AI.Config.searches.Count == 0) return;
+
+            foreach (OutdatedSavedSearch search in AI.Config.searches)
+            {
+                SavedSearch savedSearch = new SavedSearch
+                {
+                    Name = search.name,
+                    Color = search.color,
+                    SearchPhrase = search.searchPhrase,
+                    Type = search.type,
+                    PackageTypes = search.packageTypes,
+                    PackageSrPs = search.packageSRPs,
+                    ImageType = search.imageType,
+                    Package = search.package,
+                    PackageTag = search.packageTag,
+                    FileTag = search.fileTag,
+                    Publisher = search.publisher,
+                    Category = search.category,
+                    Width = search.width,
+                    Height = search.height,
+                    Length = search.length,
+                    Size = search.size,
+                    CheckMaxWidth = search.checkMaxWidth,
+                    CheckMaxHeight = search.checkMaxHeight,
+                    CheckMaxLength = search.checkMaxLength,
+                    CheckMaxSize = search.checkMaxSize,
+                    ColorOption = search.colorOption,
+                    SearchColor = search.searchColor
+                };
+                DBAdapter.DB.Insert(savedSearch);
+            }
+            AI.Config.searches = null;
+            AI.SaveConfig();
         }
 
         private void RenameExtractedFolders()
@@ -227,11 +297,18 @@ namespace AssetInventory
             {
                 if (asset.AssetSource == Asset.Source.Directory || asset.AssetSource == Asset.Source.RegistryPackage) continue;
 
-                string expectedPath = AI.GetMaterializedAssetPath(asset);
-                string oldPath = GetOldMaterializedAssetPath(asset);
-                if (Directory.Exists(oldPath) && !Directory.Exists(expectedPath))
+                try
                 {
-                    Directory.Move(oldPath, expectedPath);
+                    string expectedPath = AI.GetMaterializedAssetPath(asset);
+                    string oldPath = GetOldMaterializedAssetPath(asset);
+                    if (Directory.Exists(oldPath) && !Directory.Exists(expectedPath))
+                    {
+                        Directory.Move(oldPath, expectedPath);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"Error while renaming cached folder for asset {asset.Id} ({asset.SafeName}): {e.Message}");
                 }
             }
         }
@@ -258,6 +335,11 @@ namespace AssetInventory
                     case "custompackagedates":
                         await UpgradeCustomPackageDates();
                         break;
+
+                    case "cachefolderversions":
+                        await UpgradeCacheFolderVersions();
+                        break;
+
                 }
             }
 
@@ -268,6 +350,59 @@ namespace AssetInventory
 
             LongUpgradeRequired = false;
             AI.TriggerPackageRefresh();
+        }
+
+        private async Task UpgradeCacheFolderVersions()
+        {
+            CurrentMain = "Upgrading cache folder names...";
+
+            try
+            {
+                string[] dirs = Directory.GetDirectories(AI.GetMaterializeFolder());
+                MainCount = dirs.Length;
+                MainProgress = 0;
+
+                foreach (string dir in dirs)
+                {
+                    string dirName = Path.GetFileName(dir);
+
+                    MainProgress++;
+                    CurrentSub = dirName;
+                    if (MainProgress % 100 == 0) await Task.Yield();
+
+                    // items containing new separator are already upgraded
+                    string[] segments = dirName.Split(AI.SEPARATOR);
+                    if (segments.Length > 1) continue;
+
+                    // rename from "AssetName - AssetId" to "AssetName~-~AssetId~-~Version"
+                    string[] oldSegments = dirName.Split(" - ");
+                    if (oldSegments.Length < 2) continue; // something is off here, will be cleaned up by limiter later
+
+                    if (!int.TryParse(oldSegments.Last().Trim(), out int assetId)) continue; // not a valid asset Id
+
+                    Asset asset = DBAdapter.DB.Find<Asset>(assetId);
+                    if (asset == null) continue; // asset not found
+
+                    // construct new name
+                    string newName = $"{asset.SafeName}{AI.SEPARATOR}{assetId}";
+                    string version = asset.GetSafeVersion();
+                    if (!string.IsNullOrWhiteSpace(version))
+                    {
+                        newName += $"{AI.SEPARATOR}{version}";
+                    }
+
+                    string newDir = Path.Combine(AI.GetMaterializeFolder(), newName);
+                    if (Directory.Exists(newDir)) continue; // already migrated, probably relic from older version
+
+                    Directory.Move(dir, newDir);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error while upgrading cache folder names (but continuing): {e.Message}");
+            }
+
+            CurrentMain = null;
         }
 
         private async Task UpgradeCustomPackageDates()
@@ -387,7 +522,7 @@ namespace AssetInventory
             EditorGUILayout.Space(30);
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            GUILayout.Box(BasicEditorUI.Logo, EditorStyles.centeredGreyMiniLabel, GUILayout.MaxWidth(300), GUILayout.MaxHeight(300));
+            GUILayout.Box(BasicEditorUI.Logo, EditorStyles.centeredGreyMiniLabel, GUILayout.MaxWidth(250), GUILayout.MaxHeight(250));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             EditorGUILayout.Space();
@@ -405,6 +540,7 @@ namespace AssetInventory
 
                 GUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField((i + 1) + ".", GUILayout.Width(15));
+                float maxWidth = 300;
                 switch (upgrade.ToLowerInvariant())
                 {
                     case "previewconversion":
@@ -412,11 +548,15 @@ namespace AssetInventory
                         break;
 
                     case "assetcacheconversion":
-                        EditorGUILayout.LabelField("Store asset cache paths in a relative fashion in the database, making it easier reusable across devices and align all paths to use forward slashes", EditorStyles.wordWrappedLabel, GUILayout.MaxWidth(300));
+                        EditorGUILayout.LabelField("Store asset cache paths in a relative fashion in the database, making it easier reusable across devices and align all paths to use forward slashes", EditorStyles.wordWrappedLabel, GUILayout.MaxWidth(maxWidth));
                         break;
 
                     case "custompackagedates":
-                        EditorGUILayout.LabelField("Set the last modified date of a custom package as their release date to enable sorting by date", EditorStyles.wordWrappedLabel, GUILayout.MaxWidth(300));
+                        EditorGUILayout.LabelField("Set the last modified date of a custom package as their release date to enable sorting by date", EditorStyles.wordWrappedLabel, GUILayout.MaxWidth(maxWidth));
+                        break;
+
+                    case "cachefolderversions":
+                        EditorGUILayout.LabelField("Rename cache folders to include version information for better organization", EditorStyles.wordWrappedLabel, GUILayout.MaxWidth(maxWidth));
                         break;
 
                     default:
@@ -434,7 +574,10 @@ namespace AssetInventory
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             EditorGUI.BeginDisabledGroup(!string.IsNullOrEmpty(CurrentMain));
-            if (GUILayout.Button("Start Upgrade Process", GUILayout.Height(UIStyles.BIG_BUTTON_HEIGHT))) StartLongRunningUpgrades();
+            if (GUILayout.Button("Start Upgrade Process", GUILayout.Height(UIStyles.BIG_BUTTON_HEIGHT)))
+            {
+                StartLongRunningUpgrades();
+            }
             EditorGUI.EndDisabledGroup();
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();

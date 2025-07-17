@@ -9,6 +9,7 @@ namespace AssetInventory
         public UnindexedSubPackagesValidator()
         {
             Type = ValidatorType.DB;
+            Speed = ValidatorSpeed.Slow;
             Name = "Unindexed Sub-Packages";
             Description = "Scans all packages if they contain other .unitypackage or .zip/.rar/.7z files which are not yet indexed as sub-packages.";
             FixCaption = "Mark for Reindexing";

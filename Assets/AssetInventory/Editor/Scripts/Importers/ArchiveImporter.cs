@@ -42,13 +42,10 @@ namespace AssetInventory
 
                 if (CancellationRequested) break; // don't store tags on cancellation
 
-                if (spec.assignTag && !string.IsNullOrWhiteSpace(spec.tag))
-                {
-                    Tagging.AddAssignment(new AssetInfo(asset), spec.tag, TagAssignment.Target.Package);
-                }
+                ApplyPackageTags(spec, asset);
             }
         }
-
+        
         private Asset HandlePackage(string package, Asset parent = null, AssetFile subPackage = null)
         {
             Asset asset = new Asset();
@@ -109,7 +106,6 @@ namespace AssetInventory
 
         private async Task IndexPackage(Asset asset, FolderSpec spec)
         {
-            await RemovePersistentCacheEntry(asset);
             string tempPath = await AI.ExtractAsset(asset);
             if (string.IsNullOrEmpty(tempPath))
             {
@@ -125,8 +121,6 @@ namespace AssetInventory
             AI.Actions.RegisterRunningAction(ActionHandler.ACTION_MEDIA_FOLDERS_INDEX, mediaImporter, "Updating media folder index");
             await mediaImporter.Index(importSpec, asset, true, true);
             mediaImporter.FinishProgress();
-
-            RemoveWorkFolder(asset, tempPath);
 
             MarkDone(asset);
         }

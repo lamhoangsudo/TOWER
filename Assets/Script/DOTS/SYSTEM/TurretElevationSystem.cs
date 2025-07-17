@@ -24,7 +24,7 @@ partial struct TurretElevationSystem : ISystem
                 continue;
 
             float elevation = turret.ValueRW.currentElevation;
-            float speed = turret.ValueRW.currentElevationSpeed;
+            float projecTileCurrentSpeed = turret.ValueRW.currentElevationSpeed;
             float targetElevation;
 
             if (turret.ValueRO.target != Entity.Null)
@@ -74,17 +74,17 @@ partial struct TurretElevationSystem : ISystem
             // tăng giảm tốc độ
             if (math.abs(deltaAngle) > 0.05f)
             {
-                speed += turret.ValueRO.elevationRotationAcceleration * deltaTime;
+                projecTileCurrentSpeed += turret.ValueRO.elevationRotationAcceleration * deltaTime;
             }
             else
             {
-                speed -= turret.ValueRO.elevationRotationAcceleration * deltaTime;
+                projecTileCurrentSpeed -= turret.ValueRO.elevationRotationAcceleration * deltaTime;
             }
 
-            speed = math.clamp(speed, 0f, turret.ValueRO.elevationRotationSpeed);
+            projecTileCurrentSpeed = math.clamp(projecTileCurrentSpeed, 0f, turret.ValueRO.elevationRotationSpeed);
 
             // bước nâng
-            float rotationStep = speed * deltaTime;
+            float rotationStep = projecTileCurrentSpeed * deltaTime;
 
             if (math.abs(deltaAngle) < rotationStep)
             {
@@ -105,14 +105,14 @@ partial struct TurretElevationSystem : ISystem
                 );
                 if (elevation <= turret.ValueRO.minElevationLimit || elevation >= turret.ValueRO.maxElevationLimit)
                 {
-                    speed = 0f; // dừng xoay nếu chạm giới hạn
+                    projecTileCurrentSpeed = 0f; // dừng xoay nếu chạm giới hạn
                 }
             }
 
             // lưu state
             turret.ValueRW.currentElevation = elevation;
-            turret.ValueRW.currentElevationSpeed = speed;
-            turret.ValueRW.elevationSpeedFactor = math.abs(speed) / turret.ValueRO.elevationRotationSpeed;
+            turret.ValueRW.currentElevationSpeed = projecTileCurrentSpeed;
+            turret.ValueRW.elevationSpeedFactor = math.abs(projecTileCurrentSpeed) / turret.ValueRO.elevationRotationSpeed;
             if (turret.ValueRO.elevationSpeedFactor > 0.05f)
             {
                 turret.ValueRW.IsElevationRotationSFX = true;

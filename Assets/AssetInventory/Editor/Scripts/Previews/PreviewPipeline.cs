@@ -56,7 +56,7 @@ namespace AssetInventory
                 await AI.Cooldown.Do();
                 if (MainProgress % 5000 == 0) await Task.Yield(); // let editor breath in case there are many non-previewable files 
 
-                if (!info.IsDownloaded)
+                if (!info.IsDownloaded && !info.IsMaterialized)
                 {
                     Debug.Log($"Could not recreate preview for '{info}' since the package is not downloaded.");
                     continue;
@@ -112,7 +112,7 @@ namespace AssetInventory
                 await AI.Cooldown.Do();
                 if (MainProgress % 50 == 0) await Task.Yield(); // let editor breath 
 
-                if (!info.IsDownloaded) continue;
+                if (!info.IsDownloaded && !info.IsMaterialized) continue;
 
                 string previewFile = info.GetPreviewFile(previewPath);
                 string sourcePath = await AI.EnsureMaterializedAsset(info);

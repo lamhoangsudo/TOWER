@@ -18,6 +18,7 @@ namespace AssetInventory
 
         private string _separator = ";";
         private Vector2 _scrollPos;
+        private bool _fileMode;
         private List<AssetInfo> _assets;
         private List<ED> _exportFields;
         private List<ED> _overrideFields;
@@ -35,6 +36,7 @@ namespace AssetInventory
         private int _maxProgress;
         private ActionProgress _progress;
         private bool _autoDownload;
+        private bool _flattenStructure;
         private bool _metaFiles;
 
         // Wizard related fields
@@ -128,17 +130,21 @@ namespace AssetInventory
         public static ExportUI ShowWindow()
         {
             ExportUI window = GetWindow<ExportUI>("Asset Export");
-            window.minSize = new Vector2(700, 500);
+            window.minSize = new Vector2(500, 300);
 
             return window;
         }
 
-        public void Init(List<AssetInfo> assets, int exportType = 0, int[] columns = null)
+        public void Init(List<AssetInfo> assets, bool fileMode = false, int exportType = 0, int[] columns = null)
         {
-            _assets = assets.Where(a => a.SafeName != Asset.NONE).ToList();
+            _fileMode = fileMode;
+            _assets = assets;
+            if (!_fileMode) _assets = _assets.Where(a => a.SafeName != Asset.NONE).ToList();
+
             _packages = assets.GroupBy(a => a.AssetId).Select(a => a.First()).ToList(); // cast to list to make it serializable during script reloads
             _packageCount = _packages.Count;
-            _wizardActive = true;
+            _wizardActive = !_fileMode; // only one type supported right now
+            if (_fileMode) _flattenStructure = true;
 
             _exportableExtensions = AI.TypeGroups.SelectMany(tg => tg.Value).ToList();
 
@@ -636,27 +642,37 @@ namespace AssetInventory
             int labelWidth = 110;
             EditorGUI.BeginDisabledGroup(_exportInProgress);
 
-            // Back button
-            GUILayout.Space(5);
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button(EditorGUIUtility.IconContent("d_back@2x"), GUILayout.Width(24), GUILayout.Height(22)))
+            if (!_fileMode)
             {
-                _wizardActive = true;
-            }
-            EditorGUILayout.LabelField($"{_exportTypeInfos.First(e => e.Index == _selectedExportOption).Name}", EditorStyles.boldLabel);
-            GUILayout.EndHorizontal();
+                // Back button
+                GUILayout.Space(5);
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button(EditorGUIUtility.IconContent("d_back@2x"), GUILayout.Width(24), GUILayout.Height(22)))
+                {
+                    _wizardActive = true;
+                }
+                EditorGUILayout.LabelField($"{_exportTypeInfos.First(e => e.Index == _selectedExportOption).Name}", EditorStyles.boldLabel);
+                GUILayout.EndHorizontal();
 
-            EditorGUILayout.Space(10);
+                EditorGUILayout.Space(10);
+            }
 
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Source", EditorStyles.boldLabel, GUILayout.MaxWidth(labelWidth));
-            if (_packageCount == 1)
+            if (_fileMode)
             {
-                EditorGUILayout.LabelField($"Custom Selection ({_assets.First().GetDisplayName()})");
+                EditorGUILayout.LabelField($"{_assets.Count:N0} files", EditorStyles.label);
             }
             else
             {
-                EditorGUILayout.LabelField($"Custom Selection ({_packageCount} packages)");
+                if (_packageCount == 1)
+                {
+                    EditorGUILayout.LabelField($"Custom Selection ({_assets.First().GetDisplayName()})");
+                }
+                else
+                {
+                    EditorGUILayout.LabelField($"Custom Selection ({_packageCount} packages)");
+                }
             }
             GUILayout.EndHorizontal();
 
@@ -693,7 +709,7 @@ namespace AssetInventory
                     }
                     EditorGUILayout.EndFoldoutHeaderGroup();
                     GUILayout.FlexibleSpace();
-                    if (GUILayout.Button("Export...", GUILayout.Height(UIStyles.BIG_BUTTON_HEIGHT))) ExportMetaData();
+                    if (GUILayout.Button("Export...", GUILayout.Height(UIStyles.BIG_BUTTON_HEIGHT))) ExportCSV();
                     break;
 
                 case 1:
@@ -710,6 +726,11 @@ namespace AssetInventory
                     GUILayout.EndHorizontal();
 
                     GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField(UIStyles.Content("Flatten", "Put all files in the target folder directly independent of the sub-folders they are contained in."), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
+                    _flattenStructure = EditorGUILayout.Toggle(_flattenStructure);
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField(UIStyles.Content("Download", "Triggers download of package automatically in case it is not available yet in the cache."), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
                     _autoDownload = EditorGUILayout.Toggle(_autoDownload);
                     GUILayout.EndHorizontal();
@@ -719,31 +740,37 @@ namespace AssetInventory
                     _metaFiles = EditorGUILayout.Toggle(_metaFiles);
                     GUILayout.EndHorizontal();
 
-                    GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("File Types", EditorStyles.boldLabel, GUILayout.Width(labelWidth));
-                    if (GUILayout.Button("Typical", GUILayout.ExpandWidth(false))) _exportTypes.ForEach(et => et.isSelected = et.isDefault);
-                    if (GUILayout.Button("All", GUILayout.ExpandWidth(false))) _exportTypes.ForEach(et => et.isSelected = true);
-                    if (GUILayout.Button("None", GUILayout.ExpandWidth(false))) _exportTypes.ForEach(et => et.isSelected = false);
-                    GUILayout.EndHorizontal();
-
-                    int typeWidth = 70;
-                    for (int i = 0; i < _exportTypes.Count; i++)
+                    if (!_fileMode)
                     {
-                        // show always three items per row
-                        if (i % 3 == 0)
+                        GUILayout.BeginHorizontal();
+                        EditorGUILayout.LabelField("File Types", EditorStyles.boldLabel, GUILayout.Width(labelWidth));
+                        if (GUILayout.Button("Typical", GUILayout.ExpandWidth(false))) _exportTypes.ForEach(et => et.isSelected = et.isDefault);
+                        if (GUILayout.Button("All", GUILayout.ExpandWidth(false))) _exportTypes.ForEach(et => et.isSelected = true);
+                        if (GUILayout.Button("None", GUILayout.ExpandWidth(false))) _exportTypes.ForEach(et => et.isSelected = false);
+                        GUILayout.EndHorizontal();
+
+                        int typeWidth = 70;
+                        for (int i = 0; i < _exportTypes.Count; i++)
                         {
-                            GUILayout.BeginHorizontal();
-                            GUILayout.Space(117);
+                            // show always three items per row
+                            if (i % 3 == 0)
+                            {
+                                GUILayout.BeginHorizontal();
+                                GUILayout.Space(117);
+                            }
+                            _exportTypes[i].isSelected = EditorGUILayout.Toggle(_exportTypes[i].isSelected, GUILayout.Width(20));
+                            EditorGUILayout.LabelField(_exportTypes[i].pointer, GUILayout.Width(typeWidth));
+                            if (i % 3 == 2 || i == _exportTypes.Count - 1) GUILayout.EndHorizontal();
                         }
-                        _exportTypes[i].isSelected = EditorGUILayout.Toggle(_exportTypes[i].isSelected, GUILayout.Width(20));
-                        EditorGUILayout.LabelField(_exportTypes[i].pointer, GUILayout.Width(typeWidth));
-                        if (i % 3 == 2 || i == _exportTypes.Count - 1) GUILayout.EndHorizontal();
                     }
 
                     GUILayout.FlexibleSpace();
                     EditorGUILayout.HelpBox("Make sure you own the appropriate rights in case you intend to use assets in other contexts than Unity!", MessageType.Warning);
                     if (_exportInProgress) UIStyles.DrawProgressBar((float)_curProgress / _maxProgress, $"{_curProgress}/{_maxProgress}");
-                    if (GUILayout.Button(_exportInProgress ? "Export in progress..." : "Export...", GUILayout.Height(UIStyles.BIG_BUTTON_HEIGHT))) ExportAssets();
+                    if (GUILayout.Button(_exportInProgress ? "Export in progress..." : "Export...", GUILayout.Height(UIStyles.BIG_BUTTON_HEIGHT)))
+                    {
+                        ExportAssets();
+                    }
                     break;
 
                 case 3:
@@ -1283,6 +1310,9 @@ namespace AssetInventory
             string folder = EditorUtility.OpenFolderPanel("Select storage folder for exports", AI.Config.exportFolder2, "");
             if (string.IsNullOrEmpty(folder)) return;
 
+            if (_clearTarget && Directory.Exists(folder)) await IOUtils.DeleteFileOrDirectory(folder);
+            Directory.CreateDirectory(folder);
+
             AI.Config.exportFolder2 = Path.GetFullPath(folder);
             AI.SaveConfig();
 
@@ -1301,7 +1331,7 @@ namespace AssetInventory
                     continue;
                 }
 
-                if (!info.IsDownloaded)
+                if (!info.IsDownloaded && !info.IsMaterialized)
                 {
                     if (info.IsAbandoned)
                     {
@@ -1330,8 +1360,7 @@ namespace AssetInventory
                     }
                 }
 
-                string targetFolder = Path.Combine(folder, info.SafeName);
-                if (_clearTarget && Directory.Exists(targetFolder)) await IOUtils.DeleteFileOrDirectory(targetFolder);
+                string targetFolder = Path.Combine(folder, _flattenStructure ? "" : info.SafeName);
                 Directory.CreateDirectory(targetFolder);
 
                 // extract package
@@ -1339,28 +1368,40 @@ namespace AssetInventory
                 bool existing = Directory.Exists(cachePath);
 
                 // gather all indexed files
-                List<AssetFile> files = DBAdapter.DB.Query<AssetFile>("SELECT * FROM AssetFile WHERE AssetId = ?", info.AssetId).ToList();
+                IEnumerable<AssetFile> files;
+                if (_fileMode)
+                {
+                    // files to export are already known
+                    files = _assets.Where(a => a.AssetId == info.AssetId);
+                }
+                else
+                {
+                    files = DBAdapter.DB.Query<AssetFile>("SELECT * FROM AssetFile WHERE AssetId = ?", info.AssetId).ToList();
+                }
                 foreach (AssetFile af in files)
                 {
-                    bool include = false;
-                    foreach (ED type in _exportTypes)
+                    if (!_fileMode)
                     {
-                        if (!type.isSelected) continue;
-                        if (type.pointer != REMAINING_EXTENSIONS)
+                        bool include = false;
+                        foreach (ED type in _exportTypes)
                         {
-                            if (Enum.TryParse(type.pointer, out AI.AssetGroup group))
+                            if (!type.isSelected) continue;
+                            if (type.pointer != REMAINING_EXTENSIONS)
                             {
-                                if (AI.TypeGroups[group].Contains(af.Type)) include = true;
+                                if (Enum.TryParse(type.pointer, out AI.AssetGroup group))
+                                {
+                                    if (AI.TypeGroups[group].Contains(af.Type)) include = true;
+                                }
+                            }
+                            else
+                            {
+                                if (!_exportableExtensions.Contains(af.Type)) include = true;
                             }
                         }
-                        else
-                        {
-                            if (!_exportableExtensions.Contains(af.Type)) include = true;
-                        }
+                        if (!include) continue;
                     }
-                    if (!include) continue;
 
-                    string targetFile = Path.Combine(targetFolder, af.GetPath(true));
+                    string targetFile = Path.Combine(targetFolder, _flattenStructure ? af.FileName : af.GetPath(true));
                     string targetMeta = targetFile + ".meta";
                     if (File.Exists(targetFile) && (!_metaFiles || File.Exists(targetMeta))) continue;
 
@@ -1474,14 +1515,22 @@ namespace AssetInventory
                 if (!string.IsNullOrWhiteSpace(info.LicenseLocation)) result.Add($"([Details]({info.LicenseLocation}))");
                 result.Add("");
             }
-            File.WriteAllLines(file, result);
+            try
+            {
+                File.WriteAllLines(file, result);
+                EditorUtility.RevealInFinder(file);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Exporting to file failed: {e}");
+                EditorUtility.DisplayDialog("Export Failed", "License export failed. Most likely the target file is already opened in another application. See console for details.", "OK");
+            }
 
             _exportInProgress = false;
 
-            EditorUtility.RevealInFinder(file);
         }
 
-        private void ExportMetaData()
+        private void ExportCSV()
         {
             string file = EditorUtility.SaveFilePanel("Target file", AI.Config.exportFolder, "assets", "csv");
             if (string.IsNullOrEmpty(file)) return;
@@ -1538,10 +1587,18 @@ namespace AssetInventory
                 }
                 result.Add(string.Join(_separator, line));
             }
-            File.WriteAllLines(file, result);
-            _exportInProgress = false;
+            try
+            {
+                File.WriteAllLines(file, result);
+                EditorUtility.RevealInFinder(file);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Exporting to file failed: {e}");
+                EditorUtility.DisplayDialog("Export Failed", "CSV export failed. Most likely the target file is already opened in another application. See console for details.", "OK");
+            }
 
-            EditorUtility.RevealInFinder(file);
+            _exportInProgress = false;
         }
 
         private void OnInspectorUpdate()

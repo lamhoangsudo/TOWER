@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using OllamaSharp.Models;
 #endif
 using UnityEditor;
-#if (UNITY_2021_3_OR_NEWER && !USE_TUTORIALS) || !USE_VECTOR_GRAPHICS 
+#if (UNITY_2021_3_OR_NEWER && !USE_TUTORIALS) || !USE_VECTOR_GRAPHICS
 using UnityEditor.PackageManager;
 #endif
 using UnityEditorInternal;
@@ -375,14 +375,14 @@ namespace AssetInventory
                         });
 
 #if UNITY_2022_1_OR_NEWER
-                                // show hint if Unity is not self-reporting the cache location
-                                if (string.IsNullOrWhiteSpace(AssetStore.GetAssetCacheFolder()))
-                                {
-                                    GUILayout.BeginHorizontal();
-                                    EditorGUILayout.LabelField("", GUILayout.Width(labelWidth));
-                                    EditorGUILayout.HelpBox("If you defined a custom location for your cache folder different from the one above, either set the 'ASSETSTORE_CACHE_PATH' environment variable or select 'Custom' and enter the path there. Unity does not expose the location yet for other tools.", MessageType.Info);
-                                    GUILayout.EndHorizontal();
-                                }
+                        // show hint if Unity is not self-reporting the cache location
+                        if (string.IsNullOrWhiteSpace(AssetStore.GetAssetCacheFolder()))
+                        {
+                            GUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField("", GUILayout.Width(labelWidth));
+                            EditorGUILayout.HelpBox("If you defined a custom location for your cache folder different from the one above, either set the 'ASSETSTORE_CACHE_PATH' environment variable or select 'Custom' and enter the path there. Unity does not expose the location yet for other tools.", MessageType.Info);
+                            GUILayout.EndHorizontal();
+                        }
 #endif
                         break;
 
@@ -787,6 +787,10 @@ namespace AssetInventory
                     GUILayout.EndHorizontal();
                 }
 
+#if UNITY_2021_2_OR_NEWER && UNITY_EDITOR_WIN && !NET_4_6
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox("Your 'Editor Assembly Compatibility Level' is set to '.NET Standard' in the Player Settings. This will cause the tool to use an alternative image processing library which is slower on Windows. If you do not have a specific need for .NET Standard it is recommended to switch to .NET Framework.", MessageType.Warning);
+#endif
 #if !USE_VECTOR_GRAPHICS
                 EditorGUILayout.Space();
                 EditorGUILayout.HelpBox("In order to see previews for SVG graphics, the 'com.unity.vectorgraphics' needs to be installed.", MessageType.Warning);
@@ -880,8 +884,13 @@ namespace AssetInventory
                     GUILayout.EndHorizontal();
 
                     GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField(UIStyles.Content("Max Caption Length", "Some models can generate extremely long captions in boundary conditions. This setting caps the max length to preserve memory and display quality."), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
+                    AI.Config.aiMaxCaptionLength = EditorGUILayout.DelayedIntField(AI.Config.aiMaxCaptionLength, GUILayout.Width(50));
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField(UIStyles.Content("Pause Between Calculations", "AI inference requires significant resources and will bring a system to full load. Running constantly can lead to system crashes. Feel free to experiment with lower pauses."), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
-                    AI.Config.aiPause = EditorGUILayout.DelayedIntField(AI.Config.aiPause, GUILayout.Width(30));
+                    AI.Config.aiPause = EditorGUILayout.DelayedIntField(AI.Config.aiPause, GUILayout.Width(50));
                     EditorGUILayout.LabelField("seconds", EditorStyles.miniLabel);
                     GUILayout.EndHorizontal();
                 }
@@ -985,6 +994,11 @@ namespace AssetInventory
                                 if (GUILayout.Button("Cancel", GUILayout.ExpandWidth(false))) Intelligence.OllamaDownloadToken?.Cancel();
                                 GUILayout.EndHorizontal();
                             }
+                            Model model = Intelligence.OllamaModels?.FirstOrDefault(m => m.Name == AI.Config.ollamaModel);
+                            if (model != null && (model.Size / 1024 / 1024) + 2000 > SystemInfo.graphicsMemorySize) // add some buffer for system usage
+                            {
+                                EditorGUILayout.HelpBox($"The model probably requires more VRAM than your system has ({model.Size / 1024 / 1024:N0}Mb vs {SystemInfo.graphicsMemorySize:N0}Mb). This will lead to much slower performance.", MessageType.Warning);
+                            }
                             if (GUILayout.Button("Model Catalog", UIStyles.wrappedLinkLabel, GUILayout.ExpandWidth(false)))
                             {
                                 Application.OpenURL(Intelligence.OLLAMA_LIBRARY);
@@ -998,10 +1012,13 @@ namespace AssetInventory
                             EditorGUILayout.LabelField(UIStyles.Content("Installation", ""), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
                             GUILayout.BeginVertical();
                             EditorGUILayout.HelpBox("Ollama is not installed or active. Start it first and retry.", MessageType.Error);
+                            GUILayout.BeginHorizontal();
+                            if (GUILayout.Button("Refresh", GUILayout.ExpandWidth(false))) Intelligence.RefreshOllama();
                             if (GUILayout.Button("Ollama Website", UIStyles.wrappedLinkLabel, GUILayout.ExpandWidth(false)))
                             {
                                 Application.OpenURL(Intelligence.OLLAMA_WEBSITE);
                             }
+                            GUILayout.EndHorizontal();
                             GUILayout.EndVertical();
                             GUILayout.EndHorizontal();
                         }
@@ -1086,13 +1103,13 @@ namespace AssetInventory
                     AI.Config.cacheLimit = EditorGUILayout.DelayedIntField(AI.Config.cacheLimit, GUILayout.Width(50));
                     EditorGUILayout.LabelField("Gb", EditorStyles.miniLabel, GUILayout.Width(20));
                     EditorGUI.BeginDisabledGroup(AI.CacheLimiter.IsRunning);
-                    if (GUILayout.Button("Run Check", GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(AI.CacheLimiter.IsRunning ? "Calculating..." : "Run Check", GUILayout.ExpandWidth(false)))
                     {
                         AI.CacheLimiter.CheckAndClean();
                     }
                     if (AI.CacheLimiter.IsRunning && AI.CacheLimiter.CurrentSize > 0)
                     {
-                        EditorGUILayout.LabelField($"Calculating... Current Size: {EditorUtility.FormatBytes(AI.CacheLimiter.CurrentSize)}", EditorStyles.miniLabel);
+                        EditorGUILayout.LabelField($"Current Size: {EditorUtility.FormatBytes(AI.CacheLimiter.CurrentSize)}", EditorStyles.miniLabel);
                     }
                     else if (AI.CacheLimiter.CurrentSize > AI.CacheLimiter.GetLimit())
                     {
@@ -1138,16 +1155,6 @@ namespace AssetInventory
                 if (AI.Config.showAdvancedSettings)
                 {
                     BeginIndentBlock();
-
-#if UNITY_2021_3_OR_NEWER && !USE_TUTORIALS
-                    GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField(UIStyles.Content("Tutorials", "Integrated tutorials require the Unity Tutorials package installed."), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
-                    if (GUILayout.Button("Install/Upgrade Tutorials Package...", GUILayout.ExpandWidth(false)))
-                    {
-                        Client.Add($"com.unity.learn.iet-framework@{AI.TUTORIALS_VERSION}");
-                    }
-                    GUILayout.EndHorizontal();
-#endif
 
                     EditorGUI.BeginChangeCheck();
 
@@ -1216,11 +1223,6 @@ namespace AssetInventory
                     EditorGUILayout.LabelField(UIStyles.Content("Tile Margins", "Margins between tiles."), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
                     AI.Config.tileMargin = EditorGUILayout.DelayedIntField(AI.Config.tileMargin, GUILayout.Width(50));
                     EditorGUILayout.LabelField("px");
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField(UIStyles.Content("Tile Size under Search Results", "Will show the slider for tile size directly under the search results next to the pagination."), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
-                    AI.Config.showTileSizeSlider = EditorGUILayout.Toggle(AI.Config.showTileSizeSlider, GUILayout.MaxWidth(cbWidth));
                     GUILayout.EndHorizontal();
 
                     GUILayout.BeginHorizontal();
@@ -1382,17 +1384,7 @@ namespace AssetInventory
             UIBlock("settings.diskspace", () =>
             {
                 EditorGUILayout.Space();
-                GUILayout.BeginHorizontal();
                 _showDiskSpace = EditorGUILayout.Foldout(_showDiskSpace, "Used Disk Space");
-                EditorGUI.BeginDisabledGroup(_calculatingFolderSizes);
-                if (GUILayout.Button(_calculatingFolderSizes ? "Calculating..." : "Refresh", GUILayout.ExpandWidth(false)))
-                {
-                    _showDiskSpace = true;
-                    CalcFolderSizes();
-                }
-                EditorGUI.EndDisabledGroup();
-                GUILayout.EndHorizontal();
-
                 if (_showDiskSpace)
                 {
                     if (_lastFolderSizeCalculation != DateTime.MinValue)
@@ -1423,6 +1415,16 @@ namespace AssetInventory
                     {
                         EditorGUILayout.LabelField("Not calculated yet....", EditorStyles.centeredGreyMiniLabel);
                     }
+                    GUILayout.BeginHorizontal();
+                    GUILayout.FlexibleSpace();
+                    EditorGUI.BeginDisabledGroup(_calculatingFolderSizes);
+                    if (GUILayout.Button(_calculatingFolderSizes ? "Calculating..." : "Refresh", EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                    {
+                        CalcFolderSizes();
+                    }
+                    EditorGUI.EndDisabledGroup();
+                    GUILayout.FlexibleSpace();
+                    GUILayout.EndHorizontal();
                 }
             });
 
@@ -1611,7 +1613,7 @@ namespace AssetInventory
         {
             if (!initOnly)
             {
-                long savings = DBAdapter.Compact();
+                long savings = DBAdapter.Optimize();
                 UpdateStatistics(true);
                 EditorUtility.DisplayDialog("Success", $"Database was compacted. Size reduction: {EditorUtility.FormatBytes(savings)}\n\nMake sure to also delete your Library folder every now and then, especially after long indexing runs, to ensure Unity's asset database only contains what you really need for maximum performance.", "OK");
             }

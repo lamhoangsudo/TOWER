@@ -50,13 +50,22 @@ namespace AssetInventory
                 if (CancellationRequested) break;
                 if (progress % 50 == 0) await Task.Yield();
 
-                if (int.TryParse(folder.Split('-').Last().Trim(), out int assetId))
+                string[] segments = folder.Split(AI.SEPARATOR);
+                if (segments.Length < 2)
                 {
-                    if (!assets.Any(a => a.AssetId == assetId)) result.Add(folder);
+                    result.Add(folder); // not a valid path, can be removed
+                    continue;
                 }
-                else
+
+                if (!int.TryParse(segments[1].Trim(), out int assetId))
                 {
                     // non-numeric folders are always considered orphaned
+                    result.Add(folder);
+                }
+
+                if (!assets.Any(a => a.AssetId == assetId))
+                {
+                    // not belonging to any asset
                     result.Add(folder);
                 }
             }

@@ -24,6 +24,7 @@ partial struct BarrelAnimatorSystem : ISystem
             _ParentLookUp = SystemAPI.GetComponentLookup<Parent>(isReadOnly: false),
             _SoundWeaponEffectShootLookUp = SystemAPI.GetComponentLookup<SoundWeaponEffectShoot>(isReadOnly: false),
             _SFX_GatlingSpinLookUp = SystemAPI.GetComponentLookup<SFX_GatlingSpin>(isReadOnly: false),
+            _ProjectTileSpawnShoot = SystemAPI.GetComponentLookup<ProjectTileSpawnShoot>(isReadOnly: false),
             ecb = ecb.AsParallelWriter(),
         };
         barrelAnimatorSystemJob.ScheduleParallel();
@@ -43,6 +44,7 @@ partial struct BarrelAnimatorSystem : ISystem
         public float DeltaTime;
         [ReadOnly] public ComponentLookup<LocalTransform> _LocalTransformLookUp;
         [ReadOnly] public ComponentLookup<EffectWeaponShoot> _EffectWeaponShootLookUp;
+        [ReadOnly] public ComponentLookup<ProjectTileSpawnShoot> _ProjectTileSpawnShoot;
         [ReadOnly] public ComponentLookup<Parent> _ParentLookUp;
         [ReadOnly] public ComponentLookup<SoundWeaponEffectShoot> _SoundWeaponEffectShootLookUp;
         [ReadOnly] public ComponentLookup<SFX_GatlingSpin> _SFX_GatlingSpinLookUp;
@@ -136,9 +138,20 @@ partial struct BarrelAnimatorSystem : ISystem
                         soundWeaponEffectShootWritter.volume = barrelAnimator.sfxVolume;
                         soundWeaponEffectShootWritter.isPlayOneShot = true;
                         barrelAnimator.flashSpawned = true;
+
+                        ProjectTileSpawnShoot projectTileSpawnShootWritter = _ProjectTileSpawnShoot[pointShoot];
+                        projectTileSpawnShootWritter.entityProjectTilePrefab = weapon.projectilePrefab;
+                        projectTileSpawnShootWritter.projectileLifetimeMax = weapon.projectileMaxLifetime;
+                        projectTileSpawnShootWritter.projectileStartSpeed = weapon.projectileStartSpeed;
+                        projectTileSpawnShootWritter.projectileMaxSpeed = weapon.projectileMaxSpeed;
+                        projectTileSpawnShootWritter.projectileAcceleration = weapon.projectileAcceleration;
+                        projectTileSpawnShootWritter.projectileStartSpeed = weapon.projectileStartSpeed;
+                        projectTileSpawnShootWritter.isSpawner = true;
+
                         ecb.SetComponent<EffectWeaponShoot>(sortkey, entityEffect, effectWritter);
                         ecb.SetComponent<Parent>(sortkey, entityEffect, parentEntityEffectWritter);
                         ecb.SetComponent<SoundWeaponEffectShoot>(sortkey, pointShoot, soundWeaponEffectShootWritter);
+                        ecb.SetComponent<ProjectTileSpawnShoot>(sortkey, pointShoot, projectTileSpawnShootWritter);
                     }
                     if (progress >= 1f)
                     {

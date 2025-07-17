@@ -64,7 +64,10 @@ namespace AssetInventory
                         }
                         if (GUILayout.Button(EditorGUIUtility.IconContent("TreeEditor.Trash", "|Remove metadata completely"), GUILayout.Width(30)))
                         {
-                            Metadata.DeleteDefinition(meta);
+                            if (EditorUtility.DisplayDialog("Delete Metadata Definitions", "Are you sure you want to delete this metadata definitions and all connected data? This action cannot be undone.", "Delete", "Cancel"))
+                            {
+                                Metadata.DeleteDefinition(meta);
+                            }
                         }
                         GUILayout.EndHorizontal();
                     }
@@ -81,7 +84,10 @@ namespace AssetInventory
             EditorGUI.BeginDisabledGroup(_metas == null || _metas.Count == 0);
             if (GUILayout.Button("Delete All"))
             {
-                _metas?.ForEach(Metadata.DeleteDefinition);
+                if (EditorUtility.DisplayDialog("Delete All Metadata Definitions", "Are you sure you want to delete all metadata definitions? This action cannot be undone.", "Delete", "Cancel"))
+                {
+                    _metas?.ForEach(Metadata.DeleteDefinition);
+                }
             }
             EditorGUI.EndDisabledGroup();
             GUILayout.EndHorizontal();

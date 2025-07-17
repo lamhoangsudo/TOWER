@@ -1,4 +1,7 @@
 ﻿using UnityEditor;
+#if UNITY_2021_3_OR_NEWER && !USE_TUTORIALS
+using UnityEditor.PackageManager;
+#endif
 using UnityEngine;
 
 namespace AssetInventory
@@ -24,6 +27,16 @@ namespace AssetInventory
             if (GUILayout.Button("Join Discord!", UIStyles.centerLinkLabel)) Application.OpenURL(AI.DISCORD_LINK);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+#if UNITY_2021_3_OR_NEWER && !USE_TUTORIALS
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button(UIStyles.Content("Install/Upgrade Tutorials Package...", "Integrated tutorials require the Unity Tutorials package installed."), GUILayout.ExpandWidth(false)))
+            {
+                Client.Add($"com.unity.learn.iet-framework@{AI.TUTORIALS_VERSION}");
+            }
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+#endif
             EditorGUILayout.LabelField($"Version {AI.VERSION}", textColor);
             EditorGUILayout.Space();
 

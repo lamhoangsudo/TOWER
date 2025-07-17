@@ -10,8 +10,6 @@ namespace AssetInventory
 {
     public sealed class AssetBackup : ActionProgress
     {
-        private const string SEPARATOR = "-~-";
-
         private Dictionary<int, List<BackupInfo>> _assetVersions;
 
         public AssetBackup()
@@ -26,7 +24,7 @@ namespace AssetInventory
             string[] packages = Directory.GetFiles(AI.GetBackupFolder(), "*.unitypackage", SearchOption.AllDirectories);
             string[] sep =
             {
-                SEPARATOR
+                AI.SEPARATOR
             };
             foreach (string package in packages)
             {
@@ -78,7 +76,7 @@ namespace AssetInventory
                     BackupInfo bi = backupInfos.FirstOrDefault(b => b.version == asset.GetSafeVersion());
                     if (bi != null) targetFile = bi.location;
                 }
-                if (targetFile == null) targetFile = Path.Combine(backupFolder, $"{asset.ForeignId}{SEPARATOR}{asset.GetSafeVersion()}{SEPARATOR}{asset.SafeName}.unitypackage");
+                if (targetFile == null) targetFile = Path.Combine(backupFolder, $"{asset.ForeignId}{AI.SEPARATOR}{asset.GetSafeVersion()}{AI.SEPARATOR}{asset.SafeName}.unitypackage");
                 if (!File.Exists(targetFile))
                 {
                     CurrentMain = $"{asset.SafeName} ({EditorUtility.FormatBytes(asset.PackageSize)})";

@@ -23,7 +23,7 @@ namespace AssetInventory
         {
             _target = target;
             _onChange = onChange;
-            _tags = DBAdapter.DB.Table<Tag>().OrderBy(t => t.Name).ToList();
+            _tags = Tagging.LoadTags();
         }
 
         public override Vector2 GetWindowSize()
@@ -39,10 +39,17 @@ namespace AssetInventory
         public override void OnGUI(Rect rect)
         {
             if (_assetInfo == null) return;
-            if (Event.current.isKey && Event.current.keyCode == KeyCode.Return)
+            if (Event.current.isKey && Event.current.keyCode == KeyCode.Return && !string.IsNullOrWhiteSpace(_newTag))
             {
-                _assetInfo.ForEach(info => Tagging.AddAssignment(info, _newTag, _target, true));
-                _newTag = "";
+                if (_newTag.Contains('/')) // prevent creating tags with slashes, as they are used for subfolders
+                {
+                    EditorUtility.DisplayDialog("Invalid Tag", "Tags cannot contain slashes (/). Please use a different name.", "OK");
+                }
+                else
+                {
+                    Tagging.AddAssignments(_assetInfo, _newTag, _target, true);
+                    _newTag = "";
+                }
             }
             GUILayout.BeginHorizontal();
             _newTag = SearchField.OnGUI(_newTag, GUILayout.ExpandWidth(true));
@@ -82,9 +89,13 @@ namespace AssetInventory
                         GUILayout.Space(8);
                         UIStyles.DrawTag(tag.Name, tag.GetColor(), () =>
                         {
-                            _assetInfo.ForEach(info => Tagging.AddAssignment(info, tag.Name, _target, true));
+                            Tagging.AddAssignments(_assetInfo, tag.Name, _target, true);
                             _onChange?.Invoke();
                         }, UIStyles.TagStyle.Add);
+                        if (!string.IsNullOrWhiteSpace(tag.Hotkey))
+                        {
+                            EditorGUILayout.LabelField($"Alt+{tag.Hotkey}", UIStyles.greyMiniLabel);
+                        }
                         GUILayout.EndHorizontal();
                     }
                     if (shownItems == 0)

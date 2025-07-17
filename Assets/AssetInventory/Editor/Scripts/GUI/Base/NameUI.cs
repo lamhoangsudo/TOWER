@@ -9,11 +9,13 @@ namespace AssetInventory
         private string _text;
         private Action<string> _callback;
         private bool _firstRunDone;
+        private bool _allowEmpty;
 
-        public void Init(string text, Action<string> callback)
+        public void Init(string text, Action<string> callback, bool allowEmpty = false)
         {
             _text = text;
             _callback = callback;
+            _allowEmpty = allowEmpty;
         }
 
         public override void OnGUI(Rect rect)
@@ -23,7 +25,7 @@ namespace AssetInventory
             GUI.SetNextControlName("TextField");
             _text = EditorGUILayout.TextField(_text, GUILayout.ExpandWidth(true));
             GUILayout.BeginHorizontal();
-            if ((Event.current.isKey && Event.current.keyCode == KeyCode.Return) || GUILayout.Button("OK") && !string.IsNullOrWhiteSpace(_text))
+            if ((Event.current.isKey && Event.current.keyCode == KeyCode.Return) || GUILayout.Button("OK") && (_allowEmpty || !string.IsNullOrWhiteSpace(_text)))
             {
                 _callback?.Invoke(_text);
                 editorWindow.Close();

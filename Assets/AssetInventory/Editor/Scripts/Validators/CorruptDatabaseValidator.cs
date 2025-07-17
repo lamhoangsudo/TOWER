@@ -35,7 +35,7 @@ namespace AssetInventory
             CurrentState = State.Fixing;
 
             await Task.Yield();
-            DBAdapter.Compact();
+            DBAdapter.Optimize();
             DBIssues = new List<AssetInfo>();
 
             CurrentState = State.Completed;

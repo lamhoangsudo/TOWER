@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 #if UNITY_2021_2_OR_NEWER
 using UnityEditor;
-#if UNITY_EDITOR_WIN
+#if UNITY_EDITOR_WIN && NET_4_6
 using System.Drawing;
 #else
 using SixLabors.ImageSharp.PixelFormats;
@@ -24,7 +24,7 @@ namespace AssetInventory
         private static ulong _textureIconHash;
         private static ulong _audioIconHash;
 
-#if UNITY_EDITOR_WIN
+#if UNITY_EDITOR_WIN && NET_4_6
         public static bool IsErrorShader(Bitmap image) => ImageUtils.IsErrorPreview(image);
         public static bool IsDefaultIcon(Bitmap image)
         {

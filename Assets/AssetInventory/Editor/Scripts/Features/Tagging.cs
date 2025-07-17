@@ -47,6 +47,27 @@ namespace AssetInventory
             return true;
         }
 
+        public static void AddAssignments(List<AssetInfo> infos, string tag, TagAssignment.Target target, bool byUser = false)
+        {
+            if (infos.Count == 1 || infos.Any(info => info.AssetSource == Asset.Source.AssetManager))
+            {
+                // if at least one asset is from AM, we need to sync the tag changes
+                infos.ForEach(info => AddAssignment(info, tag, target, byUser));
+                return;
+            }
+
+            // optimized for bulk assignment without AM sync
+            infos.ForEach(info =>
+            {
+                TagInfo tagInfo = (target == TagAssignment.Target.Asset ? info.AssetTags : info.PackageTags)?.Find(t => t.Name == tag);
+                if (tagInfo != null) return;
+
+                if (!AddAssignment(target == TagAssignment.Target.Asset ? info.Id : info.AssetId, tag, target)) return;
+                info.SetTagsDirty();
+            });
+            LoadAssignments();
+        }
+
         public static void RemoveAssignment(AssetInfo info, TagInfo tagInfo, bool autoReload = true, bool byUser = false)
         {
             DBAdapter.DB.Delete<TagAssignment>(tagInfo.Id);
@@ -68,7 +89,7 @@ namespace AssetInventory
             LoadAssignments();
         }
 
-        public static void RemovePackageAssignment(List<AssetInfo> infos, string name, bool byUser)
+        public static void RemovePackageAssignments(List<AssetInfo> infos, string name, bool byUser)
         {
             infos.ForEach(info =>
             {

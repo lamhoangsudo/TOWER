@@ -1,8 +1,8 @@
 <!-- UNITY CODE ASSIST INSTRUCTIONS START -->
 - Project name: TOWER
-- Unity version: Unity 6000.1.11f1
+- Unity version: Unity 6000.1.12f1
 - Active game object:
-  - Name: Turret_S01_2xS07_GattlingECS
+  - Name: Gun_L04ECS
   - Tag: Untagged
   - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

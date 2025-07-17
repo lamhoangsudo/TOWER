@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
@@ -70,6 +71,18 @@ namespace AssetInventory
             Write
         }
 
+        internal static string[] assetFields =
+        {
+            "Asset/AssetRating", "Asset/AssetSource", "Asset/Backup", "Asset/BIRPCompatible", "Asset/CompatibilityInfo", "Asset/CurrentState", "Asset/CurrentSubState", "Asset/Description", "Asset/DisplayCategory", "Asset/DisplayName", "Asset/DisplayPublisher", "Asset/ETag", "Asset/Exclude",
+            "Asset/FirstRelease", "Asset/ForeignId", "Asset/HDRPCompatible", "Asset/Hotness", "Asset/Hue", "Asset/Id", "Asset/IsHidden", "Asset/IsLatestVersion", "Asset/KeepExtracted", "Asset/KeyFeatures", "Asset/Keywords", "Asset/LastOnlineRefresh", "Asset/LastRelease", "Asset/LatestVersion",
+            "Asset/License", "Asset/LicenseLocation", "Asset/Location", "Asset/OriginalLocation", "Asset/OriginalLocationKey", "Asset/PackageDependencies", "Asset/PackageSize", "Asset/PackageSource", "Asset/ParentId", "Asset/PriceCny", "Asset/PriceEur", "Asset/PriceUsd",
+            "Asset/PublisherId", "Asset/PurchaseDate", "Asset/RatingCount", "Asset/Registry", "Asset/ReleaseNotes", "Asset/Repository", "Asset/Requirements", "Asset/Revision", "Asset/SafeCategory", "Asset/SafeName",
+            "Asset/SafePublisher", "Asset/Slug", "Asset/SupportedUnityVersions", "Asset/UpdateStrategy", "Asset/UploadId", "Asset/URPCompatible", "Asset/UseAI", "Asset/Version",
+            "AssetFile/AssetId", "AssetFile/FileName", "AssetFile/FileVersion", "AssetFile/FileStatus", "AssetFile/Guid", "AssetFile/Height", "AssetFile/Hue", "AssetFile/Id", "AssetFile/Length", "AssetFile/Path", "AssetFile/PreviewState", "AssetFile/Size", "AssetFile/SourcePath", "AssetFile/Type", "AssetFile/Width",
+            "Tag/Color", "Tag/FromAssetStore", "Tag/Id", "Tag/Name",
+            "TagAssignment/Id", "TagAssignment/TagId", "TagAssignment/TagTarget", "TagAssignment/TagTargetId"
+        };
+
         private List<Tag> _tags;
         private string[] _assetNames;
         private string[] _tagNames;
@@ -90,7 +103,6 @@ namespace AssetInventory
         private string[] _imageTypeOptions;
         private GUIContent[] _packageListingOptionsShort;
         private GUIContent[] _packageViewOptions;
-        private GUIContent[] _packageDetailsViewOptions;
         private string[] _deprecationOptions;
         private string[] _srpOptions;
         private string[] _maintenanceOptions;
@@ -191,6 +203,7 @@ namespace AssetInventory
             ImportUI.OnImportDone += OnImportDone;
             RemovalUI.OnUninstallDone += OnImportDone;
             MaintenanceUI.OnMaintenanceDone += OnMaintenanceDone;
+            UpgradeUtil.OnUpgradeDone += OnMaintenanceDone;
             AssetStore.OnPackageListUpdated += OnPackageListUpdated;
             AssetDatabase.importPackageCompleted += ImportCompleted;
             AssetDownloaderUtils.OnDownloadFinished += OnDownloadFinished;
@@ -210,6 +223,7 @@ namespace AssetInventory
             AI.StopAudio();
             AssetStore.FillBufferOnDemand(true);
             if (!searchMode) SuggestOptimization();
+            if (workspaceMode) InitWorkspace();
 
             // have to go through preliminary title as OnEnable is called before setting any additional properties
             if (!titleContent.text.Contains("Picker")) AI.StartCacheObserver(); // expensive operation, only do when UI is visible
@@ -228,6 +242,7 @@ namespace AssetInventory
             ImportUI.OnImportDone -= OnImportDone;
             RemovalUI.OnUninstallDone -= OnImportDone;
             MaintenanceUI.OnMaintenanceDone -= OnMaintenanceDone;
+            UpgradeUtil.OnUpgradeDone -= OnMaintenanceDone;
             AssetStore.OnPackageListUpdated -= OnPackageListUpdated;
             AssetDatabase.importPackageCompleted -= ImportCompleted;
             AssetDownloaderUtils.OnDownloadFinished -= OnDownloadFinished;
@@ -294,6 +309,7 @@ namespace AssetInventory
 
         private void OnMaintenanceDone()
         {
+            _searches = null;
             _requireLookupUpdate = ChangeImpact.Write;
             _requireSearchUpdate = true;
             _requireAssetTreeRebuild = true;
@@ -383,7 +399,6 @@ namespace AssetInventory
             _packageListingOptions = new[] {"-all-", "-all except registry packages-", "Only Asset Store Packages", "Only Registry Packages", "Only Custom Packages", "Only Media Folders", "Only Archives", "Only Asset Manager"};
             _packageListingOptionsShort = new[] {new GUIContent("All", ""), new GUIContent("No Reg", _packageListingOptions[1]), new GUIContent("Store", _packageListingOptions[2]), new GUIContent("Reg", _packageListingOptions[3]), new GUIContent("Cust", _packageListingOptions[4]), new GUIContent("Media", _packageListingOptions[5]), new GUIContent("Arch", _packageListingOptions[6]), new GUIContent("AM", _packageListingOptions[7])};
             _packageViewOptions = new[] {UIStyles.IconContent("VerticalLayoutGroup Icon", "d_VerticalLayoutGroup Icon", "|List"), UIStyles.IconContent("GridLayoutGroup Icon", "d_GridLayoutGroup Icon", "|Grid")};
-            _packageDetailsViewOptions = new[] {UIStyles.IconContent("GridLayoutGroup Icon", "d_GridLayoutGroup Icon", "|Tabs"), UIStyles.IconContent("VerticalLayoutGroup Icon", "d_VerticalLayoutGroup Icon", "|List")};
             _deprecationOptions = new[] {"-all-", "Exclude Deprecated", "Show Only Deprecated"};
             _srpOptions = new[] {"-all-", string.Empty, "BIRP", "URP", "HDRP"};
             _maintenanceOptions = new[] {"-all-", "Update Available", "Outdated in Unity Cache", "Disabled by Unity", "Custom Asset Store Link", "Indexed", "Not Indexed", "Custom Registry", "Downloaded", "Downloading", "Not Downloaded", "Duplicate", "Marked for Backup", "Not Marked for Backup", "Deleted", "Excluded", "With Sub-Packages", "Incompatible Packages", "Fixable Incompatibilities", "Unfixable Incompatibilities"};
@@ -395,18 +410,7 @@ namespace AssetInventory
             _blipOptions = new[] {"Small (1Gb)", "Large (1.8Gb)"};
             _aiBackendOptions = new[] {"Blip", "Ollama"};
             _imageTypeOptions = new List<string> {"-all-", string.Empty}.Concat(TextureNameSuggester.suffixPatterns.Keys.Select(StringUtils.CamelCaseToWords)).ToArray();
-            _expertSearchFields = new[]
-            {
-                "-Add Field-", string.Empty,
-                "Asset/AssetRating", "Asset/AssetSource", "Asset/Backup", "Asset/BIRPCompatible", "Asset/CompatibilityInfo", "Asset/CurrentState", "Asset/CurrentSubState", "Asset/Description", "Asset/DisplayCategory", "Asset/DisplayName", "Asset/DisplayPublisher", "Asset/ETag", "Asset/Exclude",
-                "Asset/FirstRelease", "Asset/ForeignId", "Asset/HDRPCompatible", "Asset/Hotness", "Asset/Hue", "Asset/Id", "Asset/IsHidden", "Asset/IsLatestVersion", "Asset/KeepExtracted", "Asset/KeyFeatures", "Asset/Keywords", "Asset/LastOnlineRefresh", "Asset/LastRelease", "Asset/LatestVersion",
-                "Asset/License", "Asset/LicenseLocation", "Asset/Location", "Asset/OriginalLocation", "Asset/OriginalLocationKey", "Asset/PackageDependencies", "Asset/PackageSize", "Asset/PackageSource", "Asset/ParentId", "Asset/PriceCny", "Asset/PriceEur", "Asset/PriceUsd",
-                "Asset/PublisherId", "Asset/PurchaseDate", "Asset/RatingCount", "Asset/Registry", "Asset/ReleaseNotes", "Asset/Repository", "Asset/Requirements", "Asset/Revision", "Asset/SafeCategory", "Asset/SafeName",
-                "Asset/SafePublisher", "Asset/Slug", "Asset/SupportedUnityVersions", "Asset/UpdateStrategy", "Asset/UploadId", "Asset/URPCompatible", "Asset/UseAI", "Asset/Version",
-                "AssetFile/AssetId", "AssetFile/FileName", "AssetFile/FileVersion", "AssetFile/FileStatus", "AssetFile/Guid", "AssetFile/Height", "AssetFile/Hue", "AssetFile/Id", "AssetFile/Length", "AssetFile/Path", "AssetFile/PreviewState", "AssetFile/Size", "AssetFile/SourcePath", "AssetFile/Type", "AssetFile/Width",
-                "Tag/Color", "Tag/FromAssetStore", "Tag/Id", "Tag/Name",
-                "TagAssignment/Id", "TagAssignment/TagId", "TagAssignment/TagTarget", "TagAssignment/TagTargetId"
-            };
+            _expertSearchFields = new List<string> {"-Add Field-", string.Empty}.Concat(assetFields).ToArray();
 
             UpdateStatistics(force);
             AssetStore.FillBufferOnDemand();
@@ -448,6 +452,17 @@ namespace AssetInventory
             {
                 EditorGUILayout.HelpBox("The Asset Inventory is not available during play mode.", MessageType.Info);
                 return;
+            }
+
+            if (AI.UICustomizationMode)
+            {
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.HelpBox("UI customization mode is active. Define which elements should be visible by default (green) and which only in advanced mode (red) when using the eye icon or holding CTRL. Yellow sections can be moved up and down.", MessageType.Warning);
+                if (GUILayout.Button("Stop Customizing", GUILayout.ExpandWidth(false)))
+                {
+                    AI.UICustomizationMode = false;
+                }
+                GUILayout.EndHorizontal();
             }
 
             _allowLogic = Event.current.type == EventType.Layout; // nothing must be changed during repaint
@@ -501,7 +516,6 @@ namespace AssetInventory
                     break;
             }
 
-            if (Event.current.type == EventType.Repaint) _mouseOverSearchResultRect = false;
             if (DragDropAvailable()) HandleDragDrop();
 
             if (_requireLookupUpdate != ChangeImpact.None || _resultSizes == null || _resultSizes.Length == 0)
@@ -526,7 +540,7 @@ namespace AssetInventory
             }
 
             bool isNewTab = false;
-            if (!searchMode)
+            if (!hideMainNavigation)
             {
                 isNewTab = DrawToolbar();
                 if (isNewTab) AI.StopAudio();
@@ -548,12 +562,12 @@ namespace AssetInventory
             switch (AI.Config.tab)
             {
                 case 0:
+                    DrawSearchTab();
                     if (_allowLogic)
                     {
-                        if (_requireSearchUpdate && AI.Config.searchAutomatically) PerformSearch(_keepSearchResultPage);
-                        if (_requireSearchSelectionUpdate) HandleSearchSelectionChanged();
+                        if (_requireSearchUpdate && AI.Config.searchAutomatically) EditorApplication.delayCall += () => PerformSearch(_keepSearchResultPage);
+                        if (_requireSearchSelectionUpdate) EditorApplication.delayCall += HandleSearchSelectionChanged;
                     }
-                    DrawSearchTab();
                     break;
 
                 case 1:
@@ -575,43 +589,6 @@ namespace AssetInventory
                 case 4:
                     DrawAboutTab();
                     break;
-            }
-
-            // reload if there is new data
-            // FIXME
-            /*
-            if (!ActionProgress.ReadOnly && _lastMainProgress != ActionProgress.MainProgress)
-            {
-                _lastMainProgress = ActionProgress.MainProgress;
-                _requireLookupUpdate = ChangeImpact.Write;
-                _requireSearchUpdate = true;
-            }
-            */
-
-            if (_allowLogic)
-            {
-                // handle double-clicks
-                if (Event.current.clickCount > 1)
-                {
-                    if (_mouseOverSearchResultRect && (searchMode || AI.Config.doubleClickBehavior > 0) && _selectedEntry != null)
-                    {
-                        if (searchMode)
-                        {
-                            ExecuteSingleAction();
-                        }
-                        else
-                        {
-                            if ((AI.Config.doubleClickBehavior == 1 && !Event.current.alt) || (AI.Config.doubleClickBehavior == 2 && Event.current.alt))
-                            {
-                                _ = PerformCopyTo(_selectedEntry, _importFolder);
-                            }
-                            else
-                            {
-                                Open(_selectedEntry);
-                            }
-                        }
-                    }
-                }
             }
         }
 
@@ -659,7 +636,7 @@ namespace AssetInventory
             AI.Config.tab = GUILayout.Toolbar(AI.Config.tab, strings.ToArray(), GUILayout.Height(32), GUILayout.MinWidth(500));
 
             bool newTab = EditorGUI.EndChangeCheck();
-            if (newTab) AI.SaveConfig();
+            if (newTab && !hideMainNavigation) AI.SaveConfig();
 
             GUILayout.FlexibleSpace();
             int iconSize = 18;
@@ -693,13 +670,10 @@ namespace AssetInventory
             });
             UILine("toolbar.togglecustomization", () =>
             {
-                Color curCol = GUI.color;
-                if (AI.UICustomizationMode) GUI.color = Color.green;
                 if (GUILayout.Button(UIStyles.IconContent("CustomTool", "d_CustomTool", "|Toggle UI Customization"), EditorStyles.label, GUILayout.Width(iconSize), GUILayout.Height(iconSize)))
                 {
                     AI.UICustomizationMode = !AI.UICustomizationMode;
                 }
-                GUI.color = curCol;
             });
             UILine("toolbar.toggleabout", () =>
             {
@@ -746,6 +720,86 @@ namespace AssetInventory
                     GatherTreeChildren(subInfo.TreeId, result, treeModel);
                 }
             }
+        }
+
+        private void HandleTagShortcuts()
+        {
+            if ((Event.current.modifiers & EventModifiers.Alt) != 0)
+            {
+                // Handle ALT+[0-9,a-z] shortcuts
+                if (Event.current.type == EventType.KeyDown)
+                {
+                    KeyCode keyCode = Event.current.keyCode;
+                    string keyStr = keyCode.ToString().ToLower();
+
+                    // Convert Alpha1-Alpha9 to 1-9
+                    if (keyStr.StartsWith("alpha")) keyStr = keyStr.Substring(5);
+
+                    // Only process single character keys (letters or numbers)
+                    if (keyStr.Length == 1 && char.IsLetterOrDigit(keyStr[0]))
+                    {
+                        // Find tag with matching hotkey
+                        List<Tag> tags = Tagging.LoadTags();
+                        Tag matchingTag = tags.Find(t => t.Hotkey == keyStr);
+                        if (matchingTag != null && _selectedTreeAssets != null && _selectedTreeAssets.Count > 0)
+                        {
+                            bool isRemoving = (Event.current.modifiers & EventModifiers.Shift) != 0;
+                            if (isRemoving)
+                            {
+                                // Remove tag from all selected assets that have it
+                                switch (AI.Config.tab)
+                                {
+                                    case 0:
+                                        Tagging.RemoveAssetAssignments(_sgrid.selectionItems, matchingTag.Name, true);
+                                        CalculateSearchBulkSelection();
+                                        break;
+
+                                    case 1:
+                                        Tagging.RemovePackageAssignments(_selectedTreeAssets, matchingTag.Name, true);
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                // Add tag to all selected assets that don't have it
+                                switch (AI.Config.tab)
+                                {
+                                    case 0:
+                                        Tagging.AddAssignments(_sgrid.selectionItems, matchingTag.Name, TagAssignment.Target.Asset, true);
+                                        CalculateSearchBulkSelection();
+                                        break;
+
+                                    case 1:
+                                        Tagging.AddAssignments(_selectedTreeAssets, matchingTag.Name, TagAssignment.Target.Package, true);
+                                        break;
+                                }
+                            }
+
+                            _requireAssetTreeRebuild = true;
+                            Event.current.Use();
+                        }
+                    }
+                }
+            }
+        }
+
+        private CancellationToken InitBlockingToken()
+        {
+            _blockingInProgress = true;
+            InitBlocking();
+            return _extraction.Token;
+        }
+
+        private void DisposeBlocking()
+        {
+            _extraction?.Dispose();
+            _blockingInProgress = false;
+        }
+
+        private void InitBlocking()
+        {
+            if (_extraction != null && !_extraction.IsDisposed()) _extraction?.Cancel();
+            _extraction = new CancellationTokenSource();
         }
 
         private async void CheckForUpdates()

@@ -71,7 +71,7 @@ namespace AssetInventory
                         {
                             if (captions[j].caption != null)
                             {
-                                fileChunk[j].AICaption = captions[j].caption;
+                                fileChunk[j].AICaption = captions[j].caption.Truncate(AI.Config.aiMaxCaptionLength);
                                 DBAdapter.DB.Execute("update AssetFile set AICaption=? where Id=?", fileChunk[j].AICaption, fileChunk[j].Id);
 
                                 if (AI.Config.logAICaptions)

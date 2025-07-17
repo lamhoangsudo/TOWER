@@ -11,20 +11,28 @@ namespace AssetInventory
 {
     public abstract class AssetImporter : ActionProgress
     {
+        protected static bool ApplyPackageTags(FolderSpec spec, Asset asset, bool fromAssetStore = false)
+        {
+            bool somethingAdded = false;
+
+            if (spec.assignTag && !string.IsNullOrWhiteSpace(spec.tag))
+            {
+                string[] tags = StringUtils.Split(spec.tag, new[] {';', ','});
+                foreach (string tag in tags)
+                {
+                    if (string.IsNullOrWhiteSpace(tag)) continue;
+
+                    if (Tagging.AddAssignment(asset.Id, tag, TagAssignment.Target.Package, fromAssetStore)) somethingAdded = true;
+                }
+            }
+
+            return somethingAdded;
+        }
+
         protected static bool IsIgnoredPath(string path)
         {
             // skip MacOS resource fork folders, git folders
             return path.Contains("__MACOSX") || path.Contains(".git/") || path.Contains(".git\\");
-        }
-
-        protected static async Task RemovePersistentCacheEntry(Asset asset)
-        {
-            // remove old version first from cache if exists already
-            if (asset.KeepExtracted)
-            {
-                string path = AI.GetMaterializedAssetPath(asset);
-                if (Directory.Exists(path)) await IOUtils.DeleteFileOrDirectory(path);
-            }
         }
 
         protected static void RemoveWorkFolder(Asset asset, string tempPath)

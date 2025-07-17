@@ -75,6 +75,9 @@ namespace AssetInventory
             _models = null;
             _ollamaVersion = null;
 
+            LoadingModels = false;
+            DownloadingModel = false;
+
             _ = OllamaInstalled();
             _ = LoadOllamaModels();
         }
@@ -103,8 +106,17 @@ namespace AssetInventory
             if (LoadingModels) return;
             LoadingModels = true;
 
-            OllamaApiClient ollama = new OllamaApiClient(new Uri(OLLAMA_SERVICE_URL));
-            _models = await ollama.ListLocalModelsAsync();
+            try
+            {
+                OllamaApiClient ollama = new OllamaApiClient(new Uri(OLLAMA_SERVICE_URL));
+                _models = await ollama.ListLocalModelsAsync();
+            }
+            catch (Exception e)
+            {
+                _models = Enumerable.Empty<Model>(); 
+
+                Debug.LogError($"Error loading Ollama models: {e.Message}");
+            }
 
             LoadingModels = false;
         }

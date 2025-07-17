@@ -30,9 +30,12 @@ namespace AssetInventory
             //_db.Tracer += s => Debug.Log(s);
 
             _db.ExecuteScalar<string>($"PRAGMA journal_mode={AI.Config.dbJournalMode};");
-            _db.Execute("PRAGMA synchronous = NORMAL;");
+            _db.ExecuteScalar<long>("PRAGMA mmap_size = 2000000000"); // allow up to ~2 GB to be mmap’d
+            _db.Execute("PRAGMA temp_store = MEMORY"); // temp tables in RAM
             _db.Execute("PRAGMA case_sensitive_like = false;");
-            _db.Execute("PRAGMA cache_size = 100000;");
+            _db.Execute("PRAGMA synchronous = NORMAL"); // speed vs. crash-safety
+            _db.Execute("PRAGMA cache_size = -20000"); // 20,000 1-page cache in RAM
+            _db.Execute("PRAGMA page_size = 8192");
 
             _db.CreateTable<Asset>();
             _db.CreateTable<AssetFile>();
@@ -42,10 +45,13 @@ namespace AssetInventory
             _db.CreateTable<CustomActionStep>();
             _db.CreateTable<MetadataDefinition>();
             _db.CreateTable<MetadataAssignment>();
+            _db.CreateTable<SavedSearch>();
             _db.CreateTable<Tag>();
             _db.CreateTable<TagAssignment>();
             _db.CreateTable<RelativeLocation>();
             _db.CreateTable<SystemData>();
+            _db.CreateTable<Workspace>();
+            _db.CreateTable<WorkspaceSearch>();
 
             _db.CreateIndex("AssetFile", new[] {"Type", "PreviewState", "Path"});
             _db.CreateIndex("Asset", new[] {"Exclude", "AssetSource"});
@@ -62,11 +68,15 @@ namespace AssetInventory
             return cols.Any(c => c.Name == columnName);
         }
 
-        public static long Compact()
+        public static long Optimize()
         {
             long original = new FileInfo(GetDBPath()).Length;
 
             DB.Execute("vacuum;");
+
+            // Keep SQLite’s planner stats up to date so it picks the best index
+            DB.Execute("analyze;");
+            DB.Execute("PRAGMA optimize;");
 
             return original - new FileInfo(GetDBPath()).Length;
         }

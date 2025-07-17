@@ -79,7 +79,7 @@ namespace AssetInventory
 
                         GUILayout.BeginHorizontal();
                         GUILayout.Space(8);
-                        if (GUILayout.Button($"{meta.Name} ({meta.Type})"))
+                        if (GUILayout.Button($"{meta.Name}" + (AI.ShowAdvanced() ? $"({meta.Type})" : "")))
                         {
                             _assetInfo.ForEach(info =>
                             {

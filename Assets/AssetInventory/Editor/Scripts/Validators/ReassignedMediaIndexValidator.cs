@@ -9,6 +9,7 @@ namespace AssetInventory
         public ReassignedMediaIndexValidator()
         {
             Type = ValidatorType.DB;
+            Speed = ValidatorSpeed.Slow;
             Name = "Reassigned Media Index";
             Description = "Checks if media files were previously stored with no package assignment but have one in the meantime and will remove the references without package assignment.";
             FixCaption = "Remove";

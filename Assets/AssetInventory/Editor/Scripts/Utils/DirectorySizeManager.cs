@@ -87,7 +87,10 @@ namespace AssetInventory
                         }
 
                         long subDirSize = await IOUtils.GetFolderSize(subDirs[index]);
-                        await IOUtils.DeleteFileOrDirectory(subDirs[index]);
+
+                        // run non-blocking, no need to wait for deletion
+                        int i = index;
+                        _ = Task.Run(() => IOUtils.DeleteFileOrDirectory(subDirs[i]));
 
                         CurrentSize -= subDirSize;
                         index++;

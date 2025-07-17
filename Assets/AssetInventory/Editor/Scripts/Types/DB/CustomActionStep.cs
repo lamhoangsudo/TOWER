@@ -10,7 +10,7 @@ namespace AssetInventory
     public sealed class CustomActionStep
     {
         [PrimaryKey, AutoIncrement] public int Id { get; set; }
-        public int ActionID { get; set; }
+        public int ActionId { get; set; }
         public string Key { get; set; }
         public int OrderIdx { get; set; }
         public string Params { get; set; }

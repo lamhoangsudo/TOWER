@@ -91,6 +91,7 @@ namespace AssetInventory
                         {
                             foreach (string tag in purchase.tagging)
                             {
+                                if (tag.ToLowerInvariant() == "#bin") continue;
                                 if (Tagging.AddAssignment(asset.Id, tag, TagAssignment.Target.Package, true)) tagsChanged = true;
                             }
                         }
@@ -129,7 +130,8 @@ namespace AssetInventory
             }
             else
             {
-                IEnumerable<Asset> dbAssets = DBAdapter.DB.Table<Asset>()
+                // SQLite.net does not support date subtraction like done here, so we have to do it in memory in a second step
+                List<Asset> dbAssets = DBAdapter.DB.Table<Asset>()
                     .Where(a => a.ForeignId > 0)
                     .OrderBy(a => a.LastOnlineRefresh)
                     .ToList();
@@ -377,14 +379,62 @@ namespace AssetInventory
             return requireReload;
         }
 
+        public async Task<bool> FetchAssetUpdates()
+        {
+            bool requireReload = false;
+
+            List<Asset> assets = DBAdapter.DB.Table<Asset>()
+                .Where(a => a.ForeignId > 0)
+                .OrderBy(a => a.LastOnlineRefresh)
+                .ToList();
+
+            MainCount = assets.Count;
+            for (int i = 0; i < assets.Count; i++)
+            {
+                Asset asset = assets[i];
+                SetProgress(asset.DisplayName, i + 1);
+                if (i % 5 == 0) await Task.Yield(); // let editor breathe
+                if (CancellationRequested) break;
+
+                try
+                {
+                    // AssetUpdateResult update = await AssetStore.RetrieveAssetUpdates();
+
+                    // DBAdapter.DB.Update(asset);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Error fetching asset updates: {e.Message}");
+                }
+            }
+
+            return requireReload;
+        }
+
         private async Task<AssetPurchases> RetrievePurchases()
         {
             RestartProgress("Fetching purchases");
+            AssetPurchases result = await DoRetrievePurchases();
+
+            RestartProgress("Fetching hidden purchases");
+            AssetPurchases hiddenResult = await DoRetrievePurchases("&status=hidden");
+
+            if (result != null && hiddenResult?.results != null)
+            {
+                HashSet<int> existingIds = new HashSet<int>(result.results.Select(p => p.packageId));
+                result.results.AddRange(hiddenResult.results.Where(p => existingIds.Add(p.packageId)));
+            }
+
+            return result;
+        }
+
+        private async Task<AssetPurchases> DoRetrievePurchases(string urlSuffix = "")
+        {
             MainCount = 1;
             MainProgress = 1;
 
             string token = CloudProjectSettings.accessToken;
-            AssetPurchases result = await AssetUtils.FetchAPIData<AssetPurchases>($"{URL_PURCHASES}?offset=0&limit={PAGE_SIZE}", token);
+            AssetPurchases result = await AssetUtils.FetchAPIData<AssetPurchases>($"{URL_PURCHASES}?offset=0&limit={PAGE_SIZE}{urlSuffix}", "GET", null, token);
 
             // if more results than page size retrieve rest as well and merge
             // Unity's web client can only run on the main thread
@@ -400,7 +450,7 @@ namespace AssetInventory
                     for (int j = i; j < i + AI.Config.maxConcurrentUnityRequests && j <= pageCount; j++)
                     {
                         int offset = j * PAGE_SIZE;
-                        currentBatch.Add(AssetUtils.FetchAPIData<AssetPurchases>($"{URL_PURCHASES}?offset={offset}&limit={PAGE_SIZE}", token));
+                        currentBatch.Add(AssetUtils.FetchAPIData<AssetPurchases>($"{URL_PURCHASES}?offset={offset}&limit={PAGE_SIZE}{urlSuffix}", "GET", null, token));
                     }
                     AssetPurchases[] pageResults = await Task.WhenAll(currentBatch);
 
@@ -421,7 +471,6 @@ namespace AssetInventory
                     }
                 }
             }
-
             return result;
         }
 
