@@ -3,6 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Collections;
+using Unity.Jobs;
 
 partial struct TurretHeadingSystem : ISystem
 {
@@ -143,8 +144,8 @@ partial struct TurretHeadingSystem : ISystem
             pivotTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(isReadOnly: false),
             ecb = ecb.AsParallelWriter()
         };
-        turretHeadingJob.ScheduleParallel();
-        state.Dependency.Complete();
+        JobHandle jobHandle = turretHeadingJob.ScheduleParallel(state.Dependency);
+        jobHandle.Complete();
         ecb.Playback(state.EntityManager);
         ecb.Dispose();
         #endregion

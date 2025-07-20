@@ -1,4 +1,5 @@
 ﻿using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class WeaponAuthoring : MonoBehaviour
@@ -44,6 +45,7 @@ public struct Weapon : IComponentData
     public Enum.WeaponFiringPattern firingPattern;
     public float spreadAngle;
     public float gatlingRotationSpeed;
+    public Entity targetEntity;
     public Entity projectilePrefab;
     public float projectileStartSpeed;
     public float projectileMaxLifetime;

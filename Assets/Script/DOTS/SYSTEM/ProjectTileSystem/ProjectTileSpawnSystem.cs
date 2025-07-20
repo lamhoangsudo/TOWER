@@ -1,8 +1,9 @@
 using Unity.Burst;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 
-partial struct ProjecttileSpawnSystem : ISystem
+partial struct ProjectTileSpawnSystem : ISystem
 {
     [BurstCompile]
     public void OnCreate(ref SystemState state)
@@ -23,14 +24,17 @@ partial struct ProjecttileSpawnSystem : ISystem
             RefRW<LocalTransform> projectTileSpawnLocalTransform = SystemAPI.GetComponentRW<LocalTransform>(entityProjectTileSpawn);
 
             projectTileSpawnLocalTransform.ValueRW.Position = localToWorld.ValueRO.Position;
+            projectTileSpawnLocalTransform.ValueRW.Rotation = localToWorld.ValueRO.Rotation;
 
             projectTileSpawn.ValueRW.projecTileLifetimeMax = projectTileSpawnShoot.ValueRO.projectileLifetimeMax;
             projectTileSpawn.ValueRW.projecTileCurrentLifetime = projectTileSpawnShoot.ValueRO.projectileLifetimeMax;
             switch (projectTileSpawn.ValueRO.projectTileType)
             {
                 case Enum.ProjectTileType.Bullet:
+                    float distance = math.distancesq(localToWorld.ValueRO.Position, projectTileSpawnShoot.ValueRO.targetPosition);
                     projectTileSpawn.ValueRW.projecTileMaxSpeed = projectTileSpawnShoot.ValueRO.projectileMaxSpeed;
                     projectTileSpawn.ValueRW.projecTileCurrentSpeed = projectTileSpawnShoot.ValueRO.projectileMaxSpeed;
+                    projectTileSpawn.ValueRW.targetDistance = distance;
                     break;
                 case Enum.ProjectTileType.Missile:
                     projectTileSpawn.ValueRW.projecTileAcceleration = projectTileSpawnShoot.ValueRO.projectileAcceleration;

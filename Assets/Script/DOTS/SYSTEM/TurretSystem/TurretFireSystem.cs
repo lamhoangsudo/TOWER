@@ -1,6 +1,7 @@
 ﻿using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
@@ -96,8 +97,8 @@ partial struct TurretFireSystem : ISystem
             componentLookupWeapon = SystemAPI.GetComponentLookup<Weapon>(isReadOnly: false),
             componentLookupWeaponFireTime = SystemAPI.GetComponentLookup<WeaponFireTime>(isReadOnly: true),
         };
-        turretFireJob.ScheduleParallel();
-        state.Dependency.Complete();
+        JobHandle jobHandle = turretFireJob.ScheduleParallel(state.Dependency);
+        jobHandle.Complete();
         ecb.Playback(state.EntityManager);
         ecb.Dispose();
     }
@@ -149,6 +150,7 @@ partial struct TurretFireSystem : ISystem
                         turretFireTime.burstCount = math.clamp(turretFireTime.burstCount, 0, turretFireTime.burstCountMax);
                         weaponWritter.startFire = shouldFire;
                         turretFireTime.burstCount++;
+                        if (weaponWritter.targetEntity == Entity.Null || weaponWritter.targetEntity != turret.target) weaponWritter.targetEntity = turret.target;
                         ecb.SetComponent<Weapon>(sortkey, weaponBuffer.weaponBuffer, weaponWritter);
                     }
                     turretFireTime.burstDelay = 0f;
@@ -170,6 +172,7 @@ partial struct TurretFireSystem : ISystem
                     turretFireTime.burstCount = math.clamp(turretFireTime.burstCount, 0, turretFireTime.burstCountMax);
                     turretFireTime.burstDelay = 0f;
                     weaponWritter.startFire = shouldFire;
+                    if (weaponWritter.targetEntity == Entity.Null || weaponWritter.targetEntity != turret.target) weaponWritter.targetEntity = turret.target;
                     ecb.SetComponent<Weapon>(sortkey, weaponBuffers[turretFireTime.indexWeapons].weaponBuffer, weaponWritter);
                     break;
                 case Enum.TurretFiringPattern.Gatling:
@@ -188,6 +191,7 @@ partial struct TurretFireSystem : ISystem
                             if (weaponWritter.startFire == shouldFire) continue;
                             turretFireTime.burstCount++;
                             weaponWritter.startFire = shouldFire;
+                            if (weaponWritter.targetEntity == Entity.Null || weaponWritter.targetEntity != turret.target) weaponWritter.targetEntity = turret.target;
                             ecb.SetComponent<Weapon>(sortkey, weaponBuffer.weaponBuffer, weaponWritter);
                         }
                     }

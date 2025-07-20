@@ -27,10 +27,13 @@ public struct ProjecTile : IComponentData
     public float3 direction;
     public Entity homingTarget;
     public float homingStrength;
+    public float targetDistance;
     public bool usePrediction;
     public int impactLayer;
     public Entity projectileGO;
     public Enum.ProjectTileType projectTileType;
+    public float timeDelayRayMax;
+    public float timeDelayRay;
 }
 
 

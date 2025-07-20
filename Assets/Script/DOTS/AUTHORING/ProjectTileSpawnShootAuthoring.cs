@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class ProjectTileSpawnShootAuthoring : MonoBehaviour
@@ -23,6 +24,7 @@ public struct ProjectTileSpawnShoot : IComponentData
     public float projectileLifetimeMax;
     public float projectileAcceleration;
     public float projectileMaxSpeed;
+    public float3 targetPosition;
 }
 
 
