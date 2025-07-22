@@ -5,14 +5,17 @@ using UnityEngine;
 public class ProjectTileAuthoring : MonoBehaviour
 {
     public Enum.ProjectTileType projectTileType;
+    public float homingSpeed;
     public class ProjectTileAuthoringBaker : Baker<ProjectTileAuthoring>
     {
+        
         public override void Bake(ProjectTileAuthoring authoring)
         {
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
             AddComponent(entity, new ProjecTile
             {
                 projectTileType = authoring.projectTileType,
+                homingSpeed = authoring.homingSpeed,
             });
         }
     }
@@ -26,7 +29,7 @@ public struct ProjecTile : IComponentData
     public float projecTileCurrentLifetime;
     public float3 direction;
     public Entity homingTarget;
-    public float homingStrength;
+    public float homingSpeed;
     public float targetDistance;
     public bool usePrediction;
     public int impactLayer;
@@ -34,6 +37,10 @@ public struct ProjecTile : IComponentData
     public Enum.ProjectTileType projectTileType;
     public float timeDelayRayMax;
     public float timeDelayRay;
+
+    public float dot;
+    public float angle;
+    public float timeRotation;
 }
 
 

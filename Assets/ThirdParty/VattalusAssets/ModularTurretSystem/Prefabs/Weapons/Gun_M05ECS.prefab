@@ -49,15 +49,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firingPattern: 0
-  spreadAngle: 0
   gatlingRotationSpeed: 0
-  projectilePrefab: {fileID: 2803319171636174522, guid: be3aa323acf996c4f98b807c92dab3b5, type: 3}
-  projectileSpeed: 300
-  projectileLifetime: 3
-  projectileAcceleration: 0
+  projectilePrefab: {fileID: 4487581658243413398, guid: 80041ea2a62c7664bacbf55f1b83cc0b, type: 3}
+  projectileMaxLifetime: 1
   projectileMaxSpeed: 300
-  projectileUsePrediction: 0
   impactLayer: 0
+  projectileStartSpeed: 0
+  projectileAcceleration: 0
+  projectileUsePrediction: 0
+  spreadAngle: 0
 --- !u!114 &8372163946696113231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -168,6 +168,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5192659207308595320}
   - component: {fileID: 4002592419991921187}
+  - component: {fileID: 5114379970966958755}
   m_Layer: 0
   m_Name: PointShoot
   m_TagString: Untagged
@@ -209,6 +210,18 @@ MonoBehaviour:
       Data3: -1551693123
       Data4: -1942715468
     Path: event:/TurretEvent_SFX/WeaponShot/WeaponShot1
+--- !u!114 &5114379970966958755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4695084346473888658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe52b0bad13e7f46ade49b4db19559f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2108030293970968967
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -65,8 +65,6 @@ MonoBehaviour:
   autoFire: 1
   targetAquiredAngle: 25
   resetOrientation: 0
-  weapons:
-  - {fileID: 1860148548334539114}
 --- !u!114 &829285328227047879
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -384,6 +382,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4969473683420496669}
     m_Modifications:
+    - target: {fileID: 5207522535755748663, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
+      propertyPath: projectileAcceleration
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 6836354282534631581, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
       propertyPath: m_Name
       value: Launcher_L01_8MECS
@@ -438,7 +440,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5207522535755748663, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
   m_PrefabInstance: {fileID: 5120320922435332599}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1860148548334539114}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4a108e7c92746a24da8ab3c0666b2fd5, type: 3}
@@ -447,11 +449,6 @@ MonoBehaviour:
 --- !u!4 &1860148548334539113 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6836354282534631582, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
-  m_PrefabInstance: {fileID: 5120320922435332599}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1860148548334539114 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6836354282534631581, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
   m_PrefabInstance: {fileID: 5120320922435332599}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5872909181419510714

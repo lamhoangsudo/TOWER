@@ -9,8 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4829862524841925613}
-  - component: {fileID: 5568770451110263042}
   - component: {fileID: 8826058087771675723}
+  - component: {fileID: 6112592922512868606}
   m_Layer: 0
   m_Name: PointShoot
   m_TagString: Untagged
@@ -33,103 +33,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2045571184831560470}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!82 &5568770451110263042
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2228983981261968619}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 74d4d06edbbfa304d8df07dd4b76b5b3, type: 3}
-  m_Resource: {fileID: 8300000, guid: 74d4d06edbbfa304d8df07dd4b76b5b3, type: 3}
-  m_PlayOnAwake: 0
-  m_Volume: 1
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
 --- !u!114 &8826058087771675723
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140,6 +43,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f881a6c580588754bbd228c8989ff375, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  soundEventReferenceSoundWeaponEffectShoot:
+    Guid:
+      Data1: 815573926
+      Data2: 1171410403
+      Data3: 1755161006
+      Data4: -236016834
+    Path: event:/TurretEvent_SFX/WeaponShot/WeaponShot3
+--- !u!114 &6112592922512868606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2228983981261968619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe52b0bad13e7f46ade49b4db19559f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &7530572045743047676
@@ -153,7 +75,7 @@ GameObject:
   - component: {fileID: 7530572045743047679}
   - component: {fileID: 4846359774060737032}
   - component: {fileID: 8033393611259109709}
-  - component: {fileID: 8477605500849626183}
+  - component: {fileID: 80477654947510669}
   m_Layer: 0
   m_Name: Gun_L04ECS
   m_TagString: Untagged
@@ -191,24 +113,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firingPattern: 0
-  burstShots: 4
-  burstDelay: 0.5
-  cooldown: 1
-  spreadAngle: 0
   gatlingRotationSpeed: 0
   projectilePrefab: {fileID: 2803319171636174522, guid: 4b8bfbe362d0dab4ea7843181aa451df, type: 3}
-  projectileSpeed: 250
-  projectileLifetime: 5
-  projectileAcceleration: 0
+  projectileMaxLifetime: 1
   projectileMaxSpeed: 250
-  projectileUsePrediction: 1
   impactLayer: 0
-  isFiring: 0
-  currentCooldown: 0
-  burstCounter: 0
-  bustTime: 0
-  BarrelAnimator:
-  - {fileID: 7530572045743047676}
+  projectileStartSpeed: 0
+  projectileAcceleration: 0
+  projectileUsePrediction: 1
+  spreadAngle: 0
 --- !u!114 &8033393611259109709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -225,7 +138,6 @@ MonoBehaviour:
   barrelTipEntity:
   - {fileID: 1668729394477703596}
   muzzleFlashEntity: {fileID: 4044671742251484795}
-  muzzleFlashMissileLauncherEntity: []
   pointShoot:
   - {fileID: 2228983981261968619}
   animationDuration: 1
@@ -294,7 +206,8 @@ MonoBehaviour:
     m_RotationOrder: 4
   sfxPitch: 1
   sfxVolume: 1
---- !u!114 &8477605500849626183
+  audioGatlingEffect: {fileID: 0}
+--- !u!114 &80477654947510669
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -303,9 +216,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 7530572045743047676}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
+  m_Script: {fileID: 11500000, guid: 602626577bea6304baf1c8710a2fd3b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  burstDelayMax: 0.2
+  burstCountMax: 1
+  timeOverHeatMax: 0
 --- !u!1001 &1735955975421398713
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -376,6 +292,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2321277154601486529, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2321277154601486529, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}
+      propertyPath: m_ConstrainProportionsScale
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2321277154601486530, guid: 6449e5d337d94a346af709ebeb537ee7, type: 3}

@@ -31,14 +31,16 @@ partial struct ProjectTileSpawnSystem : ISystem
             switch (projectTileSpawn.ValueRO.projectTileType)
             {
                 case Enum.ProjectTileType.Bullet:
-                    float distance = math.distancesq(localToWorld.ValueRO.Position, projectTileSpawnShoot.ValueRO.targetPosition);
                     projectTileSpawn.ValueRW.projecTileMaxSpeed = projectTileSpawnShoot.ValueRO.projectileMaxSpeed;
                     projectTileSpawn.ValueRW.projecTileCurrentSpeed = projectTileSpawnShoot.ValueRO.projectileMaxSpeed;
-                    projectTileSpawn.ValueRW.targetDistance = distance;
+                    projectTileSpawn.ValueRW.targetDistance = math.distance(localToWorld.ValueRO.Position, projectTileSpawnShoot.ValueRO.targetPosition); ;
                     break;
                 case Enum.ProjectTileType.Missile:
+                    projectTileSpawn.ValueRW.homingTarget = projectTileSpawnShoot.ValueRO.homingTarget;
                     projectTileSpawn.ValueRW.projecTileAcceleration = projectTileSpawnShoot.ValueRO.projectileAcceleration;
                     projectTileSpawn.ValueRW.projecTileCurrentSpeed = projectTileSpawnShoot.ValueRO.projectileStartSpeed;
+                    projectTileSpawn.ValueRW.projecTileMaxSpeed = projectTileSpawnShoot.ValueRO.projectileMaxSpeed;
+                    projectTileSpawn.ValueRW.targetDistance = math.distance(localToWorld.ValueRO.Position, projectTileSpawnShoot.ValueRO.targetPosition); ;
                     break;
             }
             projectTileSpawnShoot.ValueRW.isSpawner = false;

@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5411941446477077483}
   - component: {fileID: 8149117593535990503}
+  - component: {fileID: 4561433758296577849}
   m_Layer: 0
   m_Name: PointShoot_2
   m_TagString: Untagged
@@ -51,6 +52,18 @@ MonoBehaviour:
       Data3: 654972297
       Data4: -1880936653
     Path: event:/TurretEvent_SFX/WeaponShot/WeaponShot7
+--- !u!114 &4561433758296577849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3922780325080468123}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe52b0bad13e7f46ade49b4db19559f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6481835106486034226
 GameObject:
   m_ObjectHideFlags: 0
@@ -100,15 +113,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firingPattern: 0
-  spreadAngle: 0
   gatlingRotationSpeed: 0
-  projectilePrefab: {fileID: 2803319171636174522, guid: 4b8bfbe362d0dab4ea7843181aa451df, type: 3}
-  projectileSpeed: 350
-  projectileLifetime: 0.5
-  projectileAcceleration: 0
+  projectilePrefab: {fileID: 4487581658243413398, guid: 80041ea2a62c7664bacbf55f1b83cc0b, type: 3}
+  projectileMaxLifetime: 1
   projectileMaxSpeed: 350
-  projectileUsePrediction: 0
   impactLayer: 0
+  projectileStartSpeed: 0
+  projectileAcceleration: 0
+  projectileUsePrediction: 0
+  spreadAngle: 0
 --- !u!114 &1654469822674431250
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -221,6 +234,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8400275365587537550}
   - component: {fileID: 6535823828902091602}
+  - component: {fileID: 8253295341056214689}
   m_Layer: 0
   m_Name: PointShoot_1
   m_TagString: Untagged
@@ -262,6 +276,18 @@ MonoBehaviour:
       Data3: 654972297
       Data4: -1880936653
     Path: event:/TurretEvent_SFX/WeaponShot/WeaponShot7
+--- !u!114 &8253295341056214689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7722340251731006409}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe52b0bad13e7f46ade49b4db19559f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1941890679200275665
 PrefabInstance:
   m_ObjectHideFlags: 0

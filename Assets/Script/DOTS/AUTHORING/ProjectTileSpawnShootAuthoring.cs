@@ -25,6 +25,7 @@ public struct ProjectTileSpawnShoot : IComponentData
     public float projectileAcceleration;
     public float projectileMaxSpeed;
     public float3 targetPosition;
+    public Entity homingTarget;
 }
 
 

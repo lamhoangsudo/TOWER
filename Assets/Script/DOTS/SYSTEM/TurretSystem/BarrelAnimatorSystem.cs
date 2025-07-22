@@ -117,25 +117,6 @@ partial struct BarrelAnimatorSystem : ISystem
                         Random random = barrelAnimator.random;
                         Entity entityEffect = barrelAnimator.muzzleFlashEntity;
                         EffectWeaponShoot effectWritter = _EffectWeaponShootLookUp[entityEffect];
-                        /*
-                        float startScale = 1f + random.NextFloat(-1f, 1f) * effectWritter.scaleVariance / 2f;
-                        float endScale = startScale * random.NextFloat(0.6f, 0.8f);
-                        float startLength = 1f + random.NextFloat(-1f, 1f) * effectWritter.lengthVariance / 2f;
-                        float endLength = startLength * random.NextFloat(1.75f, 3f);
-                        float randomZ = random.NextFloat(-180f, 180f);
-                        float pitch = math.clamp(barrelAnimator.sfxPitch + random.NextFloat(-1f, 1f) * 0.05f / 2f, 0.2f, 4f);
-                        float volume = math.clamp(barrelAnimator.sfxVolume + random.NextFloat(-1f, 1f) * 0.05f / 2f, 0.2f, 4f);
-                        effectWritter.startScale = startScale;
-                        effectWritter.endScale = endScale;
-                        effectWritter.startLength = startLength;
-                        effectWritter.endLength = endLength;
-                        effectWritter.sfxPitch = pitch;
-                        effectWritter.sfxVolume = volume;
-                        effectWritter.elapsedTime = effectWritter.muzzleFlashDuration;
-                        if (effectWritter.isPlayOneShot == false) effectWritter.isPlayOneShot = true;
-                        effectWritter.SpawnPosition = spawnLocalTransform.Position;
-                        effectWritter.SpawnRandomRotation = spawnLocalTransform.RotateZ(randomZ).Rotation;
-                        */
                         effectWritter = WritterEffectWeaponShootData(barrelAnimator, effectWritter, spawnLocalTransform);
                         Parent parentEntityEffectWritter = _ParentLookUp[entityEffect];
                         parentEntityEffectWritter.Value = tip.barrelTipEntity;
@@ -145,8 +126,13 @@ partial struct BarrelAnimatorSystem : ISystem
                         soundWeaponEffectShootWritter.volume = barrelAnimator.sfxVolume;
                         soundWeaponEffectShootWritter.isPlayOneShot = true;
                         barrelAnimator.flashSpawned = true;
-
+                        float3 targetPosition = _LocalTransformLookUp[weapon.targetEntity].Position;
                         ProjectTileSpawnShoot projectTileSpawnShootWritter = _ProjectTileSpawnShoot[pointShoot];
+                        if(weapon.firingPattern == Enum.WeaponFiringPattern.MissileLauncher)
+                        {
+                            projectTileSpawnShootWritter.homingTarget = weapon.targetEntity;
+                        }
+                        projectTileSpawnShootWritter.targetPosition = targetPosition;
                         projectTileSpawnShootWritter.entityProjectTilePrefab = weapon.projectilePrefab;
                         projectTileSpawnShootWritter.projectileLifetimeMax = weapon.projectileMaxLifetime;
                         projectTileSpawnShootWritter.projectileStartSpeed = weapon.projectileStartSpeed;
@@ -170,18 +156,6 @@ partial struct BarrelAnimatorSystem : ISystem
                     break;
                 case Enum.WeaponFiringPattern.Simultaneous:
                     if (!barrelAnimator.animationPlaying) break;
-                    /*
-                    float elapsedSimultaneous = ElapsedTime - barrelAnimator.lastFireTime;
-                    float progressSimultaneous = math.clamp(elapsedSimultaneous / barrelAnimator.animationDuration, 0f, 1f);
-                    ref BarrelAnimatorCurveBlob blobSimultaneous = ref barrelAnimator.curveBlob.Value;
-                    int sampleCountSimultaneous = blobSimultaneous.sampleCount;
-                    float sampleTSimultaneous = progressSimultaneous * (sampleCountSimultaneous - 1);
-                    int idx0Simultaneous = (int)math.floor(sampleTSimultaneous);
-                    int idx1Simultaneous = math.min(idx0Simultaneous + 1, sampleCountSimultaneous - 1);
-                    float fracSimultaneous = sampleTSimultaneous - idx0Simultaneous;
-                    float slideValueSimultaneous = math.lerp(blobSimultaneous.slideCurve[idx0Simultaneous], blobSimultaneous.slideCurve[idx1Simultaneous], fracSimultaneous);
-                    float rotationValueSimultaneous = math.lerp(blobSimultaneous.rotationCurve[idx0Simultaneous], blobSimultaneous.rotationCurve[idx0Simultaneous], fracSimultaneous);
-                    */
                     CaculatorSlideValueRotationValueProgress(ElapsedTime, barrelAnimator, out float progressSimultaneous, out float slideValueSimultaneous, out float rotationValueSimultaneous);
                     LocalTransform baseTransformSimultaneousWritter = _LocalTransformLookUp[barrelAnimator.barrelBaseEntity];
                     if (barrelAnimator.barrelBaseEntity != Entity.Null)
@@ -225,25 +199,6 @@ partial struct BarrelAnimatorSystem : ISystem
                             Random random = barrelAnimator.random;
                             Entity entityEffect = barrelAnimator.muzzleFlashEntity;
                             EffectWeaponShoot effectWritter = _EffectWeaponShootLookUp[entityEffect];
-                            /*
-                            float startScale = 1f + random.NextFloat(-1f, 1f) * effectWritter.scaleVariance / 2f;
-                            float endScale = startScale * random.NextFloat(0.6f, 0.8f);
-                            float startLength = 1f + random.NextFloat(-1f, 1f) * effectWritter.lengthVariance / 2f;
-                            float endLength = startLength * random.NextFloat(1.75f, 3f);
-                            float randomZ = random.NextFloat(-180f, 180f);
-                            float pitch = math.clamp(barrelAnimator.sfxPitch + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
-                            float volume = math.clamp(barrelAnimator.sfxVolume + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
-                            effectWritter.startScale = startScale;
-                            effectWritter.endScale = endScale;
-                            effectWritter.startLength = startLength;
-                            effectWritter.endLength = endLength;
-                            effectWritter.sfxPitch = pitch;
-                            effectWritter.sfxVolume = volume;
-                            effectWritter.elapsedTime = effectWritter.muzzleFlashDuration;
-                            if (effectWritter.isPlayOneShot == false) effectWritter.isPlayOneShot = true;
-                            effectWritter.SpawnPosition = spawnLocalTransform.Position;
-                            effectWritter.SpawnRandomRotation = spawnLocalTransform.RotateZ(randomZ).Rotation;
-                            */
                             effectWritter = WritterEffectWeaponShootData(barrelAnimator, effectWritter, spawnLocalTransform);
                             Parent parentEntityEffectWritter = _ParentLookUp[entityEffect];
                             parentEntityEffectWritter.Value = tipSimultaneous.barrelTipEntity;
@@ -265,7 +220,6 @@ partial struct BarrelAnimatorSystem : ISystem
                         barrelAnimator.flashSpawned = false;
                     }
                     ecb.SetComponent<LocalTransform>(sortkey, barrelAnimator.barrelBaseEntity, baseTransformSimultaneousWritter);
-
                     break;
                 case Enum.WeaponFiringPattern.Gatling:
                     float gatlingRotationFactor = barrelAnimator.curentGatlingRotation / barrelAnimator.gatlingRotationSpeed;
@@ -291,25 +245,6 @@ partial struct BarrelAnimatorSystem : ISystem
                         Random random = barrelAnimator.random;
                         Entity entityEffect = barrelAnimator.muzzleFlashEntity;
                         EffectWeaponShoot effectWritter = _EffectWeaponShootLookUp[entityEffect];
-                        /*
-                        float startScale = 1f + random.NextFloat(-1f, 1f) * effectWritter.scaleVariance / 2f;
-                        float endScale = startScale * random.NextFloat(0.6f, 0.8f);
-                        float startLength = 1f + random.NextFloat(-1f, 1f) * effectWritter.lengthVariance / 2f;
-                        float endLength = startLength * random.NextFloat(1.75f, 3f);
-                        float randomZ = random.NextFloat(-180f, 180f);
-                        float pitch = math.clamp(barrelAnimator.sfxPitch + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
-                        float volume = math.clamp(barrelAnimator.sfxVolume + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
-                        effectWritter.startScale = startScale;
-                        effectWritter.endScale = endScale;
-                        effectWritter.startLength = startLength;
-                        effectWritter.endLength = endLength;
-                        effectWritter.sfxPitch = pitch;
-                        effectWritter.sfxVolume = volume;
-                        effectWritter.elapsedTime = effectWritter.muzzleFlashDuration;
-                        if (effectWritter.isPlayOneShot == false) effectWritter.isPlayOneShot = true;
-                        effectWritter.SpawnPosition = spawnLocalTransform.Position;
-                        effectWritter.SpawnRandomRotation = spawnLocalTransform.RotateZ(randomZ).Rotation;
-                        */
                         effectWritter = WritterEffectWeaponShootData(barrelAnimator, effectWritter, spawnLocalTransform);
                         Parent parentEntityEffectWritter = _ParentLookUp[entityEffect];
                         parentEntityEffectWritter.Value = tipSimultaneous.barrelTipEntity;
@@ -329,8 +264,6 @@ partial struct BarrelAnimatorSystem : ISystem
                         projectTileSpawnShootWritter.projectileAcceleration = weapon.projectileAcceleration;
                         projectTileSpawnShootWritter.projectileStartSpeed = weapon.projectileStartSpeed;
                         projectTileSpawnShootWritter.isSpawner = true;
-
-
                         ecb.SetComponent<EffectWeaponShoot>(sortkey, entityEffect, effectWritter);
                         ecb.SetComponent<Parent>(sortkey, entityEffect, parentEntityEffectWritter);
                         ecb.SetComponent<SoundWeaponEffectShoot>(sortkey, pointShoot, soundWeaponEffectShootWritter);

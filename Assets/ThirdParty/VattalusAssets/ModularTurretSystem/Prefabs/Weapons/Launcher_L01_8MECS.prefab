@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2686974523648278481}
   - component: {fileID: 1631323823171781955}
+  - component: {fileID: 2061054534599663330}
   m_Layer: 0
   m_Name: PointShoot_4
   m_TagString: Untagged
@@ -52,6 +53,18 @@ MonoBehaviour:
       Data3: -2015793006
       Data4: -144153599
     Path: event:/TurretEvent_SFX/WeaponShot/MissileLaunch01
+--- !u!114 &2061054534599663330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1020225296779602561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe52b0bad13e7f46ade49b4db19559f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1808122326825637433
 GameObject:
   m_ObjectHideFlags: 0
@@ -62,6 +75,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4388577686221342233}
   - component: {fileID: 4505582397033480639}
+  - component: {fileID: 2322995621972337615}
   m_Layer: 0
   m_Name: PointShoot_1
   m_TagString: Untagged
@@ -104,6 +118,18 @@ MonoBehaviour:
       Data3: -2015793006
       Data4: -144153599
     Path: event:/TurretEvent_SFX/WeaponShot/MissileLaunch01
+--- !u!114 &2322995621972337615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1808122326825637433}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe52b0bad13e7f46ade49b4db19559f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2802481212719427787
 GameObject:
   m_ObjectHideFlags: 0
@@ -114,6 +140,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6971865813630269901}
   - component: {fileID: 2844113353294538999}
+  - component: {fileID: 5619462799123112631}
   m_Layer: 0
   m_Name: PointShoot_6
   m_TagString: Untagged
@@ -156,6 +183,18 @@ MonoBehaviour:
       Data3: -2015793006
       Data4: -144153599
     Path: event:/TurretEvent_SFX/WeaponShot/MissileLaunch01
+--- !u!114 &5619462799123112631
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2802481212719427787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe52b0bad13e7f46ade49b4db19559f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3173333586810403795
 GameObject:
   m_ObjectHideFlags: 0
@@ -166,6 +205,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4853414168205673924}
   - component: {fileID: 7097778345902621755}
+  - component: {fileID: 2848704791483595638}
   m_Layer: 0
   m_Name: PointShoot_8
   m_TagString: Untagged
@@ -208,6 +248,18 @@ MonoBehaviour:
       Data3: -2015793006
       Data4: -144153599
     Path: event:/TurretEvent_SFX/WeaponShot/MissileLaunch01
+--- !u!114 &2848704791483595638
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3173333586810403795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe52b0bad13e7f46ade49b4db19559f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4306990517035342672
 GameObject:
   m_ObjectHideFlags: 0
@@ -218,6 +270,7 @@ GameObject:
   m_Component:
   - component: {fileID: 30025849514076741}
   - component: {fileID: 5362414401642217099}
+  - component: {fileID: 899008447630627540}
   m_Layer: 0
   m_Name: PointShoot_5
   m_TagString: Untagged
@@ -260,6 +313,18 @@ MonoBehaviour:
       Data3: -2015793006
       Data4: -144153599
     Path: event:/TurretEvent_SFX/WeaponShot/MissileLaunch01
+--- !u!114 &899008447630627540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4306990517035342672}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe52b0bad13e7f46ade49b4db19559f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5057590968318530381
 GameObject:
   m_ObjectHideFlags: 0
@@ -322,6 +387,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2305645058069039259}
   - component: {fileID: 2314577796844608002}
+  - component: {fileID: 8550315729038828977}
   m_Layer: 0
   m_Name: PointShoot_2
   m_TagString: Untagged
@@ -364,6 +430,18 @@ MonoBehaviour:
       Data3: -2015793006
       Data4: -144153599
     Path: event:/TurretEvent_SFX/WeaponShot/MissileLaunch01
+--- !u!114 &8550315729038828977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5397296707077428873}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe52b0bad13e7f46ade49b4db19559f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5892907340176562546
 GameObject:
   m_ObjectHideFlags: 0
@@ -374,6 +452,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4601570501244132199}
   - component: {fileID: 4591001925392338781}
+  - component: {fileID: 7327801368407994215}
   m_Layer: 0
   m_Name: PointShoot_3
   m_TagString: Untagged
@@ -416,6 +495,18 @@ MonoBehaviour:
       Data3: -2015793006
       Data4: -144153599
     Path: event:/TurretEvent_SFX/WeaponShot/MissileLaunch01
+--- !u!114 &7327801368407994215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5892907340176562546}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe52b0bad13e7f46ade49b4db19559f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6000678163191790768
 GameObject:
   m_ObjectHideFlags: 0
@@ -426,6 +517,7 @@ GameObject:
   m_Component:
   - component: {fileID: 432747877467182443}
   - component: {fileID: 4472798965318669657}
+  - component: {fileID: 4729029365523191349}
   m_Layer: 0
   m_Name: PointShoot_7
   m_TagString: Untagged
@@ -468,6 +560,18 @@ MonoBehaviour:
       Data3: -2015793006
       Data4: -144153599
     Path: event:/TurretEvent_SFX/WeaponShot/MissileLaunch01
+--- !u!114 &4729029365523191349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6000678163191790768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe52b0bad13e7f46ade49b4db19559f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6836354282534631581
 GameObject:
   m_ObjectHideFlags: 0
@@ -517,15 +621,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firingPattern: 3
-  spreadAngle: 0
   gatlingRotationSpeed: 0
-  projectilePrefab: {fileID: 708610523296216716, guid: 8c333ae8e12d29a48aae422ac3a4c809, type: 3}
-  projectileSpeed: 5
-  projectileLifetime: 3
-  projectileAcceleration: 30
-  projectileMaxSpeed: 150
-  projectileUsePrediction: 0
+  projectilePrefab: {fileID: 708610523296216716, guid: 4c1b075a10b66e14bb8fdbcab9cc8bee, type: 3}
+  projectileMaxLifetime: 5
+  projectileMaxSpeed: 10
   impactLayer: 0
+  projectileStartSpeed: 10
+  projectileAcceleration: 0
+  projectileUsePrediction: 0
+  spreadAngle: 0
 --- !u!114 &5308959467167847902
 MonoBehaviour:
   m_ObjectHideFlags: 0

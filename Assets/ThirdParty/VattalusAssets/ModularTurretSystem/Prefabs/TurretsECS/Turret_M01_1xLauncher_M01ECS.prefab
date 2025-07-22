@@ -135,7 +135,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: e8b02bb4f1ec68c45bf5449063282412, type: 3}
+  m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: e8b02bb4f1ec68c45bf5449063282412, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
@@ -277,7 +277,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2750256103807593709}
   - component: {fileID: 1785189725009283049}
-  - component: {fileID: 5284989468087644344}
   m_Layer: 0
   m_Name: Turret_M01_1xLauncher_M01ECS
   m_TagString: Untagged
@@ -327,31 +326,11 @@ MonoBehaviour:
   elevationLimited: 0
   headingPivot: {fileID: 2750256102390559058}
   elevationPivot: {fileID: 2750256102314724445}
-  currentHeading: 0
-  currentElevation: 0
-  currentHeadingSpeed: 0
-  currentElevationSpeed: 0
   target: {fileID: 0}
   useTargetPrediction: 0
   autoFire: 1
   targetAquiredAngle: 25
   resetOrientation: 1
-  SFX_Heading: {fileID: 2750256103648461638}
-  SFX_Elevation: {fileID: 2750256103864162185}
-  weapons:
-  - {fileID: 247392956482713518}
---- !u!114 &5284989468087644344
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2750256103807593698}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2750256103864162185
 GameObject:
   m_ObjectHideFlags: 0
@@ -394,7 +373,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 5f552150df10c7640b99c2a96db8db32, type: 3}
+  m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 5f552150df10c7640b99c2a96db8db32, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
@@ -829,10 +808,5 @@ PrefabInstance:
 --- !u!4 &247392956482713517 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8306284441487448002, guid: cf00af85315dfcc4f91abf5fcdc8b8e8, type: 3}
-  m_PrefabInstance: {fileID: 8082610193090961519}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &247392956482713518 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8306284441487448001, guid: cf00af85315dfcc4f91abf5fcdc8b8e8, type: 3}
   m_PrefabInstance: {fileID: 8082610193090961519}
   m_PrefabAsset: {fileID: 0}
