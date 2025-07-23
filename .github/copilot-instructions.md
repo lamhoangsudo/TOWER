@@ -2,7 +2,7 @@
 - Project name: TOWER
 - Unity version: Unity 6000.1.12f1
 - Active game object:
-  - Name: Turret_L01_1xLauncher_L01_8MECS
+  - Name: Projectile_Missile_MECS
   - Tag: Untagged
   - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

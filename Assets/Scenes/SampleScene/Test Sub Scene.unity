@@ -127,6 +127,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1102219620801199296, guid: 175d2f05d99ed3847965eb6ea6c31462, type: 3}
+      propertyPath: projectileMaxSpeed
+      value: 300
+      objectReference: {fileID: 0}
+    - target: {fileID: 1102219620801199296, guid: 175d2f05d99ed3847965eb6ea6c31462, type: 3}
+      propertyPath: projectileMaxLifetime
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1102219620801199296, guid: 175d2f05d99ed3847965eb6ea6c31462, type: 3}
+      propertyPath: projectileAcceleration
+      value: 50
+      objectReference: {fileID: 0}
     - target: {fileID: 4969473682298969666, guid: 175d2f05d99ed3847965eb6ea6c31462, type: 3}
       propertyPath: m_Name
       value: Turret_L01_1xLauncher_L01_8MECS

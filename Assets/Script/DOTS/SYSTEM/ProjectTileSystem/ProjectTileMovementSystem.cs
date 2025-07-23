@@ -1,4 +1,5 @@
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -13,38 +14,47 @@ partial struct ProjectTileMovementSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        foreach ((RefRW<LocalTransform> localTransform, RefRW<ProjecTile> projecTile) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<ProjecTile>>())
+        ProjectTileMovementJob projectTileMovementJob = new()
         {
-            switch (projecTile.ValueRO.projectTileType)
-            {
-                case Enum.ProjectTileType.Bullet:
-                    localTransform.ValueRW.Position += projecTile.ValueRO.projecTileCurrentSpeed * SystemAPI.Time.DeltaTime * localTransform.ValueRO.Forward();
-                    break;
-                case Enum.ProjectTileType.Missile:
-                    projecTile.ValueRW.projecTileCurrentSpeed = projecTile.ValueRO.projecTileCurrentSpeed + projecTile.ValueRO.projecTileAcceleration * SystemAPI.Time.DeltaTime;
-                    projecTile.ValueRW.projecTileCurrentSpeed = math.clamp(projecTile.ValueRO.projecTileCurrentSpeed, 0f, projecTile.ValueRO.projecTileMaxSpeed);
-                    localTransform.ValueRW.Position += projecTile.ValueRO.projecTileCurrentSpeed * SystemAPI.Time.DeltaTime * localTransform.ValueRO.Forward();
-                    if (projecTile.ValueRO.homingTarget != Entity.Null)
-                    {
-                        LocalTransform localTransformTarget = SystemAPI.GetComponent<LocalTransform>(projecTile.ValueRO.homingTarget);
-                        projecTile.ValueRW.direction = localTransformTarget.Position - localTransform.ValueRO.Position;
-                        projecTile.ValueRW.dot = math.clamp(math.dot(math.normalizesafe(localTransform.ValueRO.Forward()), math.normalizesafe(projecTile.ValueRO.direction)), -1f, 1f);
-                        projecTile.ValueRW.angle = math.acos(projecTile.ValueRO.dot);
-                        UnityEngine.Debug.DrawLine(localTransform.ValueRO.Position, localTransformTarget.Position);
-                        if (projecTile.ValueRO.angle < 1e-5f) continue;
-                        projecTile.ValueRW.timeRotation = math.min(1f, (math.radians(projecTile.ValueRO.homingSpeed) * SystemAPI.Time.DeltaTime) / projecTile.ValueRO.angle);
-                        float3 newDirection = math.normalizesafe(math.lerp(localTransform.ValueRO.Forward(), projecTile.ValueRO.direction, projecTile.ValueRO.timeRotation));
-                        localTransform.ValueRW.Rotation = math.slerp(localTransform.ValueRO.Rotation, quaternion.LookRotationSafe(projecTile.ValueRO.direction, math.up()), projecTile.ValueRO.timeRotation);
-                        UnityEngine.Debug.DrawLine(localTransform.ValueRO.Position, localTransform.ValueRO.Position + localTransform.ValueRO.Forward() * 5f);
-                    }
-                    break;
-            }
-        }
+            DeltaTime = SystemAPI.Time.DeltaTime,
+            localTransformTargetLookUp = SystemAPI.GetComponentLookup<LocalTransform>(isReadOnly: true),
+        };
+        projectTileMovementJob.ScheduleParallel();
     }
 
     [BurstCompile]
     public void OnDestroy(ref SystemState state)
     {
 
+    }
+    [BurstCompile]
+    public partial struct ProjectTileMovementJob : IJobEntity
+    {
+        public float DeltaTime;
+        [ReadOnly] public ComponentLookup<LocalTransform> localTransformTargetLookUp;
+        public void Execute(ref LocalTransform localTransform, ref ProjecTile projecTile)
+        {
+            switch (projecTile.projectTileType)
+            {
+                case Enum.ProjectTileType.Bullet:
+                    localTransform.Position += projecTile.projecTileCurrentSpeed * DeltaTime * localTransform.Forward();
+                    break;
+                case Enum.ProjectTileType.Missile:
+                    projecTile.projecTileCurrentSpeed = projecTile.projecTileCurrentSpeed + projecTile.projecTileAcceleration * DeltaTime;
+                    projecTile.projecTileCurrentSpeed = math.clamp(projecTile.projecTileCurrentSpeed, 0f, projecTile.projecTileMaxSpeed);
+                    localTransform.Position += projecTile.projecTileCurrentSpeed *  DeltaTime * localTransform.Forward();
+                    if (projecTile.homingTarget != Entity.Null)
+                    {
+                        LocalTransform localTransformTarget = localTransformTargetLookUp[projecTile.homingTarget];
+                        projecTile.direction = localTransformTarget.Position - localTransform.Position;
+                        projecTile.dot = math.clamp(math.dot(math.normalizesafe(localTransform.Forward()), math.normalizesafe(projecTile.direction)), -1f, 1f);
+                        projecTile.angle = math.acos(projecTile.dot);
+                        if (projecTile.angle < 1e-5f) return;
+                        projecTile.timeRotation = math.min(1f, (math.radians(projecTile.homingSpeed) * DeltaTime) / projecTile.angle);
+                        localTransform.Rotation = math.slerp(localTransform.Rotation, quaternion.LookRotationSafe(projecTile.direction, math.up()), projecTile.timeRotation);
+                    }
+                    break;
+            }
+        }
     }
 }
