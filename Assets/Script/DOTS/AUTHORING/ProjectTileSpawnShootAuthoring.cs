@@ -20,6 +20,7 @@ public struct ProjectTileSpawnShoot : IComponentData
     public Enum.WeaponFiringPattern firingPattern;
     public bool isSpawner;
     public Entity entityProjectTilePrefab;
+    public Entity entityProjectTileExplosion;
     public float projectileStartSpeed;
     public float projectileLifetimeMax;
     public float projectileAcceleration;

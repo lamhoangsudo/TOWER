@@ -33,7 +33,7 @@ public struct ProjecTile : IComponentData
     public float targetDistance;
     public bool usePrediction;
     public int impactLayer;
-    public Entity projectileGO;
+    public Entity projectileExplosion;
     public Enum.ProjectTileType projectTileType;
     public float timeDelayRayMax;
     public float timeDelayRay;

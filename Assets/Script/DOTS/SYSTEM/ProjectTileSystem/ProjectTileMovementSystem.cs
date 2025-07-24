@@ -1,25 +1,31 @@
 using Unity.Burst;
+using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 partial struct ProjectTileMovementSystem : ISystem
 {
+    private EntityQuery queryProjectTileMovementJobChunk;
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-
+        queryProjectTileMovementJobChunk = SystemAPI.QueryBuilder().WithAll<LocalTransform, ProjecTile>().Build();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        ProjectTileMovementJob projectTileMovementJob = new()
+        ProjectTileMovementJobChunk projectTileMovementJobChunk = new()
         {
             DeltaTime = SystemAPI.Time.DeltaTime,
-            localTransformTargetLookUp = SystemAPI.GetComponentLookup<LocalTransform>(isReadOnly: true),
+            localTransformHandle = SystemAPI.GetComponentTypeHandle<LocalTransform>(isReadOnly: false),
+            projecTileHandle = SystemAPI.GetComponentTypeHandle<ProjecTile>(isReadOnly: false),
+            localToWorldLookUp = SystemAPI.GetComponentLookup<LocalToWorld>(isReadOnly: true),
         };
-        projectTileMovementJob.ScheduleParallel();
+        JobHandle projectTileMovementJobHandle = projectTileMovementJobChunk.Schedule(queryProjectTileMovementJobChunk, state.Dependency);
+        state.Dependency = projectTileMovementJobHandle;
     }
 
     [BurstCompile]
@@ -28,32 +34,46 @@ partial struct ProjectTileMovementSystem : ISystem
 
     }
     [BurstCompile]
-    public partial struct ProjectTileMovementJob : IJobEntity
+    public partial struct ProjectTileMovementJobChunk : IJobChunk
     {
         public float DeltaTime;
-        [ReadOnly] public ComponentLookup<LocalTransform> localTransformTargetLookUp;
-        public void Execute(ref LocalTransform localTransform, ref ProjecTile projecTile)
+        public ComponentTypeHandle<LocalTransform> localTransformHandle;
+        public ComponentTypeHandle<ProjecTile> projecTileHandle;
+        [ReadOnly] public ComponentLookup<LocalToWorld> localToWorldLookUp;
+        public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
         {
-            switch (projecTile.projectTileType)
+            NativeArray<LocalTransform> localTransforms = chunk.GetNativeArray(ref localTransformHandle);
+            NativeArray<ProjecTile> projecTiles = chunk.GetNativeArray(ref projecTileHandle);
+            for (int i = 0; i < chunk.Count; i++)
             {
-                case Enum.ProjectTileType.Bullet:
-                    localTransform.Position += projecTile.projecTileCurrentSpeed * DeltaTime * localTransform.Forward();
-                    break;
-                case Enum.ProjectTileType.Missile:
-                    projecTile.projecTileCurrentSpeed = projecTile.projecTileCurrentSpeed + projecTile.projecTileAcceleration * DeltaTime;
-                    projecTile.projecTileCurrentSpeed = math.clamp(projecTile.projecTileCurrentSpeed, 0f, projecTile.projecTileMaxSpeed);
-                    localTransform.Position += projecTile.projecTileCurrentSpeed *  DeltaTime * localTransform.Forward();
-                    if (projecTile.homingTarget != Entity.Null)
-                    {
-                        LocalTransform localTransformTarget = localTransformTargetLookUp[projecTile.homingTarget];
-                        projecTile.direction = localTransformTarget.Position - localTransform.Position;
-                        projecTile.dot = math.clamp(math.dot(math.normalizesafe(localTransform.Forward()), math.normalizesafe(projecTile.direction)), -1f, 1f);
-                        projecTile.angle = math.acos(projecTile.dot);
-                        if (projecTile.angle < 1e-5f) return;
-                        projecTile.timeRotation = math.min(1f, (math.radians(projecTile.homingSpeed) * DeltaTime) / projecTile.angle);
-                        localTransform.Rotation = math.slerp(localTransform.Rotation, quaternion.LookRotationSafe(projecTile.direction, math.up()), projecTile.timeRotation);
-                    }
-                    break;
+                LocalTransform localTransformWritter = localTransforms[i];
+                ProjecTile projecTileWritter = projecTiles[i];
+                switch (projecTiles[i].projectTileType)
+                {
+                    case Enum.ProjectTileType.Bullet:
+                        localTransformWritter.Position += projecTileWritter.projecTileCurrentSpeed * DeltaTime * localTransformWritter.Forward();
+                        localTransforms[i] = localTransformWritter;
+                        break;
+                    case Enum.ProjectTileType.Missile:
+                        projecTileWritter.projecTileCurrentSpeed = projecTileWritter.projecTileCurrentSpeed + projecTileWritter.projecTileAcceleration * DeltaTime;
+                        projecTileWritter.projecTileCurrentSpeed = math.clamp(projecTileWritter.projecTileCurrentSpeed, 0f, projecTileWritter.projecTileMaxSpeed);
+                        localTransformWritter.Position += projecTileWritter.projecTileCurrentSpeed * DeltaTime * localTransformWritter.Forward();
+                        if (projecTileWritter.homingTarget != Entity.Null)
+                        {
+
+                            projecTileWritter.direction = localToWorldLookUp[projecTileWritter.homingTarget].Position - localTransformWritter.Position;
+                            projecTileWritter.dot = math.clamp(math.dot(math.normalizesafe(localTransformWritter.Forward()), math.normalizesafe(projecTileWritter.direction)), -1f, 1f);
+                            projecTileWritter.angle = math.acos(projecTileWritter.dot);
+                            if (projecTileWritter.angle > 1e-5f)
+                            {
+                                projecTileWritter.timeRotation = math.min(1f, (math.radians(projecTileWritter.homingSpeed) * DeltaTime) / projecTileWritter.angle);
+                                localTransformWritter.Rotation = math.slerp(localTransformWritter.Rotation, quaternion.LookRotationSafe(projecTileWritter.direction, math.up()), projecTileWritter.timeRotation);
+                            }
+                        }
+                        projecTiles[i] = projecTileWritter;
+                        localTransforms[i] = localTransformWritter;
+                        break;
+                }
             }
         }
     }

@@ -133,7 +133,9 @@ partial struct BarrelAnimatorSystem : ISystem
                             projectTileSpawnShootWritter.homingTarget = weapon.targetEntity;
                         }
                         projectTileSpawnShootWritter.targetPosition = targetPosition;
+                        projectTileSpawnShootWritter.firingPattern = weapon.firingPattern;
                         projectTileSpawnShootWritter.entityProjectTilePrefab = weapon.projectilePrefab;
+                        projectTileSpawnShootWritter.entityProjectTileExplosion = weapon.explosionPrefab;
                         projectTileSpawnShootWritter.projectileLifetimeMax = weapon.projectileMaxLifetime;
                         projectTileSpawnShootWritter.projectileStartSpeed = weapon.projectileStartSpeed;
                         projectTileSpawnShootWritter.projectileMaxSpeed = weapon.projectileMaxSpeed;
@@ -257,6 +259,7 @@ partial struct BarrelAnimatorSystem : ISystem
                         float3 targetPosition = _LocalTransformLookUp[weapon.targetEntity].Position;
                         ProjectTileSpawnShoot projectTileSpawnShootWritter = _ProjectTileSpawnShoot[pointShoot];
                         projectTileSpawnShootWritter.targetPosition = targetPosition;
+                        projectTileSpawnShootWritter.firingPattern = weapon.firingPattern;
                         projectTileSpawnShootWritter.entityProjectTilePrefab = weapon.projectilePrefab;
                         projectTileSpawnShootWritter.projectileLifetimeMax = weapon.projectileMaxLifetime;
                         projectTileSpawnShootWritter.projectileStartSpeed = weapon.projectileStartSpeed;

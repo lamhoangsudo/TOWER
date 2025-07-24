@@ -128,6 +128,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1102219620801199296, guid: 175d2f05d99ed3847965eb6ea6c31462, type: 3}
+      propertyPath: explosionPrefab
+      value: 
+      objectReference: {fileID: 8600694648037937677, guid: 98a5255269153144cab0dffae69098cc, type: 3}
+    - target: {fileID: 1102219620801199296, guid: 175d2f05d99ed3847965eb6ea6c31462, type: 3}
       propertyPath: projectileMaxSpeed
       value: 300
       objectReference: {fileID: 0}

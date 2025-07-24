@@ -8,6 +8,7 @@ public class WeaponAuthoring : MonoBehaviour
     public float gatlingRotationSpeed;
     [Header("Projec Tile Set Up")]
     public GameObject projectilePrefab;
+    public GameObject explosionPrefab;
     public float projectileMaxLifetime;
     public float projectileMaxSpeed;
     public int impactLayer;
@@ -29,6 +30,7 @@ public class WeaponAuthoring : MonoBehaviour
                 spreadAngle = authoring.spreadAngle,
                 gatlingRotationSpeed = authoring.gatlingRotationSpeed,
                 projectilePrefab = GetEntity(authoring.projectilePrefab, TransformUsageFlags.Dynamic),
+                explosionPrefab = GetEntity(authoring.explosionPrefab, TransformUsageFlags.Dynamic),
                 projectileStartSpeed = authoring.projectileStartSpeed,
                 projectileMaxLifetime = authoring.projectileMaxLifetime,
                 projectileAcceleration = authoring.projectileAcceleration,
@@ -47,6 +49,7 @@ public struct Weapon : IComponentData
     public float gatlingRotationSpeed;
     public Entity targetEntity;
     public Entity projectilePrefab;
+    public Entity explosionPrefab;
     public float projectileStartSpeed;
     public float projectileMaxLifetime;
     public float projectileAcceleration;

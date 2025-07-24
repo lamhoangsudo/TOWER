@@ -5,7 +5,6 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
-using Unity.VisualScripting;
 partial struct ProjectTileCollisionSystem : ISystem
 {
     private CollisionFilter collisionFilter;
@@ -102,6 +101,7 @@ partial struct ProjectTileCollisionSystem : ISystem
             targetTargetLookup = SystemAPI.GetComponentLookup<Target>(isReadOnly: true),
         };
         JobHandle projectTileCollisionJobHandle = projectTileCollisionJob.ScheduleParallel(state.Dependency);
+        projectTileCollisionJobHandle.Complete();
         ecb.Playback(state.EntityManager);
         ecb.Dispose();
     }
@@ -112,11 +112,11 @@ partial struct ProjectTileCollisionSystem : ISystem
 
     }
     [BurstCompile]
-    public partial struct ProjectTileCollisionJob :IJobEntity
+    public partial struct ProjectTileCollisionJob : IJobEntity
     {
         [ReadOnly] public ComponentLookup<LocalTransform> targetLocalTransformLookup;
         [ReadOnly] public ComponentLookup<Target> targetTargetLookup;
-        public CollisionWorld collisionWorld;
+        [ReadOnly] public CollisionWorld collisionWorld;
         public EntityCommandBuffer.ParallelWriter ecb;
         public float DeltaTime;
         private CollisionFilter collisionFilter;
@@ -161,7 +161,7 @@ partial struct ProjectTileCollisionSystem : ISystem
                     float distanceTarget = math.distance(missilePosition, targetPosition);
                     if (projecTile.timeDelayRayMax == 0)
                     {
-                        projecTile.timeDelayRayMax = distanceTarget / (projecTile.projecTileMaxSpeed);
+                        projecTile.timeDelayRayMax = distanceTarget / (projecTile.projecTileMaxSpeed * 120f);
                         projecTile.timeDelayRay = projecTile.timeDelayRayMax;
                     }
                     projecTile.timeDelayRay -= DeltaTime;
@@ -182,6 +182,13 @@ partial struct ProjectTileCollisionSystem : ISystem
                     {
                         if (targetTargetLookup.HasComponent(raycastHit.Entity))
                         {
+                            Entity projectileExplosionEntity = ecb.Instantiate(sortkey, projecTile.projectileExplosion);
+                            ecb.SetComponent<LocalTransform>(sortkey, projectileExplosionEntity, new LocalTransform
+                            {
+                                Position = raycastHit.Position,
+                                Rotation = quaternion.identity,
+                                Scale = 1f,
+                            });
                             ecb.DestroyEntity(sortkey, entity);
                         }
                     }
