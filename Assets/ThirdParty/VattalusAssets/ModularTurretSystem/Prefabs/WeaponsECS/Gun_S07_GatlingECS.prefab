@@ -167,6 +167,7 @@ MonoBehaviour:
   firingPattern: 2
   gatlingRotationSpeed: 1800
   projectilePrefab: {fileID: 4487581658243413398, guid: 80041ea2a62c7664bacbf55f1b83cc0b, type: 3}
+  explosionPrefab: {fileID: 8600694648037937677, guid: 98a5255269153144cab0dffae69098cc, type: 3}
   projectileMaxLifetime: 1
   projectileMaxSpeed: 300
   impactLayer: 0
@@ -196,9 +197,6 @@ MonoBehaviour:
   baseSlideDistance: 0
   tipSlideAmountDistance: 0
   tipRotateDegrees: 0
-  lastFireTime: 0
-  animationPlaying: 0
-  tipRotationAtFire: 0
   slideCurve:
     serializedVersion: 2
     m_Curve:

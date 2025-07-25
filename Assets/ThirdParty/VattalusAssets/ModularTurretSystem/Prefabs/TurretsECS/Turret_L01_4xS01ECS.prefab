@@ -78,9 +78,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firingPattern: 0
-  burstCountMax: 4
-  burstDelayMax: 0.2
-  cooldownMax: 2
+  burstCountMax: 2
+  burstDelayMax: 0.01
+  cooldownMax: 0.1
   weaponAuthorings:
   - {fileID: 8636048361280447530}
   - {fileID: 1206139999703493019}
@@ -315,6 +315,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2661673623025477054, guid: 04dc3931346f8dd49b9e177710bef5d9, type: 3}
+      propertyPath: burstDelayMax
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5218029975342875723, guid: 04dc3931346f8dd49b9e177710bef5d9, type: 3}
+      propertyPath: animationDuration
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6036916119428695026, guid: 04dc3931346f8dd49b9e177710bef5d9, type: 3}
+      propertyPath: explosionPrefab
+      value: 
+      objectReference: {fileID: 8600694648037937677, guid: 98a5255269153144cab0dffae69098cc, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -387,6 +399,14 @@ PrefabInstance:
     - target: {fileID: 2551423239659318229, guid: 04dc3931346f8dd49b9e177710bef5d9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2661673623025477054, guid: 04dc3931346f8dd49b9e177710bef5d9, type: 3}
+      propertyPath: burstDelayMax
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5218029975342875723, guid: 04dc3931346f8dd49b9e177710bef5d9, type: 3}
+      propertyPath: animationDuration
+      value: 0.2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -564,6 +584,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2661673623025477054, guid: 04dc3931346f8dd49b9e177710bef5d9, type: 3}
+      propertyPath: burstDelayMax
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5218029975342875723, guid: 04dc3931346f8dd49b9e177710bef5d9, type: 3}
+      propertyPath: animationDuration
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6036916119428695026, guid: 04dc3931346f8dd49b9e177710bef5d9, type: 3}
+      propertyPath: explosionPrefab
+      value: 
+      objectReference: {fileID: 8600694648037937677, guid: 98a5255269153144cab0dffae69098cc, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -789,6 +821,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2661673623025477054, guid: 04dc3931346f8dd49b9e177710bef5d9, type: 3}
+      propertyPath: burstDelayMax
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5218029975342875723, guid: 04dc3931346f8dd49b9e177710bef5d9, type: 3}
+      propertyPath: animationDuration
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6036916119428695026, guid: 04dc3931346f8dd49b9e177710bef5d9, type: 3}
+      propertyPath: explosionPrefab
+      value: 
+      objectReference: {fileID: 8600694648037937677, guid: 98a5255269153144cab0dffae69098cc, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

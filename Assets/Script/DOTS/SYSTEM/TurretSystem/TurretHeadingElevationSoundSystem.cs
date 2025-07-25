@@ -15,52 +15,6 @@ partial struct TurretHeadingElevationSoundSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        #region old code
-        /*
-        foreach (RefRO<Turret> turret in SystemAPI.Query<RefRO<Turret>>())
-        {
-            RefRW<SFX_Elevation> audioSourceHeadingSFX = SystemAPI.GetComponentRW<SFX_Elevation>(turret.ValueRO.SFX_HeadingEntity);
-            RefRW<SFX_Elevation> audioSourceElevationSFX = SystemAPI.GetComponentRW<SFX_Elevation>(turret.ValueRO.SFX_ElevationEntity);
-            #region heading
-            Unity.Mathematics.Random randomHeadingSFX = audioSourceHeadingSFX.ValueRO.random;
-            if (headingRotationSFXInitialPitch == 0) headingRotationSFXInitialPitch = audioSourceHeadingSFX.ValueRO.headingRotationSFXInitialPitch * randomHeadingSFX.NextFloat(0.95f, 1.05f);
-            audioSourceHeadingSFX.ValueRW.random = randomHeadingSFX;
-
-            if (turret.ValueRO.IsHeadingRotationSFX)
-            {
-                if (!audioSourceHeadingSFX.ValueRO.isPlaying) audioSourceHeadingSFX.ValueRW.isPlaying = true;
-                audioSourceHeadingSFX.ValueRW.headingRotationSFXInitialPitch = Mathf.Lerp(headingRotationSFXInitialPitch * 0.8f, headingRotationSFXInitialPitch, turret.ValueRO.headingSpeedFactor);
-                audioSourceHeadingSFX.ValueRW.headingRotationSFXInitialVolume = Mathf.Lerp(0f, 1f, turret.ValueRO.headingSpeedFactor);
-            }
-            else
-            {
-                if (audioSourceHeadingSFX.ValueRO.isPlaying)
-                {
-                    audioSourceHeadingSFX.ValueRW.isPlaying = false;
-                }
-            }
-            #endregion
-            #region elevation
-            Unity.Mathematics.Random randomElevationSFX = audioSourceElevationSFX.ValueRO.random;
-            if (GatlingSpinSFXInitialPitch == 0) GatlingSpinSFXInitialPitch = audioSourceElevationSFX.ValueRO.GatlingSpinSFXInitialPitch * randomElevationSFX.NextFloat(0.95f, 1.05f);
-            audioSourceElevationSFX.ValueRW.random = randomElevationSFX;
-            if (turret.ValueRO.IsElevationRotationSFX)
-            {
-                if (!audioSourceElevationSFX.ValueRO.isPlaying) audioSourceElevationSFX.ValueRW.isPlaying = true;
-                audioSourceElevationSFX.ValueRW.GatlingSpinSFXInitialPitch = Mathf.Lerp(GatlingSpinSFXInitialPitch * 0.8f, GatlingSpinSFXInitialPitch, turret.ValueRO.elevationSpeedFactor);
-                audioSourceElevationSFX.ValueRW.GatlingSpinSFXInitialVolume = Mathf.Lerp(0f, 1f, turret.ValueRO.elevationSpeedFactor);
-            }
-            else
-            {
-                if (audioSourceElevationSFX.ValueRO.isPlaying)
-                {
-                    audioSourceElevationSFX.ValueRW.isPlaying = false;
-                }
-            }
-            #endregion
-        }
-        */
-        #endregion
         #region new code
         TurretHeadingSoundJob turretHeadingSoundJob = new()
         {

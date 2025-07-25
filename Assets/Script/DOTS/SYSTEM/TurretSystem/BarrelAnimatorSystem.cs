@@ -261,6 +261,7 @@ partial struct BarrelAnimatorSystem : ISystem
                         projectTileSpawnShootWritter.targetPosition = targetPosition;
                         projectTileSpawnShootWritter.firingPattern = weapon.firingPattern;
                         projectTileSpawnShootWritter.entityProjectTilePrefab = weapon.projectilePrefab;
+                        projectTileSpawnShootWritter.entityProjectTileExplosion = weapon.explosionPrefab;
                         projectTileSpawnShootWritter.projectileLifetimeMax = weapon.projectileMaxLifetime;
                         projectTileSpawnShootWritter.projectileStartSpeed = weapon.projectileStartSpeed;
                         projectTileSpawnShootWritter.projectileMaxSpeed = weapon.projectileMaxSpeed;

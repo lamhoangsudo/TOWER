@@ -383,8 +383,20 @@ PrefabInstance:
     m_TransformParent: {fileID: 4969473683420496669}
     m_Modifications:
     - target: {fileID: 5207522535755748663, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
+      propertyPath: explosionPrefab
+      value: 
+      objectReference: {fileID: 8600694648037937677, guid: 98a5255269153144cab0dffae69098cc, type: 3}
+    - target: {fileID: 5207522535755748663, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
+      propertyPath: projectileMaxSpeed
+      value: 300
+      objectReference: {fileID: 0}
+    - target: {fileID: 5207522535755748663, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
+      propertyPath: projectileMaxLifetime
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5207522535755748663, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
       propertyPath: projectileAcceleration
-      value: 5
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 6836354282534631581, guid: 98e7121c03680da419ecead0149a0d04, type: 3}
       propertyPath: m_Name

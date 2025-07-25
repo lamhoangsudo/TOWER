@@ -19,77 +19,6 @@ partial struct ProjectTileCollisionSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        /*
-        CollisionWorld collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
-        EntityCommandBuffer ecb = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
-        foreach ((RefRW<ProjecTile> projecTile, RefRO<LocalTransform> localTransform, Entity entity) in SystemAPI.Query<RefRW<ProjecTile>, RefRO<LocalTransform>>().WithEntityAccess())
-        {
-            switch (projecTile.ValueRO.projectTileType)
-            {
-                case Enum.ProjectTileType.Bullet:
-                    if (projecTile.ValueRO.timeDelayRayMax == 0)
-                    {
-                        projecTile.ValueRW.timeDelayRayMax = projecTile.ValueRO.targetDistance / (projecTile.ValueRO.projecTileCurrentSpeed);
-                        projecTile.ValueRW.timeDelayRay = projecTile.ValueRW.timeDelayRayMax;
-                    }
-                    projecTile.ValueRW.timeDelayRay -= SystemAPI.Time.DeltaTime;
-                    if (projecTile.ValueRO.timeDelayRay > 0) continue;
-                    collisionFilter = new()
-                    {
-                        BelongsTo = ~0u,
-                        CollidesWith = ~0u,
-                        GroupIndex = 0,
-                    };
-                    raycastInput = new()
-                    {
-                        Start = localTransform.ValueRO.Position,
-                        End = localTransform.ValueRO.Position + projecTile.ValueRO.projecTileCurrentSpeed * SystemAPI.Time.DeltaTime * localTransform.ValueRO.Forward(),
-                        Filter = collisionFilter,
-                    };
-                    if (collisionWorld.CastRay(raycastInput, out raycastHit))
-                    {
-                        if (SystemAPI.HasComponent<Target>(raycastHit.Entity))
-                        {
-                            ecb.DestroyEntity(entity);
-                        }
-                    }
-                    projecTile.ValueRW.timeDelayRay = projecTile.ValueRW.timeDelayRayMax;
-                    break;
-                case Enum.ProjectTileType.Missile:
-                    float3 missilePosition = localTransform.ValueRO.Position;
-                    float3 targetPosition = SystemAPI.GetComponent<LocalTransform>(projecTile.ValueRO.homingTarget).Position;
-                    float distanceTarget = math.distance(missilePosition, targetPosition);
-                    if (projecTile.ValueRO.timeDelayRayMax == 0)
-                    {
-                        projecTile.ValueRW.timeDelayRayMax = distanceTarget / (projecTile.ValueRO.projecTileMaxSpeed);
-                        projecTile.ValueRW.timeDelayRay = projecTile.ValueRW.timeDelayRayMax;
-                    }
-                    projecTile.ValueRW.timeDelayRay -= SystemAPI.Time.DeltaTime;
-                    if (projecTile.ValueRO.timeDelayRay > 0) continue;
-                    collisionFilter = new()
-                    {
-                        BelongsTo = ~0u,
-                        CollidesWith = ~0u,
-                        GroupIndex = 0,
-                    };
-                    raycastInput = new()
-                    {
-                        Start = localTransform.ValueRO.Position,
-                        End = localTransform.ValueRO.Position + projecTile.ValueRO.projecTileCurrentSpeed * SystemAPI.Time.DeltaTime * localTransform.ValueRO.Forward(),
-                        Filter = collisionFilter,
-                    };
-                    if (collisionWorld.CastRay(raycastInput, out raycastHit))
-                    {
-                        if (SystemAPI.HasComponent<Target>(raycastHit.Entity))
-                        {
-                            ecb.DestroyEntity(entity);
-                        }
-                    }
-                    projecTile.ValueRW.timeDelayRay = projecTile.ValueRO.timeDelayRayMax;
-                    break;
-            }
-        }
-        */
         CollisionWorld collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
         EntityCommandBuffer ecb = new(Allocator.TempJob);
         ProjectTileCollisionJob projectTileCollisionJob = new()
@@ -129,7 +58,7 @@ partial struct ProjectTileCollisionSystem : ISystem
                 case Enum.ProjectTileType.Bullet:
                     if (projecTile.timeDelayRayMax == 0)
                     {
-                        projecTile.timeDelayRayMax = projecTile.targetDistance / (projecTile.projecTileCurrentSpeed);
+                        projecTile.timeDelayRayMax = projecTile.targetDistance / (projecTile.projecTileCurrentSpeed * 120f);
                         projecTile.timeDelayRay = projecTile.timeDelayRayMax;
                     }
                     projecTile.timeDelayRay -= DeltaTime;
@@ -150,6 +79,13 @@ partial struct ProjectTileCollisionSystem : ISystem
                     {
                         if (targetTargetLookup.HasComponent(raycastHit.Entity))
                         {
+                            Entity projectileExplosionEntity = ecb.Instantiate(sortkey, projecTile.projectileExplosion);
+                            ecb.SetComponent<LocalTransform>(sortkey, projectileExplosionEntity, new LocalTransform
+                            {
+                                Position = raycastHit.Position,
+                                Rotation = quaternion.identity,
+                                Scale = 1f,
+                            });
                             ecb.DestroyEntity(sortkey, entity);
                         }
                     }

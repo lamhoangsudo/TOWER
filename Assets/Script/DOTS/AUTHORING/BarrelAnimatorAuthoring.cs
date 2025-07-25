@@ -14,12 +14,6 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
     public float baseSlideDistance;
     public float tipSlideAmountDistance;
     public float tipRotateDegrees;
-
-    public float lastFireTime;
-    public bool animationPlaying;
-
-    public float tipRotationAtFire;
-
     public AnimationCurve slideCurve;
     public AnimationCurve rotationCurve;
     public float sfxPitch;
@@ -64,9 +58,6 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
                 muzzleFlashEntity = GetEntity(authoring.muzzleFlashEntity, TransformUsageFlags.Dynamic),
                 tipSlideAmountDistance = authoring.tipSlideAmountDistance,
                 tipRotateDegrees = authoring.tipRotateDegrees,
-                lastFireTime = authoring.lastFireTime,
-                animationPlaying = authoring.animationPlaying,
-                tipRotationAtFire = authoring.tipRotationAtFire,
                 curveBlob = blobAsset,
                 flashSpawned = false,
                 sfxPitch = authoring.sfxPitch,
