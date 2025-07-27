@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class TargetAuthoring : MonoBehaviour
 {
+    public bool test;
     public class TargetAuthoringBaker : Baker<TargetAuthoring>
     {
         public override void Bake(TargetAuthoring authoring)
@@ -14,6 +15,7 @@ public class TargetAuthoring : MonoBehaviour
                 time = 1f,
                 TargetPosition = authoring.transform.position,
                 RandomGenerator = new Unity.Mathematics.Random((uint)entity.Index),
+                test = authoring.test,
             });
         }
     }

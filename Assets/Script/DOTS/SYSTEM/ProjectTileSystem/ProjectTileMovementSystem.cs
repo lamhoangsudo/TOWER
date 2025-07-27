@@ -31,7 +31,6 @@ partial struct ProjectTileMovementSystem : ISystem
     [BurstCompile]
     public void OnDestroy(ref SystemState state)
     {
-
     }
     [BurstCompile]
     public partial struct ProjectTileMovementJobChunk : IJobChunk

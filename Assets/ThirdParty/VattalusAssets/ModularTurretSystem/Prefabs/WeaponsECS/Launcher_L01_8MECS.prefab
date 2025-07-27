@@ -623,11 +623,12 @@ MonoBehaviour:
   firingPattern: 3
   gatlingRotationSpeed: 0
   projectilePrefab: {fileID: 708610523296216716, guid: 4c1b075a10b66e14bb8fdbcab9cc8bee, type: 3}
-  projectileMaxLifetime: 5
-  projectileMaxSpeed: 10
+  explosionPrefab: {fileID: 8600694648037937677, guid: 98a5255269153144cab0dffae69098cc, type: 3}
+  projectileMaxLifetime: 10
+  projectileMaxSpeed: 300
   impactLayer: 0
   projectileStartSpeed: 10
-  projectileAcceleration: 0
+  projectileAcceleration: 50
   projectileUsePrediction: 0
   spreadAngle: 0
 --- !u!114 &5308959467167847902
@@ -656,12 +657,9 @@ MonoBehaviour:
   - {fileID: 6000678163191790768}
   - {fileID: 3173333586810403795}
   animationDuration: 0.5
-  baseSlideDistance: 0.1
-  tipSlideAmountDistance: 0.15
+  baseSlideDistance: 0
+  tipSlideAmountDistance: 0
   tipRotateDegrees: 0
-  lastFireTime: 0
-  animationPlaying: 0
-  tipRotationAtFire: 0
   slideCurve:
     serializedVersion: 2
     m_Curve:
@@ -734,7 +732,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 602626577bea6304baf1c8710a2fd3b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  burstDelayMax: 1
+  burstDelayMax: 0.1
   burstCountMax: 8
   timeOverHeatMax: 0
 --- !u!1001 &625127806924848598
