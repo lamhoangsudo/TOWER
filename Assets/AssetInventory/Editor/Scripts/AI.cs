@@ -26,9 +26,11 @@ namespace AssetInventory
 {
     public static class AI
     {
-        public const string VERSION = "3.2.1";
+        public const string VERSION = "3.2.5";
         public const string DEFINE_SYMBOL = "ASSET_INVENTORY";
         public const string DEFINE_SYMBOL_OLLAMA = DEFINE_SYMBOL + "_OLLAMA";
+        public const string DEFINE_SYMBOL_HIDE_AI = DEFINE_SYMBOL + "_HIDE_AI";
+        public const string DEFINE_SYMBOL_HIDE_BROWSER = DEFINE_SYMBOL + "_HIDE_BROWSER";
 
         internal const string ASSET_STORE_LINK = "https://u3d.as/3sCf?" + AFFILIATE_PARAM;
         internal const string HOME_LINK = "https://www.wetzold.com/tool";
@@ -43,7 +45,7 @@ namespace AssetInventory
         internal const string AFFILIATE_ID = "1100l3Bzsf";
         internal const string AFFILIATE_PARAM = "aid=" + AFFILIATE_ID;
         internal const string CLOUD_HOME_URL = "https://cloud.unity.com/home/organizations";
-        internal const string TUTORIALS_VERSION = "4.1.3";
+        internal const string TUTORIALS_VERSION = "5.0.0";
 
         private const double CACHE_LIMIT_INTERVAL = 10; // to ensure it is only run every X min
         private const string PARTIAL_INDICATOR = "ai-partial.info";
@@ -77,6 +79,7 @@ namespace AssetInventory
         private static bool InitDone { get; set; }
         private static UpdateObserver _observer;
         private static string _assetCacheFolder; // do not use timed cache for this as it is used in threads and should not be invalidated if not on main thread
+        private static string _configLocation; // do not use timed cache, user will typically not change this in-project
         private static DateTime _lastAssetCacheCheck;
         private static readonly TimedCache<string> _materializeFolder = new TimedCache<string>();
         private static readonly TimedCache<string> _previewFolder = new TimedCache<string>();
@@ -277,8 +280,9 @@ namespace AssetInventory
             ThreadUtils.Initialize();
             SetupDefines();
 
-            _materializeFolder.Clear();
             _assetCacheFolder = null;
+            _configLocation = null;
+            _materializeFolder.Clear();
             _previewFolder.Clear();
 
             string folder = GetStorageFolder();
@@ -399,6 +403,8 @@ namespace AssetInventory
 
         public static string GetConfigLocation()
         {
+            if (_configLocation != null) return _configLocation;
+            
             // search for local project-specific override first
             string guid = AssetDatabase.FindAssets(Path.GetFileNameWithoutExtension(CONFIG_NAME)).FirstOrDefault();
             if (guid != null) return AssetDatabase.GUIDToAssetPath(guid);
@@ -408,7 +414,9 @@ namespace AssetInventory
             if (!string.IsNullOrWhiteSpace(configPath)) return IOUtils.PathCombine(configPath, CONFIG_NAME);
 
             // finally use from central well-known folder
-            return IOUtils.PathCombine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), CONFIG_NAME);
+            _configLocation = IOUtils.PathCombine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), CONFIG_NAME);
+            
+            return _configLocation;
         }
 
         public static string GetPreviewFolder(string customFolder = null, bool noCache = false, bool createOnDemand = true)
@@ -1185,6 +1193,8 @@ namespace AssetInventory
 
         public static void SaveConfig()
         {
+            if (DEBUG_MODE) Debug.LogWarning("SaveConfig");
+
             string configFile = GetConfigLocation();
             if (configFile == null) return;
 

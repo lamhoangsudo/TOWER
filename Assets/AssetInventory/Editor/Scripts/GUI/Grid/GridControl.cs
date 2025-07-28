@@ -78,7 +78,7 @@ namespace AssetInventory
             CalculateBulkSelection();
         }
 
-        public void Draw(float width, int inspectorCount, int tileSize, GUIStyle tileStyle, GUIStyle selectedTileStyle)
+        public void Draw(float width, int inspectorCount, int tileSize, float tileAspectRatio, GUIStyle tileStyle, GUIStyle selectedTileStyle)
         {
             float actualWidth = width - UIStyles.INSPECTOR_WIDTH * inspectorCount - UIStyles.BORDER_WIDTH;
             int cells = Mathf.Clamp(Mathf.FloorToInt(actualWidth / (tileSize + AI.Config.tileMargin)), 1, 99);
@@ -87,10 +87,10 @@ namespace AssetInventory
             if (enlargeTiles)
             {
                 // enlarge tiles dynamically so they take the full width
-                tileSize = Mathf.FloorToInt((actualWidth - cells * AI.Config.tileMargin) / cells);
+                tileSize = Mathf.FloorToInt((actualWidth - cells * AI.Config.tileMargin - 2 * AI.Config.tileMargin) / cells);
             }
 
-            tileStyle.fixedHeight = tileSize;
+            tileStyle.fixedHeight = tileSize / tileAspectRatio;
             tileStyle.fixedWidth = tileSize;
             tileStyle.margin = new RectOffset(AI.Config.tileMargin, AI.Config.tileMargin, AI.Config.tileMargin, AI.Config.tileMargin); // set again due to initial style only being set once so changes would not reflect
             selectedTileStyle.fixedHeight = tileStyle.fixedHeight + tileStyle.margin.top;
@@ -240,6 +240,9 @@ namespace AssetInventory
         public void DeselectAll()
         {
             selectionTile = 0;
+            _selectionMin = selectionTile;
+            _selectionMax = selectionTile;
+            _lastSelectionTile = selectionTile;
             Selection.Populate(UIStyles.emptyTileContent);
             MarkGridSelection();
             CalculateBulkSelection();
@@ -247,7 +250,14 @@ namespace AssetInventory
 
         public void Select(AssetInfo info)
         {
-            selectionTile = packages.ToList().FindIndex(p => p.AssetId == info.AssetId);
+            if (packages != null)
+            {
+                selectionTile = packages.ToList().FindIndex(p => p.AssetId == info.AssetId);
+            }
+            else
+            {
+                selectionTile = 0;
+            }
             Selection.Populate(UIStyles.emptyTileContent);
             MarkGridSelection();
 

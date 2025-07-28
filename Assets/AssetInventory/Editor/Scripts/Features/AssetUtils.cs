@@ -653,7 +653,7 @@ namespace AssetInventory
                     string line;
                     while ((line = sr.ReadLine()) != null)
                     {
-                        if (line.StartsWith("guid:"))
+                        if (line.StartsWith("guid:") || line.StartsWith("guid :")) // both can exist
                         {
                             guid = line;
                             break;
@@ -673,7 +673,7 @@ namespace AssetInventory
                 return null;
             }
 
-            return guid.Substring(6);
+            return guid.Substring(guid.IndexOf(':') + 1).Trim();
         }
 
         public static bool IsOnURP()

@@ -294,7 +294,7 @@ namespace AssetInventory
 #if UNITY_2021_3_OR_NEWER && !USE_TUTORIALS
                     GUILayout.BeginHorizontal();
                     GUILayout.FlexibleSpace();
-                    if (GUILayout.Button("Install Getting-Started Tutorials...", GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button("Install Getting-Started Tutorials", GUILayout.ExpandWidth(false)))
                     {
                         Client.Add($"com.unity.learn.iet-framework@{AI.TUTORIALS_VERSION}");
                     }
@@ -695,7 +695,7 @@ namespace AssetInventory
                     EditorGUI.BeginChangeCheck();
 
                     int inspectorCount = (hideDetailsPane || !AI.Config.showSearchSideBar) ? 0 : 1;
-                    SGrid.Draw(position.width, inspectorCount, AI.Config.searchTileSize, UIStyles.searchTile, UIStyles.selectedSearchTile);
+                    SGrid.Draw(position.width, inspectorCount, AI.Config.searchTileSize, AI.Config.searchTileAspectRatio, UIStyles.searchTile, UIStyles.selectedSearchTile);
 
                     if (EditorGUI.EndChangeCheck() || (_allowLogic && _searchDone))
                     {
@@ -704,6 +704,7 @@ namespace AssetInventory
                         SGrid.LimitSelection(_filteredFiles.Count());
                         _selectedEntry = _filteredFiles.ElementAt(SGrid.selectionTile);
                         _requireSearchSelectionUpdate = true;
+                        DisposeAnimTexture();
 
                         // Used event is thrown if user manually selected the entry
                         _searchSelectionChangedManually = Event.current.type == EventType.Used;
@@ -991,6 +992,27 @@ namespace AssetInventory
                             {
                                 dirty = true;
                                 AI.SaveConfig();
+                            }
+
+                            if (ShowAdvanced())
+                            {
+                                EditorGUILayout.Space();
+                                EditorGUILayout.LabelField("UI", EditorStyles.largeLabel);
+                                EditorGUI.BeginChangeCheck();
+                                GUILayout.BeginHorizontal();
+                                EditorGUILayout.LabelField(UIStyles.Content("Tile Aspect Ratio", "Adjusts the height of the tiles."), EditorStyles.boldLabel, GUILayout.Width(width));
+                                AI.Config.searchTileAspectRatio = EditorGUILayout.Slider(AI.Config.searchTileAspectRatio, 0.3f, 3f);
+                                GUILayout.EndHorizontal();
+
+                                GUILayout.BeginHorizontal();
+                                EditorGUILayout.LabelField(UIStyles.Content("Tile Margins", "Adjusts the space between tiles."), EditorStyles.boldLabel, GUILayout.Width(width));
+                                AI.Config.tileMargin = EditorGUILayout.IntSlider(AI.Config.tileMargin, -3, 30);
+                                GUILayout.EndHorizontal();
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    _lastTileSizeChange = DateTime.Now;
+                                    AI.SaveConfig();
+                                }
                             }
 
                             GUILayout.EndScrollView();
@@ -1728,9 +1750,14 @@ namespace AssetInventory
 
         private void HandleSearchSelectionChanged()
         {
+            if (AI.DEBUG_MODE) Debug.LogWarning("HandleSearchSelectionChanged");
+
             _requireSearchSelectionUpdate = false;
+            _selectionHandlerAdded = false;
+            EditorApplication.delayCall -= HandleSearchSelectionChanged;
 
             AI.StopAudio();
+            DisposeAnimTexture();
             bool isAudio = AI.IsFileType(_selectedEntry?.Path, AI.AssetGroup.Audio);
             if (_selectedEntry != null)
             {
@@ -2184,6 +2211,10 @@ namespace AssetInventory
                     if (_inMemoryMode == InMemoryModeState.Active)
                     {
                         UpdateFilteredFiles();
+
+                        _selectedEntry = _filteredFiles.ElementAt(SGrid.selectionTile);
+                        _requireSearchSelectionUpdate = true;
+                        DisposeAnimTexture();
                     }
                     else
                     {
@@ -2200,40 +2231,53 @@ namespace AssetInventory
             _filteredFiles = _files;
             if (_inMemoryMode != InMemoryModeState.None)
             {
-                int maxResults = GetMaxResuls();
+                int maxResults = GetMaxResults();
 
                 // apply search criteria
                 if (!string.IsNullOrWhiteSpace(_searchPhraseInMemory))
                 {
-                    if (_searchPhraseInMemory.StartsWith("~")) // exact mode
+                    List<Func<AssetInfo, string>> selectors = new List<Func<AssetInfo, string>>();
+                    switch (AI.Config.searchField)
+                    {
+                        case 0:
+                            selectors.Add(a => a.Path);
+                            break;
+
+                        case 1:
+                            selectors.Add(a => a.FileName);
+                            break;
+                    }
+                    if (AI.Config.searchAICaptions && AI.Actions.CreateAICaptions) selectors.Add(a => a.AICaption);
+                    if (AI.Config.searchPackageNames) selectors.Add(a => a.DisplayName);
+
+                    if (_searchPhraseInMemory.StartsWith("~"))
                     {
                         string term = _searchPhraseInMemory.Substring(1);
-                        _filteredFiles = _filteredFiles.Where(a => a.Path.Contains(term, StringComparison.OrdinalIgnoreCase));
+                        _filteredFiles = _filteredFiles
+                            .Where(a => selectors.Any(sel => sel(a)?.Contains(term, StringComparison.OrdinalIgnoreCase) == true));
                     }
                     else
                     {
-                        string[] fuzzyWords = _searchPhraseInMemory.Split(' ');
-                        foreach (string fuzzyWord in fuzzyWords.Select(s => s.Trim()).Where(s => !string.IsNullOrWhiteSpace(s)))
+                        string[] fuzzyWords = _searchPhraseInMemory
+                            .Split(' ')
+                            .Select(w => w.Trim())
+                            .Where(w => !string.IsNullOrWhiteSpace(w))
+                            .ToArray();
+
+                        foreach (string word in fuzzyWords)
                         {
-                            if (fuzzyWord.StartsWith("+"))
+                            bool isNeg = word.StartsWith("-");
+                            string term = isNeg || word.StartsWith("+") ? word.Substring(1) : word;
+                            if (string.IsNullOrWhiteSpace(term)) continue;
+                            if (isNeg)
                             {
-                                _filteredFiles = _filteredFiles.Where(a =>
-                                {
-                                    string phrase = fuzzyWord.Substring(1);
-                                    return a.Path.Contains(phrase, StringComparison.OrdinalIgnoreCase);
-                                });
-                            }
-                            else if (fuzzyWord.StartsWith("-"))
-                            {
-                                _filteredFiles = _filteredFiles.Where(a =>
-                                {
-                                    string phrase = fuzzyWord.Substring(1);
-                                    return !a.Path.Contains(phrase, StringComparison.OrdinalIgnoreCase);
-                                });
+                                _filteredFiles = _filteredFiles
+                                    .Where(a => selectors.All(sel => sel(a)?.Contains(term, StringComparison.OrdinalIgnoreCase) == false));
                             }
                             else
                             {
-                                _filteredFiles = _filteredFiles.Where(a => a.Path.Contains(fuzzyWord, StringComparison.OrdinalIgnoreCase));
+                                _filteredFiles = _filteredFiles
+                                    .Where(a => selectors.Any(sel => sel(a)?.Contains(term, StringComparison.OrdinalIgnoreCase) == true));
                             }
                         }
                     }
@@ -2241,14 +2285,14 @@ namespace AssetInventory
 
                 // new pagination
                 _resultCount = _filteredFiles.Count();
-                _pageCount = AssetUtils.GetPageCount(_resultCount, GetMaxResuls());
+                _pageCount = AssetUtils.GetPageCount(_resultCount, GetMaxResults());
                 if (_curPage > _pageCount) _curPage = 1;
 
                 _filteredFiles = _filteredFiles.Skip((_curPage - 1) * maxResults).Take(maxResults);
             }
             else
             {
-                _pageCount = AssetUtils.GetPageCount(_resultCount, GetMaxResuls());
+                _pageCount = AssetUtils.GetPageCount(_resultCount, GetMaxResults());
             }
 
             DisposeSearchResultTextures();
@@ -2328,7 +2372,7 @@ namespace AssetInventory
             return searchType > 0 && _types.Length > searchType ? _types[searchType] : null;
         }
 
-        private int GetMaxResuls()
+        private int GetMaxResults()
         {
             string selectedSize = _resultSizes[AI.Config.maxResults];
             int.TryParse(selectedSize, out int maxResults);
@@ -2342,6 +2386,7 @@ namespace AssetInventory
             if (AI.DEBUG_MODE) Debug.LogWarning("Perform Search");
 
             _requireSearchUpdate = false;
+            _searchHandlerAdded = false;
             _keepSearchResultPage = true;
             StopSearchPreviewLoading();
 
@@ -2354,13 +2399,13 @@ namespace AssetInventory
                     _pageCount = 0;
                     _curPage = 1;
                     _filteredFiles = new List<AssetInfo>();
-                    SGrid.contents = new GUIContent[0];
+                    SGrid.contents = Array.Empty<GUIContent>();
                     return;
                 }
             }
 
             int lastCount = _resultCount; // a bit of a heuristic but works great and is very performant
-            int maxResults = GetMaxResuls();
+            int maxResults = GetMaxResults();
             List<string> wheres = new List<string>();
             List<object> args = new List<object>();
             string packageTagJoin = "";
@@ -2635,43 +2680,39 @@ namespace AssetInventory
                     List<string> conditions = new List<string>();
                     searchFields.ForEach(s =>
                     {
-                        conditions.Add($"{s} like ? {escape}");
+                        conditions.Add($"COALESCE({s}, '') like ? {escape}");
                         args.Add($"%{term}%");
                     });
                     wheres.Add("(" + string.Join(" OR ", conditions) + ")");
                 }
                 else
                 {
-                    string[] fuzzyWords = phrase.Split(' ');
-                    foreach (string fuzzyWord in fuzzyWords.Select(s => s.Trim()).Where(s => !string.IsNullOrWhiteSpace(s)))
+                    string[] fuzzyWords = phrase
+                        .Split(' ')
+                        .Select(s => s.Trim())
+                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                        .ToArray();
+                    foreach (string fuzzyWord in fuzzyWords)
                     {
-                        if (fuzzyWord.StartsWith("+"))
+                        if (fuzzyWord.StartsWith("-"))
                         {
                             List<string> conditions = new List<string>();
                             searchFields.ForEach(s =>
                             {
-                                conditions.Add($"{s} like ? {escape}");
-                                args.Add($"%{fuzzyWord.Substring(1)}%");
-                            });
-                            wheres.Add("(" + string.Join(" OR ", conditions) + ")");
-                        }
-                        else if (fuzzyWord.StartsWith("-"))
-                        {
-                            List<string> conditions = new List<string>();
-                            searchFields.ForEach(s =>
-                            {
-                                conditions.Add($"{s} not like ? {escape}");
+                                conditions.Add($"COALESCE({s}, '') not like ? {escape}");
                                 args.Add($"%{fuzzyWord.Substring(1)}%");
                             });
                             wheres.Add("(" + string.Join(" AND ", conditions) + ")");
                         }
                         else
                         {
+                            string term = fuzzyWord;
+                            if (term.StartsWith("+")) term = term.Substring(1);
                             List<string> conditions = new List<string>();
                             searchFields.ForEach(s =>
                             {
-                                conditions.Add($"{s} like ? {escape}");
-                                args.Add($"%{fuzzyWord}%");
+                                conditions.Add($"COALESCE({s}, '') like ? {escape}");
+                                args.Add($"%{term}%");
                             });
                             wheres.Add("(" + string.Join(" OR ", conditions) + ")");
                         }
@@ -3102,29 +3143,70 @@ namespace AssetInventory
 #endif
         }
 
+#if UNITY_6000_3_OR_NEWER
         private void InitDragAndDrop()
         {
-#if UNITY_2021_2_OR_NEWER
+            DragAndDrop.ProjectBrowserDropHandlerV2 dropHandler = OnProjectWindowDrop;
+            if (!DragAndDrop.HasHandler("ProjectBrowser".GetHashCode(), dropHandler))
+            {
+                DragAndDrop.AddDropHandlerV2(dropHandler);
+            }
+        }
+
+        private void DeinitDragAndDrop()
+        {
+            DragAndDrop.ProjectBrowserDropHandlerV2 dropHandler = OnProjectWindowDrop;
+            if (DragAndDrop.HasHandler("ProjectBrowser".GetHashCode(), dropHandler))
+            {
+                DragAndDrop.RemoveDropHandlerV2(dropHandler);
+            }
+        }
+
+        private DragAndDropVisualMode OnProjectWindowDrop(EntityId dragEntityId, string dropUponPath, bool perform)
+        {
+            return DoOnProjectWindowDrop(dropUponPath, perform);
+        }
+
+#elif UNITY_2021_2_OR_NEWER
+        private void InitDragAndDrop()
+        {
             DragAndDrop.ProjectBrowserDropHandler dropHandler = OnProjectWindowDrop;
             if (!DragAndDrop.HasHandler("ProjectBrowser".GetHashCode(), dropHandler))
             {
                 DragAndDrop.AddDropHandler(dropHandler);
             }
-#endif
         }
 
         private void DeinitDragAndDrop()
         {
-#if UNITY_2021_2_OR_NEWER
             DragAndDrop.ProjectBrowserDropHandler dropHandler = OnProjectWindowDrop;
             if (DragAndDrop.HasHandler("ProjectBrowser".GetHashCode(), dropHandler))
             {
                 DragAndDrop.RemoveDropHandler(dropHandler);
             }
-#endif
         }
 
         private DragAndDropVisualMode OnProjectWindowDrop(int dragInstanceId, string dropUponPath, bool perform)
+        {
+            return DoOnProjectWindowDrop(dropUponPath, perform);
+        }
+#endif
+
+#if UNITY_6000_3_OR_NEWER
+        private DragAndDropVisualMode OnHierarchyDrop(EntityId dropTargetEntityId, HierarchyDropFlags dropMode, Transform parentForDraggedObjects, bool perform)
+        {
+            if (perform) StopDragDrop();
+            return DragAndDropVisualMode.None;
+        }
+        
+        private DragAndDropVisualMode OnProjectBrowserDrop(EntityId dragEntityId, string dropUponPath, bool perform)
+        {
+            if (perform) StopDragDrop();
+            return DragAndDropVisualMode.None;
+        }
+#endif
+#if UNITY_2021_2_OR_NEWER
+        private DragAndDropVisualMode DoOnProjectWindowDrop(string dropUponPath, bool perform)
         {
             if (perform && _dragging)
             {
@@ -3153,7 +3235,6 @@ namespace AssetInventory
             if (AI.Config.pingImported) PingAsset(infos[0]);
         }
 
-#if UNITY_2021_2_OR_NEWER
         private DragAndDropVisualMode OnSceneDrop(Object dropUpon, Vector3 worldPosition, Vector2 viewportPosition, Transform parentForDraggedObjects, bool perform)
         {
             if (perform) StopDragDrop();
@@ -3177,7 +3258,6 @@ namespace AssetInventory
             if (perform) StopDragDrop();
             return DragAndDropVisualMode.None;
         }
-#endif
 
         private void HandleDragDrop()
         {
@@ -3245,6 +3325,9 @@ namespace AssetInventory
                 DeinitDragAndDrop();
             }
         }
+#else
+        private void HandleDragDrop() {}
+#endif
 
         private void SearchUpdateLoop()
         {
@@ -3290,7 +3373,11 @@ namespace AssetInventory
                 }
             }
 
-            // Also dispose of animation texture if it exists
+            DisposeAnimTexture();
+        }
+
+        private void DisposeAnimTexture()
+        {
             if (_animTexture != null)
             {
                 DestroyImmediate(_animTexture);

@@ -155,7 +155,12 @@ namespace AssetInventory
         private bool _allowLogic;
         private Editor _previewEditor;
 
+        private bool _searchHandlerAdded;
+        private bool _selectionHandlerAdded;
+
+#if !ASSET_INVENTORY_HIDE_AI
         [MenuItem("Assets/Asset Inventory", priority = 9000)]
+#endif
 #if UNITY_6000_1_OR_NEWER
         [MenuItem("Window/Package Management/Asset Inventory")]
 #else
@@ -210,7 +215,12 @@ namespace AssetInventory
 #if UNITY_2020_1_OR_NEWER
             Events.registeredPackages += OnRegisteredPackages;
 #endif
-#if UNITY_2021_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+            DragAndDrop.AddDropHandlerV2(OnSceneDrop);
+            DragAndDrop.AddDropHandlerV2(OnHierarchyDrop);
+            DragAndDrop.AddDropHandlerV2(OnProjectBrowserDrop);
+            DragAndDrop.AddDropHandlerV2(OnInspectorDrop);
+#elif UNITY_2021_2_OR_NEWER
             DragAndDrop.AddDropHandler(OnSceneDrop);
             DragAndDrop.AddDropHandler(OnHierarchyDrop);
             DragAndDrop.AddDropHandler(OnProjectBrowserDrop);
@@ -249,7 +259,12 @@ namespace AssetInventory
 #if UNITY_2020_1_OR_NEWER
             Events.registeredPackages -= OnRegisteredPackages;
 #endif
-#if UNITY_2021_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+            DragAndDrop.RemoveDropHandlerV2(OnSceneDrop);
+            DragAndDrop.RemoveDropHandlerV2(OnHierarchyDrop);
+            DragAndDrop.RemoveDropHandlerV2(OnProjectBrowserDrop);
+            DragAndDrop.RemoveDropHandlerV2(OnInspectorDrop);
+#elif UNITY_2021_2_OR_NEWER
             DragAndDrop.RemoveDropHandler(OnSceneDrop);
             DragAndDrop.RemoveDropHandler(OnHierarchyDrop);
             DragAndDrop.RemoveDropHandler(OnProjectBrowserDrop);
@@ -456,7 +471,7 @@ namespace AssetInventory
 
             if (AI.UICustomizationMode)
             {
-                GUILayout.BeginHorizontal();
+                GUILayout.BeginHorizontal("box");
                 EditorGUILayout.HelpBox("UI customization mode is active. Define which elements should be visible by default (green) and which only in advanced mode (red) when using the eye icon or holding CTRL. Yellow sections can be moved up and down.", MessageType.Warning);
                 if (GUILayout.Button("Stop Customizing", GUILayout.ExpandWidth(false)))
                 {
@@ -526,7 +541,7 @@ namespace AssetInventory
             {
                 if (_lastTileSizeChange != DateTime.MinValue && (DateTime.Now - _lastTileSizeChange).TotalMilliseconds > 300f)
                 {
-                    _requireSearchUpdate = true;
+                    if (AI.Config.tileText == 0) _requireSearchUpdate = true; // only update search results if tile size influences displayed text
                     _lastTileSizeChange = DateTime.MinValue;
                 }
 
@@ -565,8 +580,22 @@ namespace AssetInventory
                     DrawSearchTab();
                     if (_allowLogic)
                     {
-                        if (_requireSearchUpdate && AI.Config.searchAutomatically) EditorApplication.delayCall += () => PerformSearch(_keepSearchResultPage);
-                        if (_requireSearchSelectionUpdate) EditorApplication.delayCall += HandleSearchSelectionChanged;
+                        if (_requireSearchUpdate && AI.Config.searchAutomatically)
+                        {
+                            if (!_searchHandlerAdded || EditorApplication.delayCall == null)
+                            {
+                                _searchHandlerAdded = true;
+                                EditorApplication.delayCall += () => PerformSearch(_keepSearchResultPage);
+                            }
+                        }
+                        if (_requireSearchSelectionUpdate)
+                        {
+                            if (!_selectionHandlerAdded || EditorApplication.delayCall == null)
+                            {
+                                _selectionHandlerAdded = true;
+                                EditorApplication.delayCall += HandleSearchSelectionChanged;
+                            }
+                        }
                     }
                     break;
 
@@ -741,7 +770,7 @@ namespace AssetInventory
                         // Find tag with matching hotkey
                         List<Tag> tags = Tagging.LoadTags();
                         Tag matchingTag = tags.Find(t => t.Hotkey == keyStr);
-                        if (matchingTag != null && _selectedTreeAssets != null && _selectedTreeAssets.Count > 0)
+                        if (matchingTag != null)
                         {
                             bool isRemoving = (Event.current.modifiers & EventModifiers.Shift) != 0;
                             if (isRemoving)

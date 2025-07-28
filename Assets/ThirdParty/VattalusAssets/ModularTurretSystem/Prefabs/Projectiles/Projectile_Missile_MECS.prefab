@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 708610523296216719}
   - component: {fileID: 3668599967630132905}
+  - component: {fileID: -4203579348484567934}
   m_Layer: 0
   m_Name: Projectile_Missile_MECS
   m_TagString: Untagged
@@ -47,6 +48,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   projectTileType: 1
   homingSpeed: 10
+--- !u!114 &-4203579348484567934
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708610523296216716}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &6681234580728037768
 PrefabInstance:
   m_ObjectHideFlags: 0

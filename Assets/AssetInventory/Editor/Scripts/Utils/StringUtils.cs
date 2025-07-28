@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -8,6 +9,14 @@ namespace AssetInventory
 {
     public static class StringUtils
     {
+        private const long SEC = TimeSpan.TicksPerSecond;
+        private const long MIN = TimeSpan.TicksPerMinute;
+        private const long HOUR = TimeSpan.TicksPerHour;
+        private const long DAY = TimeSpan.TicksPerDay;
+        private static readonly Regex CAMEL_CASE_R1 = new Regex(@"(?<=[a-z])(?=[A-Z])|(?<=[0-9])(?=[A-Z])|(?<=[A-Z])(?=[0-9])|(?<=[0-9])(?=[a-z])", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        private static readonly Regex CAMEL_CASE_R2 = new Regex(@"(?<= [A-Z])(?=[A-Z][a-z])", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        private static readonly Regex CAMEL_CASE_R3 = new Regex(@"(?<=[^\s])(?=[(])|(?<=[)])(?=[^\s])", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
         public static string ExtractTokens(string input, string tokenName, List<string> tokenValues)
         {
             if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(tokenName)) return input;
@@ -38,26 +47,27 @@ namespace AssetInventory
 
         public static string GetRelativeTimeDifference(DateTime date1, DateTime date2)
         {
-            TimeSpan difference = date2 - date1;
+            long ticks = date2.Ticks - date1.Ticks;
+            if (ticks < 0) ticks = -ticks;
 
-            if (difference.TotalDays >= 1)
+            if (ticks >= DAY)
             {
-                int days = (int)difference.TotalDays;
-                return days == 1 ? "1 day ago" : days + " days ago";
+                int v = (int)(ticks / DAY);
+                return v == 1 ? "1 day ago" : v.ToString(CultureInfo.InvariantCulture) + " days ago";
             }
-            if (difference.TotalHours >= 1)
+            if (ticks >= HOUR)
             {
-                int hours = (int)difference.TotalHours;
-                return hours == 1 ? "1 hour ago" : hours + " hours ago";
+                int v = (int)(ticks / HOUR);
+                return v == 1 ? "1 hour ago" : v.ToString(CultureInfo.InvariantCulture) + " hours ago";
             }
-            if (difference.TotalMinutes >= 1)
+            if (ticks >= MIN)
             {
-                int minutes = (int)difference.TotalMinutes;
-                return minutes == 1 ? "1 minute ago" : minutes + " minutes ago";
+                int v = (int)(ticks / MIN);
+                return v == 1 ? "1 minute ago" : v.ToString(CultureInfo.InvariantCulture) + " minutes ago";
             }
 
-            int seconds = (int)difference.TotalSeconds;
-            return seconds == 1 ? "1 second ago" : seconds + " seconds ago";
+            int s = (int)(ticks / SEC);
+            return s == 1 ? "1 second ago" : s.ToString(CultureInfo.InvariantCulture) + " seconds ago";
         }
 
         public static string EscapeSQL(string input)
@@ -117,20 +127,13 @@ namespace AssetInventory
 
         public static string CamelCaseToWords(string input)
         {
-            string pattern = @"(?<=[a-z])(?=[A-Z])|(?<=[0-9])(?=[A-Z])|(?<=[A-Z])(?=[0-9])|(?<=[0-9])(?=[a-z])";
-            string result = Regex.Replace(input, pattern, " ");
+            if (string.IsNullOrEmpty(input)) return string.Empty;
 
-            // Further refinement to handle cases with consecutive uppercase letters properly:
-            // Ensure space before the start of a new word starting with an uppercase letter followed by lowercase letters
-            result = Regex.Replace(result, @"(?<= [A-Z])(?=[A-Z][a-z])", " ");
+            string result = CAMEL_CASE_R1.Replace(input, " ");
+            result = CAMEL_CASE_R2.Replace(result, " ");
+            result = CAMEL_CASE_R3.Replace(result, " ");
 
-            // Handle special characters (parentheses)
-            result = Regex.Replace(result, @"(?<=[^\s])(?=[(])|(?<=[)])(?=[^\s])", " ");
-
-            // Split the result into words
             string[] words = result.Split(' ');
-
-            // Capitalize the first letter of each word, but keep acronyms in upper case
             for (int i = 0; i < words.Length; i++)
             {
                 words[i] = CapitalizeFirstLetter(words[i]);
@@ -141,10 +144,7 @@ namespace AssetInventory
 
         private static string CapitalizeFirstLetter(string word)
         {
-            if (string.IsNullOrEmpty(word))
-            {
-                return word;
-            }
+            if (string.IsNullOrEmpty(word)) return word;
 
             // Preserve the case of the rest of the word
             return char.ToUpper(word[0]) + word.Substring(1);

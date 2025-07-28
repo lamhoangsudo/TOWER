@@ -54,13 +54,10 @@ namespace AssetInventory
                         GUILayout.EndHorizontal();
                     }
 
-                    if (AI.ShowAdvanced())
-                    {
-                        GUILayout.BeginHorizontal();
-                        EditorGUILayout.LabelField(UIStyles.Content("Exclude Extensions", "e.g. blend,max"), EditorStyles.boldLabel, GUILayout.Width(width));
-                        _spec.excludedExtensions = EditorGUILayout.TextField(_spec.excludedExtensions);
-                        GUILayout.EndHorizontal();
-                    }
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField(UIStyles.Content("Exclude Extensions", "e.g. blend,max"), EditorStyles.boldLabel, GUILayout.Width(width));
+                    _spec.excludedExtensions = EditorGUILayout.TextField(_spec.excludedExtensions);
+                    GUILayout.EndHorizontal();
 
                     GUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField(UIStyles.Content("Create Previews", "Recommended. Will generate previews and additional metadata but requires more time during indexing."), EditorStyles.boldLabel, GUILayout.Width(width));

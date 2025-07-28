@@ -30,6 +30,7 @@ namespace AssetInventory
         private void Init()
         {
             _validators.Clear();
+            _validators.Add(new ScheduledPreviewRecreationValidator());
             _validators.Add(new IncorrectPreviewsValidator());
             _validators.Add(new UnindexedSubPackagesValidator());
             _validators.Add(new MissingPreviewFilesValidator());
@@ -45,6 +46,7 @@ namespace AssetInventory
             _validators.Add(new OrphanedCacheFoldersValidator());
             _validators.Add(new OrphanedPreviewFoldersValidator());
             _validators.Add(new OrphanedPreviewFilesValidator());
+            _validators.Add(new SuspiciousBackupsValidator());
             _validators.Add(new CorruptDatabaseValidator());
         }
 
@@ -103,6 +105,7 @@ namespace AssetInventory
             _checksScrollPos = GUILayout.BeginScrollView(_checksScrollPos, false, false, GUIStyle.none, GUI.skin.verticalScrollbar, GUILayout.ExpandWidth(true));
             foreach (Validator validator in _validators)
             {
+                GUILayout.BeginVertical("box");
                 EditorGUILayout.LabelField(validator.Name + (validator.Speed == Validator.ValidatorSpeed.Fast ? "*" : ""), EditorStyles.boldLabel);
                 EditorGUILayout.LabelField(validator.Description, EditorStyles.wordWrappedMiniLabel);
 
@@ -179,7 +182,8 @@ namespace AssetInventory
                 }
                 GUI.color = oldColor;
                 EditorGUILayout.EndHorizontal();
-                EditorGUILayout.Space(15);
+                GUILayout.EndVertical();
+                EditorGUILayout.Space(2);
             }
             GUILayout.EndScrollView();
 

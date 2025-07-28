@@ -11,9 +11,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEditor.PackageManager;
 using UnityEngine;
 using static AssetInventory.AssetTreeViewControl;
-#if !UNITY_2021_2_OR_NEWER
 using Debug = UnityEngine.Debug;
-#endif
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace AssetInventory
@@ -315,9 +313,9 @@ namespace AssetInventory
                 List<Dependency> pDeps = info.GetPackageDependencies();
                 List<AssetInfo> pInvDeps = info.GetPackageUsageDependencies(_assets);
                 if (info.Media != null && info.Media.Count > 0) sections.Add("Media");
-                if (!string.IsNullOrWhiteSpace(info.Description)) sections.Add("Description");
-                if (!string.IsNullOrWhiteSpace(info.ReleaseNotes)) sections.Add("Release Notes");
-                if (info.AssetSource == Asset.Source.RegistryPackage || pDeps != null || pInvDeps != null) sections.Add("Dependencies");
+                if (!string.IsNullOrWhiteSpace(info.Description)) sections.Add("About");
+                if (!string.IsNullOrWhiteSpace(info.ReleaseNotes)) sections.Add(AI.Config.expandPackageDetails || !AI.Config.projectDetailTabs ? "Release Notes" : "Release");
+                if (info.AssetSource == Asset.Source.RegistryPackage || pDeps != null || pInvDeps != null) sections.Add(AI.Config.expandPackageDetails || !AI.Config.projectDetailTabs ? "Dependencies" : "Deps");
             }
 
             if (startNewSection)
@@ -369,7 +367,7 @@ namespace AssetInventory
                     case "description":
                         if (showExpanded && !AI.Config.projectDetailTabs)
                         {
-                            if (sections.Contains("Description"))
+                            if (sections.Contains("Description") || sections.Contains("About"))
                             {
                                 UISection("package", section, () =>
                                 {
@@ -387,7 +385,7 @@ namespace AssetInventory
                     case "releasenotes":
                         if (showExpanded && !AI.Config.projectDetailTabs)
                         {
-                            if (sections.Contains("Release Notes"))
+                            if (sections.Contains("Release Notes") || sections.Contains("Release"))
                             {
                                 UISection("package", section, () =>
                                 {
@@ -405,7 +403,7 @@ namespace AssetInventory
                     case "dependencies":
                         if (showExpanded && !AI.Config.projectDetailTabs)
                         {
-                            if (sections.Contains("Dependencies"))
+                            if (sections.Contains("Dependencies") || sections.Contains("Deps"))
                             {
                                 UISection("package", section, () =>
                                 {
@@ -461,10 +459,13 @@ namespace AssetInventory
             }
             switch (sections[_packageDetailsTab])
             {
+                case "About":
                 case "Description":
                     ShowDescriptionDetails(info);
                     break;
 
+                case "Release":
+                case "Releases":
                 case "Release Notes":
                     ShowReleaseNotesDetails(info);
                     break;
@@ -473,6 +474,7 @@ namespace AssetInventory
                     ShowMediaDetails(info);
                     break;
 
+                case "Deps":
                 case "Dependencies":
                     ShowDependencyDetails(info);
                     break;
@@ -1500,7 +1502,7 @@ namespace AssetInventory
                 }
                 else
                 {
-                    EditorGUILayout.BeginHorizontal();
+                    if (AI.Config.expandPackageDetails) EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.BeginVertical(GUILayout.Width(UIStyles.INSPECTOR_WIDTH - 30));
                     EditorGUILayout.LabelField("Is Using", EditorStyles.boldLabel);
                     if (pInfo.dependencies.Length > 0)
@@ -1554,7 +1556,7 @@ namespace AssetInventory
                         EditorGUILayout.LabelField("-none-");
                     }
                     EditorGUILayout.EndVertical();
-                    EditorGUILayout.EndHorizontal();
+                    if (AI.Config.expandPackageDetails) EditorGUILayout.EndHorizontal();
                 }
             }
             else if (info.GetPackageDependencies() != null)
@@ -1736,14 +1738,6 @@ namespace AssetInventory
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Search:", GUILayout.Width(50));
             EditorGUI.BeginChangeCheck();
-            UIBlock2("package.actions.nameonly", () =>
-            {
-                if (GUILayout.Button(AI.Config.packageSearchMode == 0 ? UIStyles.Content("=", "Name Only") : UIStyles.Content("+", "Name & Description"), GUILayout.Width(17)))
-                {
-                    AI.Config.packageSearchMode = AI.Config.packageSearchMode == 0 ? 1 : 0;
-                    AI.SaveConfig();
-                }
-            });
             _assetSearchPhrase = AssetSearchField.OnGUI(_assetSearchPhrase, GUILayout.Width(100));
             if (EditorGUI.EndChangeCheck())
             {
@@ -1848,7 +1842,7 @@ namespace AssetInventory
                 _packageScrollPos = GUILayout.BeginScrollView(_packageScrollPos, false, false);
                 EditorGUI.BeginChangeCheck();
                 int inspectorCount = AI.Config.expandPackageDetails ? 2 : 1;
-                PGrid.Draw(position.width, inspectorCount, AI.Config.packageTileSize, UIStyles.packageTile, UIStyles.selectedPackageTile);
+                PGrid.Draw(position.width, inspectorCount, AI.Config.packageTileSize, 1f, UIStyles.packageTile, UIStyles.selectedPackageTile);
                 if (EditorGUI.EndChangeCheck() || (_allowLogic && _searchDone))
                 {
                     // interactions
@@ -1932,7 +1926,6 @@ namespace AssetInventory
                     int width = 145;
 
                     EditorGUI.BeginChangeCheck();
-
                     GUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField(UIStyles.Content("Details when Compact", "Will show package details like media, description, dependencies etc. also when the inspector is not expanded."), EditorStyles.boldLabel, GUILayout.Width(width));
                     AI.Config.alwaysShowPackageDetails = EditorGUILayout.Toggle(AI.Config.alwaysShowPackageDetails);
@@ -1942,8 +1935,18 @@ namespace AssetInventory
                     EditorGUILayout.LabelField(UIStyles.Content("Details in Tabs", "Will group package details like media, description, dependencies etc. into tabs. Otherwise they are shown below each other."), EditorStyles.boldLabel, GUILayout.Width(width));
                     AI.Config.projectDetailTabs = EditorGUILayout.Toggle(AI.Config.projectDetailTabs);
                     GUILayout.EndHorizontal();
-
                     if (EditorGUI.EndChangeCheck()) AI.SaveConfig();
+
+                    EditorGUI.BeginChangeCheck();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField(UIStyles.Content("Search In Description", "Will also search for the entered search text in package descriptions in addition to the name."), EditorStyles.boldLabel, GUILayout.Width(width));
+                    AI.Config.searchPackageDescriptions = EditorGUILayout.Toggle(AI.Config.searchPackageDescriptions);
+                    GUILayout.EndHorizontal();
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        _requireAssetTreeRebuild = true;
+                        AI.SaveConfig();
+                    }
 
                     break;
 
@@ -2502,13 +2505,22 @@ namespace AssetInventory
 
         private void CreateAssetTree()
         {
+            if (AI.DEBUG_MODE) Debug.LogWarning("CreateAssetTree");
+
             // sync sort state between column headers and model
             if (assetMchState != null)
             {
-                assetMchState.sortedColumnIndex = AI.Config.assetSorting;
-                if (assetMchState.columns.Length > assetMchState.sortedColumnIndex)
+                try
                 {
-                    assetMchState.columns[assetMchState.sortedColumnIndex].sortedAscending = !AI.Config.sortAssetsDescending;
+                    assetMchState.sortedColumnIndex = AI.Config.assetSorting;
+                    if (assetMchState.columns.Length > assetMchState.sortedColumnIndex)
+                    {
+                        assetMchState.columns[assetMchState.sortedColumnIndex].sortedAscending = !AI.Config.sortAssetsDescending;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Failed to sync asset tree sort state: {e.Message}");
                 }
             }
 
@@ -2664,7 +2676,7 @@ namespace AssetInventory
 
             if (!string.IsNullOrWhiteSpace(_assetSearchPhrase))
             {
-                bool searchDescription = AI.Config.packageSearchMode > 0;
+                bool searchDescription = AI.Config.searchPackageDescriptions;
 
                 if (_assetSearchPhrase.StartsWith("~")) // exact mode
                 {
@@ -2886,15 +2898,14 @@ namespace AssetInventory
                 foreach (KeyValuePair<int, List<AssetInfo>> pair in subAssets)
                 {
                     int parentIndex = data.FindIndex(a => a.AssetId == pair.Key);
-                    if (parentIndex >= 0)
+                    if (parentIndex < 0) continue;
+
+                    foreach (AssetInfo asset in pair.Value)
                     {
-                        foreach (AssetInfo asset in pair.Value)
-                        {
-                            asset.Depth = data[parentIndex].Depth + 1;
-                            AssetInfo newAsset = asset.WithTreeData(asset.GetDisplayName(), asset.AssetId, asset.Depth);
-                            data.Insert(parentIndex + 1, newAsset);
-                            existingAssetIds.Add(newAsset.AssetId);
-                        }
+                        asset.Depth = data[parentIndex].Depth + 1;
+                        AssetInfo newAsset = asset.WithTreeData(asset.GetDisplayName(), asset.AssetId, asset.Depth);
+                        data.Insert(parentIndex + 1, newAsset);
+                        existingAssetIds.Add(newAsset.AssetId);
                     }
                 }
             }
@@ -3231,7 +3242,9 @@ namespace AssetInventory
             }
             else
             {
-                PGrid.Select(info);
+                if (PGrid.packages == null) CreateAssetTree();
+                PGrid.Select(info.GetRoot());
+                HandleAssetGridSelectionChanged();
             }
         }
 

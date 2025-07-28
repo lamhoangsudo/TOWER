@@ -280,9 +280,9 @@ namespace AssetInventory
             return style;
         }
 
-        public static GUIStyle ColoredText(Color color)
+        public static GUIStyle ColoredText(Color color, bool wrapped = false)
         {
-            GUIStyle style = new GUIStyle(EditorStyles.label);
+            GUIStyle style = new GUIStyle(wrapped ? EditorStyles.wordWrappedLabel : EditorStyles.label);
             style.normal.textColor = color;
             return style;
         }

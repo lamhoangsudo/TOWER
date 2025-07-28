@@ -92,7 +92,7 @@ namespace AssetInventory
                 bool fromSupport = _info.SRPSupportPackage != null && _info.SRPSupportPackage.Id == info.AssetId;
                 EditorGUILayout.LabelField(
                     new GUIContent(info.Path + " (" + EditorUtility.FormatBytes(info.Size) + (fromSupport ? ", SRP Override" : "") + ")", info.Guid),
-                    _info.ScriptDependencies.Contains(info) ? UIStyles.ColoredText(Color.yellow) : EditorStyles.label);
+                    _info.ScriptDependencies.Contains(info) ? UIStyles.ColoredText(Color.yellow, true) : EditorStyles.wordWrappedLabel);
                 GUILayout.EndHorizontal();
             }
             GUILayout.EndScrollView();

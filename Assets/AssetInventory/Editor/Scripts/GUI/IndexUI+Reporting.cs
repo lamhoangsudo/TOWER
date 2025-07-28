@@ -43,7 +43,7 @@ namespace AssetInventory
                 // Calculate available width dynamically (accounting for inspector width)
                 float availableWidth = position.width - UIStyles.INSPECTOR_WIDTH - 40; // 40 for margins
                 if (availableWidth < 570) availableWidth = 570; // minimum width
-                
+
                 MultiColumnHeaderState headerState = CreateDefaultMultiColumnHeaderState(availableWidth);
                 headerState.visibleColumns = new[] {(int)Columns.Name, (int)Columns.License, (int)Columns.Version};
                 if (MultiColumnHeaderState.CanOverwriteSerializedFields(reportMchState, headerState)) MultiColumnHeaderState.OverwriteSerializedFields(reportMchState, headerState);
@@ -162,7 +162,14 @@ namespace AssetInventory
                 if (GUILayout.Button("Export Data..."))
                 {
                     ExportUI exportUI = ExportUI.ShowWindow();
-                    exportUI.Init(_assets, false, 1, reportMchState?.visibleColumns);
+
+                    // filter only for meaningful assets, since this is the overall database export
+                    List<AssetInfo> exportList = _assets.Where(a => a.AssetSource == Asset.Source.AssetStorePackage ||
+                            a.AssetSource == Asset.Source.CustomPackage ||
+                            a.AssetSource == Asset.Source.RegistryPackage)
+                        .ToList();
+
+                    exportUI.Init(exportList, false, 1, reportMchState?.visibleColumns);
                 }
             });
             UIBlock("reporting.actions.freebies", () =>

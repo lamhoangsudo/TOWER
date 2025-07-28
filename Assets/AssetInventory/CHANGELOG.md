@@ -4,9 +4,43 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [3.3.0] - 2025-08-??
+## [3.2.5] - 2025-07-27
 
-- tbd
+- Performance
+  - Cache config location significantly reducing lookup time
+  - Various UI rendering performance improvements
+  - String & List rendering performance improvements
+  - More minor performance improvements
+  - Fix search being run multiple times potentially
+  - Fix search needlessly performed when adjusting tile sizes
+- Search in same fields in in-memory search as configured for normal search
+- Shorten package tab section texts to make all four fit in non-expanded mod
+- Wrap too long lines in dependency ui
+- Move package search option (text and/or description) to package settings
+- Support adjusting tile margins and aspect ratio in settings
+- Allow disabling menu entries in Assets menu
+- Improve Maintenance UI
+- New validator: Scheduled Preview Recreations
+- New validator: Suspicious backups
+- Improve HTML template to handle missing data nicer
+- Update Tutorials framework to 5.0.0
+- Catch potential exception when creating packages list
+- Unity 6.3 adaptations
+- Fix incorrect preview image link in HTML template
+- Fix selecting non-animated search result after an animated one will override preview image
+- Fix grid display sometimes showing horizontal scrollbar
+- Fix initial selection not working going from search to packages in grid mode
+- Fix extraction of guids in edge cases or manually rewritten meta files
+- Fix dependencies too wide in not-expanded mode
+- Fix search result not showing in some cases initially
+- Fix package selection in grid mode not working for sub-packages
+- Fix search results being incomplete if database contains null values
+- Fix export not considering media folders
+- Fix video previews generation getting stuck on specific video codecs with invalid seeking behavior
+- Fix grid selection
+- Fix bulk selection broken when switching to different result page
+- Fix first element incorrectly selected in in-memory mode when switching page
+- Fix tag assignment via hotkey sometimes not reacting
 
 ## [3.2.1] - 2025-07-16
 

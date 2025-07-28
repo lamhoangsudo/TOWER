@@ -83,6 +83,6 @@ AssetOrigin:
   serializedVersion: 1
   productId: 308224
   packageName: Asset Inventory 3
-  packageVersion: 3.2.1
+  packageVersion: 3.2.5
   assetPath: Assets/AssetInventory/Editor/ThirdParty/LibGit2Sharp/NativeBinaries/linux-x64/native/libgit2-3f4182d.so
-  uploadId: 772729
+  uploadId: 775546

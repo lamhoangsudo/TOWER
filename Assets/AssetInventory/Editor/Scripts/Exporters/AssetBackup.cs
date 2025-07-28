@@ -19,7 +19,12 @@ namespace AssetInventory
 
         private void Refresh()
         {
-            _assetVersions = new Dictionary<int, List<BackupInfo>>();
+            _assetVersions = GatherState();
+        }
+
+        public static Dictionary<int, List<BackupInfo>> GatherState()
+        {
+            Dictionary<int, List<BackupInfo>> assetVersions = new Dictionary<int, List<BackupInfo>>();
 
             string[] packages = Directory.GetFiles(AI.GetBackupFolder(), "*.unitypackage", SearchOption.AllDirectories);
             string[] sep =
@@ -37,10 +42,12 @@ namespace AssetInventory
                 if (!int.TryParse(arr[0], out int id)) continue;
                 string version = arr[1];
 
-                if (!_assetVersions.ContainsKey(id)) _assetVersions.Add(id, new List<BackupInfo>());
-                _assetVersions[id].Add(new BackupInfo(package, version));
-                _assetVersions[id] = _assetVersions[id].OrderByDescending(v => v.semVersion).ToList();
+                if (!assetVersions.ContainsKey(id)) assetVersions.Add(id, new List<BackupInfo>());
+                assetVersions[id].Add(new BackupInfo(package, version));
+                assetVersions[id] = assetVersions[id].OrderByDescending(v => v.semVersion).ToList();
             }
+
+            return assetVersions;
         }
 
         public async Task Run()

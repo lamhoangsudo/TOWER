@@ -34,7 +34,7 @@ namespace AssetInventory
             return window;
         }
 
-        public void Init(List<AssetInfo> assets, List<AssetInfo> allAssets)
+        public void Init(List<AssetInfo> assets = null, List<AssetInfo> allAssets = null)
         {
             _assets = assets;
             _allAssets = allAssets;

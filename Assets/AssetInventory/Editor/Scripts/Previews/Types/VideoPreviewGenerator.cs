@@ -12,6 +12,8 @@ namespace AssetInventory
 {
     public static class VideoPreviewGenerator
     {
+        private const float TIME_OUT = 7f;
+
         public static Task<Texture2D> Create(VideoClip videoClip, int size = 128, int frameCount = 4, Action<VideoClip> onSuccess = null)
         {
             TaskCompletionSource<Texture2D> tcs = new TaskCompletionSource<Texture2D>();
@@ -99,10 +101,17 @@ namespace AssetInventory
                 }
 
                 // Wait for frame to be ready
+                float endTime = Time.realtimeSinceStartup + TIME_OUT;
                 while (!frameReady)
                 {
                     EditorApplication.QueuePlayerLoopUpdate();
                     yield return null;
+
+                    if (Time.realtimeSinceStartup > endTime)
+                    {
+                        Debug.LogWarning($"Timeout waiting for frame {i}. Final image might not resemble the correct frame.");
+                        break;
+                    }
                 }
 
                 // Extract the texture from VideoPlayer

@@ -5,7 +5,9 @@ namespace AssetInventory
 {
     public sealed class AssetBrowserUI : IndexUI
     {
+#if !ASSET_INVENTORY_HIDE_BROWSER
         [MenuItem("Assets/Asset Inventory (Browser Only)", priority = 9001)]
+#endif
         public static void ShowBrowser()
         {
             AssetBrowserUI window = GetWindow<AssetBrowserUI>("Asset Browser");

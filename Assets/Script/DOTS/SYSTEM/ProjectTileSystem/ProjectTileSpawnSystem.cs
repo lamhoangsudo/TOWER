@@ -5,6 +5,8 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
+using ProjectDawn;
+using ProjectDawn.Geometry2D;
 partial struct ProjectTileSpawnSystem : ISystem
 {
     private EntityQuery query;

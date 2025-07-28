@@ -24,7 +24,7 @@ namespace AssetInventory
     {
         private const string LONG_PATH_PREFIX = @"\\?\";
         private const string LONG_PATH_UNC_PREFIX = @"\\?\UNC\";
-        
+
         public static DriveInfo GetDriveInfoForPath(string folderPath)
         {
             if (string.IsNullOrEmpty(folderPath)) return null;
@@ -86,8 +86,8 @@ namespace AssetInventory
 #if UNITY_EDITOR_WIN && UNITY_2020_2_OR_NEWER // support was only added in that Mono version
             // see https://learn.microsoft.com/en-us/answers/questions/240603/c-app-long-path-support-on-windows-10-post-1607-ne
             path = path.Replace("/", "\\"); // in case later concatenations added /
-            if (path.StartsWith(LONG_PATH_PREFIX)) return path;
-            if (path.StartsWith(@"\\"))
+            if (path.StartsWith(LONG_PATH_PREFIX, StringComparison.Ordinal)) return path;
+            if (path.StartsWith(@"\\", StringComparison.Ordinal))
             {
                 string withoutSlashes = path.Substring(2);
                 return $"{LONG_PATH_UNC_PREFIX}{withoutSlashes}";
@@ -104,7 +104,7 @@ namespace AssetInventory
             if (path == null) return null;
 
             // handle UNC long-path prefix \\?\UNC\server\share\…
-            if (path.StartsWith(LONG_PATH_UNC_PREFIX))
+            if (path.StartsWith(LONG_PATH_UNC_PREFIX, StringComparison.Ordinal))
             {
                 string withoutUncPrefix = path.Substring(LONG_PATH_UNC_PREFIX.Length);
                 string uncPath = @"\\" + withoutUncPrefix;

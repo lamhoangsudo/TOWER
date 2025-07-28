@@ -307,10 +307,10 @@ namespace AssetInventory
 
         public string GetPreviewFile(string previewFolder, bool validate = true)
         {
-            string file = Path.Combine(previewFolder, Id.ToString(), $"a-{Id}.png");
-            if (validate && !File.Exists(file)) file = null;
+            string idStr = Id.ToString();
+            string path = Path.Combine(previewFolder, idStr, $"a-{idStr}.png");
 
-            return file;
+            return validate && !File.Exists(path) ? null : path;
         }
 
         public string GetMediaFile(AssetMedia media, string previewFolder, bool validate = true)

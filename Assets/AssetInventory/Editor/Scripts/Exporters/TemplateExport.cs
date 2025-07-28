@@ -24,9 +24,6 @@ namespace AssetInventory
         public async Task Run(List<AssetInfo> assets, TemplateInfo template, List<TemplateInfo> templates, TemplateExportSettings settings, TemplateExportEnvironment env)
         {
             _assets = assets
-                .Where(a => a.AssetSource == Asset.Source.AssetStorePackage ||
-                    a.AssetSource == Asset.Source.CustomPackage ||
-                    a.AssetSource == Asset.Source.RegistryPackage)
                 .OrderBy(a => a.GetDisplayName())
                 .ToList();
 

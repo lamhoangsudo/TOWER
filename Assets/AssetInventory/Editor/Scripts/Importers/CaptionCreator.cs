@@ -138,6 +138,9 @@ namespace AssetInventory
                             // resize to minimum size if necessary
                             int w = img.Width;
                             int h = img.Height;
+
+                            if (h < 2) continue; // scales too high if corrected
+
                             double scale = Math.Max((float)AI.Config.aiMinSize / w, (float)AI.Config.aiMinSize / h);
                             if (scale > 1.0)
                             {

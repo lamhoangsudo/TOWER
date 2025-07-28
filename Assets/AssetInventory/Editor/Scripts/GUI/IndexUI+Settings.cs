@@ -477,11 +477,6 @@ namespace AssetInventory
                     EditorGUILayout.LabelField(UIStyles.Content("Defaults for New Packages"), EditorStyles.boldLabel);
 
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField(UIStyles.Content($"{UIStyles.INDENT}Exclude", "Will not cause automatic indexing of newly discovered assets. Instead this needs to be triggered manually per package."), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
-                    AI.Config.excludeByDefault = EditorGUILayout.Toggle(AI.Config.excludeByDefault, GUILayout.MaxWidth(cbWidth));
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField(UIStyles.Content($"{UIStyles.INDENT}Keep Cached", "Will set the Keep Cached flag on newly discovered assets. This will cause them to remain in the cache after indexing making the next access fast."), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
                     AI.Config.extractByDefault = EditorGUILayout.Toggle(AI.Config.extractByDefault, GUILayout.MaxWidth(cbWidth));
                     GUILayout.EndHorizontal();
@@ -494,6 +489,11 @@ namespace AssetInventory
                     GUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField(UIStyles.Content($"{UIStyles.INDENT}AI Captions", "Will set the AI Caption flag on newly discovered assets. This will cause AI captions to be created for these when the caption action is run."), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
                     AI.Config.captionByDefault = EditorGUILayout.Toggle(AI.Config.captionByDefault, GUILayout.MaxWidth(cbWidth));
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField(UIStyles.Content($"{UIStyles.INDENT}Exclude", "Will not cause automatic indexing of newly discovered assets. Instead this needs to be triggered manually per package."), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
+                    AI.Config.excludeByDefault = EditorGUILayout.Toggle(AI.Config.excludeByDefault, GUILayout.MaxWidth(cbWidth));
                     GUILayout.EndHorizontal();
                 }
 
@@ -1065,6 +1065,46 @@ namespace AssetInventory
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
 
+            // UI
+            EditorGUILayout.Space();
+            EditorGUI.BeginChangeCheck();
+            AI.Config.showUISettings = EditorGUILayout.BeginFoldoutHeaderGroup(AI.Config.showUISettings, "UI Integration");
+            if (EditorGUI.EndChangeCheck()) AI.SaveConfig();
+
+            if (AI.Config.showUISettings)
+            {
+                BeginIndentBlock();
+
+                EditorGUILayout.LabelField("'Assets' Menu", EditorStyles.largeLabel);
+
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(UIStyles.Content("Show Asset Inventory"), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
+                if (AssetUtils.HasDefine(AI.DEFINE_SYMBOL_HIDE_AI))
+                {
+                    if (GUILayout.Button("Enable", GUILayout.ExpandWidth(false))) AssetUtils.RemoveDefine(AI.DEFINE_SYMBOL_HIDE_AI);
+                }
+                else
+                {
+                    if (GUILayout.Button("Disable", GUILayout.ExpandWidth(false))) AssetUtils.AddDefine(AI.DEFINE_SYMBOL_HIDE_AI);
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(UIStyles.Content("Show Asset Browser"), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
+                if (AssetUtils.HasDefine(AI.DEFINE_SYMBOL_HIDE_BROWSER))
+                {
+                    if (GUILayout.Button("Enable", GUILayout.ExpandWidth(false))) AssetUtils.RemoveDefine(AI.DEFINE_SYMBOL_HIDE_BROWSER);
+                }
+                else
+                {
+                    if (GUILayout.Button("Disable", GUILayout.ExpandWidth(false))) AssetUtils.AddDefine(AI.DEFINE_SYMBOL_HIDE_BROWSER);
+                }
+                GUILayout.EndHorizontal();
+
+                EndIndentBlock();
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+
             // locations
             EditorGUILayout.Space();
             EditorGUI.BeginChangeCheck();
@@ -1217,12 +1257,6 @@ namespace AssetInventory
                     GUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField(UIStyles.Content("Updates For Custom Packages", "Will show custom packages in the list of available updates even though they cannot be updated automatically."), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
                     AI.Config.showCustomPackageUpdates = EditorGUILayout.Toggle(AI.Config.showCustomPackageUpdates, GUILayout.MaxWidth(cbWidth));
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField(UIStyles.Content("Tile Margins", "Margins between tiles."), EditorStyles.boldLabel, GUILayout.Width(labelWidth));
-                    AI.Config.tileMargin = EditorGUILayout.DelayedIntField(AI.Config.tileMargin, GUILayout.Width(50));
-                    EditorGUILayout.LabelField("px");
                     GUILayout.EndHorizontal();
 
                     GUILayout.BeginHorizontal();
@@ -1448,7 +1482,6 @@ namespace AssetInventory
                         previewsUI.Init(null, _assets);
                     }
                 });
-
                 UIBlock("settings.actions.clearcache", () =>
                 {
                     EditorGUILayout.Space();

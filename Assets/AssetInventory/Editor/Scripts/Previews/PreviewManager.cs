@@ -141,9 +141,12 @@ namespace AssetInventory
                 // give time for video player cleanup, might result in black textures otherwise when done in quick succession
                 await Task.Yield();
 
-                // now animated
-                animTexture = await VideoPreviewGenerator.Create(req.TempFileRel, AI.Config.upscaleSize, AI.Config.animationGrid * AI.Config.animationGrid, _ => { });
-                await Task.Yield();
+                if (texture != null)
+                {
+                    // now animated
+                    animTexture = await VideoPreviewGenerator.Create(req.TempFileRel, AI.Config.upscaleSize, AI.Config.animationGrid * AI.Config.animationGrid, _ => { });
+                    await Task.Yield();
+                }
 
                 directPreview = true;
             }

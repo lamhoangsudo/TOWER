@@ -31,7 +31,7 @@ namespace AssetInventory
         public int maxResultsLimit = 10000;
         public int maxInMemoryResults = 50000;
         public int timeout = 20;
-        public int tileText;
+        public int tileText; // 0 - intelligent
         public bool autoPlayAudio = true;
         public int autoCalculateDependencies = 1; // 0 - none, 1 - all, 2 - only simple, no fbx
         public bool allowCrossPackageDependencies = true;
@@ -49,6 +49,7 @@ namespace AssetInventory
         public bool extractSingleFiles;
         public int previewVisibility;
         public int searchTileSize = 128;
+        public float searchTileAspectRatio = 1f;
         public float searchDelay = 0.5f;
         public float inMemorySearchDelay = 0.1f;
         public float hueRange = 10f;
@@ -91,12 +92,13 @@ namespace AssetInventory
         public bool showImportSettings;
         public bool showBackupSettings;
         public bool showAISettings;
+        public bool showUISettings;
         public bool showLocationSettings;
         public bool showPreviewSettings;
         public bool showAdvancedSettings;
         public bool showHints = true;
         public int packageViewMode; // 0 = list, 1 = grid
-        public int packageSearchMode; // 0 = name, 1 = name & description
+        public bool searchPackageDescriptions;
         public bool showPackageStatsDetails;
         public bool onlyInProject;
         public bool projectDetailTabs = true;

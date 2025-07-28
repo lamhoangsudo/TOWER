@@ -73,11 +73,11 @@ namespace AssetInventory
                 DownloadCount = 0;
                 for (int i = 0; i < _all.Count; i++)
                 {
-                    AssetInfo download = _all[i];
-                    if (download.PackageDownloader.GetState().state != AssetDownloader.State.Downloading)
+                    AssetDownloader downloader = _all[i].PackageDownloader;
+                    if (downloader.GetState().state != AssetDownloader.State.Downloading)
                     {
                         // always refresh for single selections
-                        if (_prioCount == 1 && i == 0) download.PackageDownloader.RefreshState();
+                        if (_prioCount == 1 && i == 0) downloader.RefreshState();
                         continue;
                     }
 
@@ -86,7 +86,7 @@ namespace AssetInventory
                     _lastObserverActivity = DateTime.Now; // keep observer alive
                     if (_watcher != null && !_watcher.EnableRaisingEvents) Start(); // start observer if it was stopped
 
-                    download.PackageDownloader.RefreshState();
+                    downloader.RefreshState();
                     await Task.Delay(10);
                 }
 
