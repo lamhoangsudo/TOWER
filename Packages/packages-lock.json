@@ -6,6 +6,31 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.opsive.behaviordesigner": {
+      "version": "file:com.opsive.behaviordesigner",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.opsive.shared": "2.0.0",
+        "com.opsive.graphdesigner": "2.0.0",
+        "com.unity.burst": "1.8.17",
+        "com.unity.entities": "1.3.8"
+      }
+    },
+    "com.opsive.graphdesigner": {
+      "version": "file:com.opsive.graphdesigner",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.opsive.shared": "2.0.0"
+      }
+    },
+    "com.opsive.shared": {
+      "version": "file:com.opsive.shared",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.projectdawn.dotsplus": {
       "version": "file:com.projectdawn.dotsplus",
       "depth": 0,
@@ -474,6 +499,12 @@
       "dependencies": {}
     },
     "com.unity.modules.jsonserialize": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {}
+    },
+    "com.unity.modules.nvidia": {
       "version": "1.0.0",
       "depth": 0,
       "source": "builtin",

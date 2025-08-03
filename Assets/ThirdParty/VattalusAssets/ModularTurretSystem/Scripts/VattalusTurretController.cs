@@ -355,7 +355,7 @@ public class VattalusTurretController : MonoBehaviour
         return angle;
     }
 
-    //Target prediction calculations are done using a coroutine so that it can be separate from the framerate for optimization purposes. Higher frequency = more cpu usage.
+    //Enemy prediction calculations are done using a coroutine so that it can be separate from the framerate for optimization purposes. Higher frequency = more cpu usage.
     IEnumerator TargetingCalculationsCoroutine(float frequency = 10f)
     {
         Vector3 targetPreviousPosition = Vector3.zero;

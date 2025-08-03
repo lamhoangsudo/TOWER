@@ -47,7 +47,7 @@ partial struct TurretFireSystem : ISystem
         [ReadOnly] public ComponentLookup<WeaponFireTime> componentLookupWeaponFireTime;
         public void Execute(in Turret turret, ref DynamicBuffer<WeaponBuffer> weaponBuffers, ref TurretFireTime turretFireTime, [ChunkIndexInQuery] int sortkey)
         {
-            turretFireTime.cooldown -= deltaTime;
+            if(turretFireTime.burstCount == 0) turretFireTime.cooldown -= deltaTime;
             if (turretFireTime.cooldown > 0) return;
 
             if (turret.autoFire && turret.isHeadingRotationTarget && turret.isElevationRotationTarget)

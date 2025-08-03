@@ -28,7 +28,7 @@ partial struct ProjectTileCollisionSystem : ISystem
             ecb = ecb.AsParallelWriter(),
             DeltaTime = SystemAPI.Time.DeltaTime,
             targetLocalToWorldLookup = SystemAPI.GetComponentLookup<LocalToWorld>(isReadOnly: true),
-            targetTargetLookup = SystemAPI.GetComponentLookup<Target>(isReadOnly: true),
+            targetTargetLookup = SystemAPI.GetComponentLookup<Enemy>(isReadOnly: true),
             entityTypeHandle = SystemAPI.GetEntityTypeHandle(),
             localTransformHandle = SystemAPI.GetComponentTypeHandle<LocalTransform>(),
             projecTileHandle = SystemAPI.GetComponentTypeHandle<ProjecTile>(),
@@ -48,7 +48,7 @@ partial struct ProjectTileCollisionSystem : ISystem
     public partial struct ProjectTileCollisionChunk : IJobChunk
     {
         [ReadOnly] public ComponentLookup<LocalToWorld> targetLocalToWorldLookup;
-        [ReadOnly] public ComponentLookup<Target> targetTargetLookup;
+        [ReadOnly] public ComponentLookup<Enemy> targetTargetLookup;
         [ReadOnly] public CollisionWorld collisionWorld;
         public EntityCommandBuffer.ParallelWriter ecb;
         public float DeltaTime;
