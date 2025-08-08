@@ -61,7 +61,7 @@ public partial struct ChooseBestTargetSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<TaskComponent, ChooseBestTargetNodeData, TargetEntityBuffer, Turret, ChooseBestTargetNodeTask, EvaluationComponent>().Build());
     }
 
     [BurstCompile]

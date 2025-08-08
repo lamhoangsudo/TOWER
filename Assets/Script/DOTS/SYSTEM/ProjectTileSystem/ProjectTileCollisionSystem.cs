@@ -10,14 +10,15 @@ using Unity.Transforms;
 using static UnityEngine.EventSystems.EventTrigger;
 partial struct ProjectTileCollisionSystem : ISystem
 {
-    private EntityQuery query;
-    //[BurstCompile]
+    private EntityQuery queryProjectTileCollisionChunk;
+    [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        query = SystemAPI.QueryBuilder().WithAll<ProjecTile, LocalTransform>().Build();
+        queryProjectTileCollisionChunk = SystemAPI.QueryBuilder().WithAll<ProjecTile, LocalTransform>().Build();
+        state.RequireForUpdate(queryProjectTileCollisionChunk);
     }
 
-    //[BurstCompile]
+    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         CollisionWorld collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
@@ -33,18 +34,19 @@ partial struct ProjectTileCollisionSystem : ISystem
             localTransformHandle = SystemAPI.GetComponentTypeHandle<LocalTransform>(),
             projecTileHandle = SystemAPI.GetComponentTypeHandle<ProjecTile>(),
         };
-        JobHandle projectTileCollisionChunkJobHandle = projectTileCollisionChunk.ScheduleParallel(query, state.Dependency);
+        JobHandle projectTileCollisionChunkJobHandle = projectTileCollisionChunk.ScheduleParallel(queryProjectTileCollisionChunk, state.Dependency);
         projectTileCollisionChunkJobHandle.Complete();
         ecb.Playback(state.EntityManager);
         ecb.Dispose();
 
     }
 
-    //[BurstCompile]
+    [BurstCompile]
     public void OnDestroy(ref SystemState state)
     {
+
     }
-    //[BurstCompile]
+    [BurstCompile]
     public partial struct ProjectTileCollisionChunk : IJobChunk
     {
         [ReadOnly] public ComponentLookup<LocalToWorld> targetLocalToWorldLookup;

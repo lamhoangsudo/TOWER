@@ -10,7 +10,7 @@ partial struct TurretHeadingSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<Turret>().Build());
     }
 
     [BurstCompile]

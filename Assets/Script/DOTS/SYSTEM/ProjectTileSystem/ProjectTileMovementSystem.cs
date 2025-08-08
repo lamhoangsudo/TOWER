@@ -12,6 +12,7 @@ partial struct ProjectTileMovementSystem : ISystem
     public void OnCreate(ref SystemState state)
     {
         queryProjectTileMovementJobChunk = SystemAPI.QueryBuilder().WithAll<LocalTransform, ProjecTile>().Build();
+        state.RequireForUpdate(queryProjectTileMovementJobChunk);
     }
 
     [BurstCompile]

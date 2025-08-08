@@ -10,7 +10,7 @@ partial struct BarrelAnimatorSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<BarrelAnimator, Weapon, BarrelTipEntityBuffer, PointShotEntityBuffer, WeaponFireTime>().Build());
     }
     [BurstCompile]
     public void OnUpdate(ref SystemState state)

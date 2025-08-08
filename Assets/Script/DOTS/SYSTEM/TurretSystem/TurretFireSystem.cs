@@ -12,7 +12,7 @@ partial struct TurretFireSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<Turret, WeaponBuffer, TurretFireTime>().Build());
     }
 
     [BurstCompile]

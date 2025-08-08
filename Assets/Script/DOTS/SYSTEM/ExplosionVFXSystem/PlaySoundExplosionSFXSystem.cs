@@ -2,7 +2,7 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
 
-partial struct PlaySoundExplosionSFXSystem : ISystem
+public partial struct PlaySoundExplosionSFXSystem : ISystem
 {
     [BurstCompile]
     public void OnCreate(ref SystemState state)

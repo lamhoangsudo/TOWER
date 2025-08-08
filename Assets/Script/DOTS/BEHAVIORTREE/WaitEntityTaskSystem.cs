@@ -114,6 +114,7 @@ public partial struct WaitEntityTaskSystem : ISystem
     private void OnCreate(ref SystemState state)
     {
         query = SystemAPI.QueryBuilder().WithAll<TaskComponent, WaitEntityComponent, WaitEntityTag, EvaluationComponent, RadarRangeRay>().Build();
+        state.RequireForUpdate(query);
     }
     [BurstCompile]
     private void OnUpdate(ref SystemState state)

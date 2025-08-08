@@ -1,0 +1,9 @@
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "ModelBuildingSo", menuName = "Scriptable Objects/ModelBuildingSo")]
+public class ModelBuildingSo : ScriptableObject
+{
+    public GameObject buildingGhostPrefab;
+    public GameObject buildingPrefab;
+    public Enum.BuildingID buildingID;
+}

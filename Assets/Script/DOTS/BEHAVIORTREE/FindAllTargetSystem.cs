@@ -66,7 +66,7 @@ public partial struct FindAllTargetSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<TaskComponent, FindAllTargetSystemNodeData, RadarRangeRay, LocalTransform, FindAllTargetSystemNodeTask, EvaluationComponent>().Build());
     }
 
     [BurstCompile]

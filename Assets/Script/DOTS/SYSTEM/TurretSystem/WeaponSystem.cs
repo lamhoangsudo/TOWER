@@ -9,7 +9,7 @@ public partial struct WeaponSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<WeaponFireTime, BarrelAnimator, BarrelTipEntityBuffer, PointShotEntityBuffer>().Build());
     }
 
     [BurstCompile]
@@ -40,6 +40,7 @@ public partial struct WeaponSystem : ISystem
             DynamicBuffer<PointShotEntityBuffer> pointShotEntityBuffers)
         {
             if (!weapon.startFire) return;
+            if (weapon.targetEntity == Entity.Null) return;
             switch (weapon.firingPattern)
             {
                 case Enum.WeaponFiringPattern.Individual:

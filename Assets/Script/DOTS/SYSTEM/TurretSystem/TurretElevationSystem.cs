@@ -10,7 +10,7 @@ partial struct TurretElevationSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<Turret>().Build());
     }
 
     [BurstCompile]
@@ -19,7 +19,7 @@ partial struct TurretElevationSystem : ISystem
         float deltaTime = SystemAPI.Time.DeltaTime;
         #region new code
         EntityCommandBuffer ecb = new(Allocator.TempJob);
-        TurretElevationJob turretPitchJob = new TurretElevationJob
+        TurretElevationJob turretPitchJob = new()
         {
             deltaTime = deltaTime,
             targetTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(isReadOnly: true),

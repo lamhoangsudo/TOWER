@@ -10,7 +10,7 @@ partial struct TurretHeadingElevationSoundSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<SFX_Heading, SFX_Elevation>().Build());
     }
     [BurstCompile]
     public void OnUpdate(ref SystemState state)

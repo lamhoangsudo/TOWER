@@ -2,12 +2,12 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Collections;
 using Unity.Jobs;
-partial struct LifeTimeExplosionSystem : ISystem
+public partial struct LifeTimeExplosionSystem : ISystem
 {
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<Explosion>().Build());
     }
 
     [BurstCompile]

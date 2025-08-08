@@ -20,4 +20,16 @@ public static class Enum
         Bullet,
         Missile,
     }
+    public enum PlatformSizeType
+    {
+        Small,
+        Medium,
+        Large,
+    }
+    public enum BuildingID
+    {
+        Platform_L,
+        Platform_M,
+        Platform_S,
+    }
 }

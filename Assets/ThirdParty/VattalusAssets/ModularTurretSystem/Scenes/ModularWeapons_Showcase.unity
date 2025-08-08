@@ -605,7 +605,7 @@ MonoBehaviour:
   listOfDemoWeapons:
   - {fileID: 3049730211000650577}
   - {fileID: 6429571799594940920}
-  - {fileID: 7603618601689676910}
+  - {fileID: 0}
   - {fileID: 515069225}
   - {fileID: 138962767}
   - {fileID: 72513237}
@@ -3457,17 +3457,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c0b3d1d69d5824545b4a2b132fa3fcdc, type: 3}
---- !u!114 &7603618601689676910 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7603618601689676910, guid: ac3be35c0c07953469e2f1aacdb84db1, type: 3}
-  m_PrefabInstance: {fileID: 1532801948762319639}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1a73e863d05e3544b110c251a90fa15, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &7802135716771557362
 PrefabInstance:
   m_ObjectHideFlags: 0

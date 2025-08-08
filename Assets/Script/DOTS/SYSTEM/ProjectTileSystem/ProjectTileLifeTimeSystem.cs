@@ -11,6 +11,7 @@ partial struct ProjectTileLifeTimeSystem : ISystem
     public void OnCreate(ref SystemState state)
     {
         queryProjectTileLifeTimeJobChunk = SystemAPI.QueryBuilder().WithAll<ProjecTile>().Build();
+        state.RequireForUpdate(queryProjectTileLifeTimeJobChunk);
     }
 
     [BurstCompile]
