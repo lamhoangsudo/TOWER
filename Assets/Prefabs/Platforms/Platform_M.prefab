@@ -10,7 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8838118512426066243}
   - component: {fileID: -3980157300887994349}
-  m_Layer: 0
+  - component: {fileID: 3035587093923581588}
+  m_Layer: 8
   m_Name: Platform_M
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -49,6 +50,27 @@ MonoBehaviour:
   platformSizeType: 1
   snapPoints:
   - {fileID: 3604728361288039839}
+--- !u!65 &3035587093923581588
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 515624981522905733}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3, y: 0.64139, z: 3}
+  m_Center: {x: 0, y: 0.2894698, z: 0}
 --- !u!1 &3604728361288039839
 GameObject:
   m_ObjectHideFlags: 0
@@ -58,7 +80,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4012979154358977010}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SnapPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -131,6 +153,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 2707d475d644a4e44a627e6c61f206c5, type: 3}
       propertyPath: m_Name
       value: Platform_M_L
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2707d475d644a4e44a627e6c61f206c5, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

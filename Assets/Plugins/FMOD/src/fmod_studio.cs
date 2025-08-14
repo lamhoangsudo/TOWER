@@ -1428,6 +1428,10 @@ namespace FMOD.Studio
                 return FMOD_Studio_EventInstance_SetParameterByIDWithLabel(this.handle, id, encoder.byteFromStringUTF8(label), ignoreseekspeed);
             }
         }
+        public RESULT setParametersByIDs(PARAMETER_ID[] ids, float[] values, int count, bool ignoreseekspeed = false)
+        {
+            return FMOD_Studio_EventInstance_SetParametersByIDs(this.handle, ids, values, count, ignoreseekspeed);
+        }
         public RESULT getParameterByName(string name, out float value)
         {
             float finalValue;

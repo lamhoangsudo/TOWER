@@ -6,6 +6,7 @@ public partial class PlayerInputActionSystem : SystemBase
 {
     private Entity playerEntity;
     private PlayerInputAction inputActions;
+    private Entity entityStorage;
     protected override void OnCreate()
     {
         inputActions = new PlayerInputAction();
@@ -14,18 +15,20 @@ public partial class PlayerInputActionSystem : SystemBase
     {
         inputActions.Enable();
         playerEntity = SystemAPI.GetSingletonEntity<PlayerTag>();
+        entityStorage = SystemAPI.GetSingletonEntity<EntitySpawnStorageTag>();
     }
+
     protected override void OnUpdate()
     {
         float2 moveInput = (float2) inputActions.Player.Move.ReadValue<Vector2>();
         Movement movement = SystemAPI.GetComponent<Movement>(playerEntity);
         float2 curretMoveInput = movement.moveVector;
-        if(!moveInput.Equals(curretMoveInput))
+        if (!moveInput.Equals(curretMoveInput))
         {
             float moveSpeed = movement.moveSpeed;
             SystemAPI.SetComponent<Movement>(playerEntity, new Movement()
             {
-                moveVector = (float2) moveInput,
+                moveVector = (float2)moveInput,
                 moveSpeed = movement.moveSpeed,
             });
         }

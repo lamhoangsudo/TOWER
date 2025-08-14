@@ -152,18 +152,18 @@ public class VattalusTurretController : MonoBehaviour
         #region Animate Heading Rotation
         float HeadingAimAngleDifference = AngleDifference(headingAim, turretHeadingParent.transform.localEulerAngles.y);
         float CurrentHeading = NormalizeAngle(turretHeadingParent.transform.localEulerAngles.y);
-        float HeadingSecondsToReachAim = HeadingAimAngleDifference / currHeadingRotSpeed; if (HeadingSecondsToReachAim < 0f) HeadingSecondsToReachAim = 999999f; //if rotation direction is opposite to the required direction of movement, time to reach aim is infinity (a really big number)
+        float HeadingSecondsToReachAim = HeadingAimAngleDifference / currHeadingRotSpeed; if (HeadingSecondsToReachAim < 0f) HeadingSecondsToReachAim = 999999f; //if rotation snapDirection is opposite to the required snapDirection of movement, time to reach aim is infinity (a really big number)
         float HeadingSecondsNeededToStop = Mathf.Abs(currHeadingRotSpeed) / HeadingRotationAcceleration;
 
 
         if (Mathf.Abs(HeadingAimAngleDifference) > 0.05f)
         {
-            //determine relative heading direction to the target (to the left or right)
+            //determine relative heading snapDirection to the target (to the left or right)
             bool AimToRight = CurrentHeading < headingAim;
-            //reverse heading rotation direction if there is no angle limitation on the turret and the angle difference is >180
+            //reverse heading rotation snapDirection if there is no angle limitation on the turret and the angle difference is >180
             if (HeadingLimited == false && Mathf.Abs(CurrentHeading - headingAim) > 180f) AimToRight = !AimToRight;
 
-            //increase or decrease the rotation applied to the turret based on desired direction and how far off it is to the aim point.
+            //increase or decrease the rotation applied to the turret based on desired snapDirection and how far off it is to the aim point.
             if (AimToRight)
             {
                 if (HeadingSecondsToReachAim > HeadingSecondsNeededToStop * 0.65f)
@@ -192,15 +192,15 @@ public class VattalusTurretController : MonoBehaviour
         #region Animate Elevation Rotation
         float ElevationAimAngleDifference = AngleDifference(elevationAim, -turretElevationParent.transform.localEulerAngles.x);
         float CurrentElevation = NormalizeAngle(-turretElevationParent.transform.localEulerAngles.x);
-        float ElevationSecondsToReachAim = ElevationAimAngleDifference / currElevationRotSpeed; if (ElevationSecondsToReachAim < 0f) ElevationSecondsToReachAim = 999999f; //if movement direction is opposite to the required direction, time to reach aim is infinity (a really big number)
+        float ElevationSecondsToReachAim = ElevationAimAngleDifference / currElevationRotSpeed; if (ElevationSecondsToReachAim < 0f) ElevationSecondsToReachAim = 999999f; //if movement snapDirection is opposite to the required snapDirection, time to reach aim is infinity (a really big number)
         float ElevationSecondsNeededToStop = Mathf.Abs(currElevationRotSpeed) / ElevationRotationAcceleration;
 
         if (Mathf.Abs(ElevationAimAngleDifference) > 0.05f)
         {
-            //determine relative pitch direction to the target (up or down)
+            //determine relative pitch snapDirection to the target (up or down)
             bool AimUp = CurrentElevation < elevationAim;
 
-            //increase or decrease the rotation applied to elevation based on desired direction and how far off it is to the aim point.
+            //increase or decrease the rotation applied to elevation based on desired snapDirection and how far off it is to the aim point.
             if (AimUp)
             {
                 if (ElevationSecondsToReachAim > ElevationSecondsNeededToStop * 0.65f)

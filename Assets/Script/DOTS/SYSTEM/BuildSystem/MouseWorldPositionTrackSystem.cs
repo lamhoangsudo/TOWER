@@ -1,4 +1,6 @@
+using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
@@ -8,6 +10,8 @@ public partial class MouseWorldPositionTrackSystem : SystemBase
 {
     private Entity mouseWorldPositionTrackEntity;
     private CollisionWorld collisionWorld;
+    private Entity buildingManagerEntity;
+    private Entity entityStorage;
     protected override void OnCreate()
     {
         base.OnCreate();
@@ -15,6 +19,8 @@ public partial class MouseWorldPositionTrackSystem : SystemBase
     protected override void OnStartRunning()
     {
         mouseWorldPositionTrackEntity = SystemAPI.GetSingletonEntity<MouseWorldPositionTrack>();
+        buildingManagerEntity = SystemAPI.GetSingletonEntity<BuildingManger>();
+        entityStorage = SystemAPI.GetSingletonEntity<EntitySpawnStorageTag>();
     }
     protected override void OnUpdate()
     {
@@ -26,17 +32,16 @@ public partial class MouseWorldPositionTrackSystem : SystemBase
             Filter = new CollisionFilter
             {
                 BelongsTo = ~0u,
-                CollidesWith = 1u << 7,
+                CollidesWith = 1u << 7 | 1u << 8,
                 GroupIndex = 0,
             }
         };
         collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
-        if(collisionWorld.CastRay(raycastInput, out Unity.Physics.RaycastHit closestHit))
+        if (collisionWorld.CastRay(raycastInput, out Unity.Physics.RaycastHit closestHit))
         {
             RefRW<LocalTransform> localTransform = SystemAPI.GetComponentRW<LocalTransform>(mouseWorldPositionTrackEntity);
             localTransform.ValueRW.Position = closestHit.Position;
         }
-
     }
     protected override void OnStopRunning()
     {

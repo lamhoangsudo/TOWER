@@ -19,6 +19,7 @@ public class MouseWorldPositionTrackAuthoring : MonoBehaviour
 public struct MouseWorldPositionTrack : IComponentData
 {
     public float range;
+    public Entity ghostEntity;
 }
 
 

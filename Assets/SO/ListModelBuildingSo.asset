@@ -13,6 +13,4 @@ MonoBehaviour:
   m_Name: ListModelBuildingSo
   m_EditorClassIdentifier: 
   list:
-  - {fileID: 11400000, guid: 690e85e9362a72a4aae9fd1402b63421, type: 2}
-  - {fileID: 11400000, guid: eb873b3f9848d8c4d94781f4a6897cce, type: 2}
   - {fileID: 11400000, guid: 645bcc531cfbb6b4b95b92811b64285f, type: 2}

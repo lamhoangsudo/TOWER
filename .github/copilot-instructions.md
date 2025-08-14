@@ -2,7 +2,7 @@
 - Project name: TOWER
 - Unity version: Unity 6000.1.15f1
 - Active game object:
-  - Name: Platform_S
+  - Name: BuildTest
   - Tag: Untagged
   - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

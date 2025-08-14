@@ -6,4 +6,5 @@ public class ModelBuildingSo : ScriptableObject
     public GameObject buildingGhostPrefab;
     public GameObject buildingPrefab;
     public Enum.BuildingID buildingID;
+    public float snapMaxDistance;
 }

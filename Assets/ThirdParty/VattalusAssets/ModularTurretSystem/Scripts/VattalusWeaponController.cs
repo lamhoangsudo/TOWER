@@ -27,7 +27,7 @@ public class VattalusWeaponController : MonoBehaviour
     public float spreadAngle = 0f;
     private float curentGatlingRotation = 0f;
 
-    [Tooltip("Only used for Gatling-type weapons. Speed at which barrel rotates at full speed. Negative value to reverse rotation direction")]
+    [Tooltip("Only used for Gatling-type weapons. Speed at which barrel rotates at full speed. Negative value to reverse rotation snapDirection")]
     public float gatlingRotationSpeed = 0f;
 
     [Header("Projectile Settings")]
@@ -45,7 +45,7 @@ public class VattalusWeaponController : MonoBehaviour
     public float projectileAcceleration = 0f;
     [Tooltip("Time after which projectile is diabled/destroyed")]
     public float projectileLifetime = 3f;
-    [Tooltip("Projectile will track towards target direction")]
+    [Tooltip("Projectile will track towards target snapDirection")]
     public Transform projectileHomingTarget = null;
     [Tooltip("Speed with which projectile tracks towards target (Set to 0 to disable homing)")]
     public float projectileHomingSpeed = 0f;

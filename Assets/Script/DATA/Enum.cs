@@ -28,8 +28,25 @@ public static class Enum
     }
     public enum BuildingID
     {
+        None,
         Platform_L,
         Platform_M,
         Platform_S,
+    }
+    public enum SnapPointType
+    {
+        None,
+        PlatformSnap,
+        TurretSnap,
+    }
+    public enum Direction
+    {
+        none,
+        up,
+        down,
+        left,
+        right,
+        forward,
+        backward,
     }
 }

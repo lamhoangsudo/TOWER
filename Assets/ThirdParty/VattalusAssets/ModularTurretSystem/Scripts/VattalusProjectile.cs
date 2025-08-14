@@ -40,8 +40,8 @@ public class VattalusProjectile : MonoBehaviour
 
     [Tooltip("If !=null projectile will move towards target")]
     public Transform homingTarget;
-    private Vector3 vectorToTarget; //relative direction towards the desired target
-    [Tooltip("Speed at which projectile changes direction towards target")]
+    private Vector3 vectorToTarget; //relative snapDirection towards the desired target
+    [Tooltip("Speed at which projectile changes snapDirection towards target")]
     public float homingSpeed = 0f;
     [Tooltip("If enabled, target will anticipate target's position and will move towards that instead")]
     public bool usePrediction = false;
@@ -183,7 +183,7 @@ public class VattalusProjectile : MonoBehaviour
 
     }
 
-    //move forward, accelerate, change direction towards homing
+    //move forward, accelerate, change snapDirection towards homing
     private void UpdateProjectileMovement()
     {
         if (acceleration > 0f) currentSpeed = Mathf.Clamp(currentSpeed + acceleration * Time.deltaTime, 0f, maxSpeed);
@@ -191,10 +191,10 @@ public class VattalusProjectile : MonoBehaviour
 
         if (homingTarget != null && homingSpeed > 0f)
         {
-            // Determine which direction to rotate towards
+            // Determine which snapDirection to rotate towards
             Vector3 targetDirection = homingTarget.position - transform.position;
 
-            // Rotate the forward vector towards the target direction by one step
+            // Rotate the forward vector towards the target snapDirection by one step
             Vector3 newDirection = Vector3.RotateTowards(transform.forward, targetDirection, homingSpeed * Time.deltaTime, 0.0f);
 
             // Calculate a rotation a step closer to the target and applies rotation to this object
