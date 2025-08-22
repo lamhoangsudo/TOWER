@@ -5,6 +5,7 @@ using UnityEngine;
 public class MovementAuthoring : MonoBehaviour
 {
     public float moveSpeed;
+    public float rotateSpeed;
     public class MovementAuthoringBaker : Baker<MovementAuthoring>
     {
         public override void Bake(MovementAuthoring authoring)
@@ -14,13 +15,23 @@ public class MovementAuthoring : MonoBehaviour
             {
                 moveSpeed = authoring.moveSpeed,
             });
+            AddComponent(entity, new Rotation
+            {
+                rotationSpeed = authoring.rotateSpeed,
+            });
         }
     }
 }
 public struct Movement : IComponentData
 {
-    public float2 moveVector;
+    public float3 moveVector;
     public float moveSpeed;
+}
+public struct Rotation : IComponentData
+{
+    public float rotationSpeed;
+    public float yaw;
+    public float pitch;
 }
 
 

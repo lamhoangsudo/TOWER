@@ -5,6 +5,7 @@ using Unity.Transforms;
 
 public partial struct MovementSystem : ISystem
 {
+    private quaternion targetQuaternion;
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
@@ -14,12 +15,13 @@ public partial struct MovementSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        foreach((RefRW<LocalTransform> localTransform, RefRO<Movement> movement) in SystemAPI.Query<RefRW<LocalTransform>, RefRO<Movement>>())
+        foreach((RefRW<LocalTransform> localTransform, RefRO<Movement> movement, RefRO<Rotation> rotation) in SystemAPI.Query<RefRW<LocalTransform>, RefRO<Movement>, RefRO<Rotation>>())
         {
-            localTransform.ValueRW.Position.xz += movement.ValueRO.moveVector * movement.ValueRO.moveSpeed * SystemAPI.Time.DeltaTime;
-            if(math.lengthsq(movement.ValueRO.moveVector) > float.Epsilon)
+            if(!movement.ValueRO.moveVector.Equals(float3.zero)) localTransform.ValueRW.Position += movement.ValueRO.moveSpeed * SystemAPI.Time.DeltaTime * movement.ValueRO.moveVector;
+            targetQuaternion = quaternion.Euler(math.radians(rotation.ValueRO.pitch), math.radians(rotation.ValueRO.yaw), 0);
+            if(math.distancesq(targetQuaternion.value, localTransform.ValueRO.Rotation.value) > 1e-6f)
             {
-                localTransform.ValueRW.Rotation = quaternion.LookRotationSafe(new float3(movement.ValueRO.moveVector.x, 0, movement.ValueRO.moveVector.y), math.up());
+                localTransform.ValueRW = localTransform.ValueRO.WithRotation(targetQuaternion);
             }
         }
     }

@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class BuildingGhostAuthoring : MonoBehaviour
 {
-    public List<SnapPointAuthoring> snapPointsAuthorings;
+    private const string TAG = "SnapPointDirection";
+    public ModelBuildingSo buildingSo;
     public class BuildingGhostAuthoringBaker : Baker<BuildingGhostAuthoring>
     {
         public override void Bake(BuildingGhostAuthoring authoring)
@@ -13,23 +14,39 @@ public class BuildingGhostAuthoring : MonoBehaviour
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
             AddComponent(entity, new BuildingGhost
             {
+                buildingEntity = GetEntity(authoring.buildingSo.buildingPrefab, TransformUsageFlags.Dynamic),
+                timeBuildMax = authoring.buildingSo.timeBuildMax,
+                timeBuild = authoring.buildingSo.timeBuildMax,
+            });
+            AddComponent(entity, new IsBuilding
+            {
 
             });
-            DynamicBuffer<SnapPointBuffer> snapPointBuffers = AddBuffer<SnapPointBuffer>(entity);
-            for (int i = 0; i < authoring.snapPointsAuthorings.Count; i++)
+            SetComponentEnabled<IsBuilding>(entity, false);
+            DynamicBuffer<SnapPointsDirectionBuffer> snapPointsDirectionBuffers = AddBuffer<SnapPointsDirectionBuffer>(entity);
+            for (int i = 0; i < authoring.transform.childCount; i++)
             {
-                snapPointBuffers.Add(new SnapPointBuffer
+                if (authoring.transform.GetChild(i).CompareTag(TAG))
                 {
-                    snapPointEntity = GetEntity(authoring.snapPointsAuthorings[i].gameObject, TransformUsageFlags.Dynamic),
-                    offset = math.distance(authoring.snapPointsAuthorings[i].transform.position, authoring.transform.position),
-                });
+                    Transform child = authoring.transform.GetChild(i);
+                    snapPointsDirectionBuffers.Add(new SnapPointsDirectionBuffer
+                    {
+                        SnapPointsDirectionEntity = GetEntity(child.gameObject, TransformUsageFlags.Dynamic),
+                        direction = UtilClass.GetChildDirection(child),
+                    });
+                }
             }
         }
     }
 }
 public struct BuildingGhost : IComponentData
 {
+    public Entity buildingEntity;
+    public float timeBuild;
+    public float timeBuildMax;
+}
+public struct IsBuilding : IComponentData, IEnableableComponent
+{
 
 }
-
 

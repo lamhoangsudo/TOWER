@@ -225,6 +225,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -246,6 +248,7 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
@@ -318,71 +321,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   BuildingID: 1
---- !u!1001 &1474795023
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 515624981522905733, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-      propertyPath: m_Name
-      value: Platform_L
-      objectReference: {fileID: 0}
-    - target: {fileID: 6291920341750951796, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-      propertyPath: m_Size.x
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6291920341750951796, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-      propertyPath: m_Size.z
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 8838118512426066243, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8838118512426066243, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8838118512426066243, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8838118512426066243, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.28485206
-      objectReference: {fileID: 0}
-    - target: {fileID: 8838118512426066243, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8838118512426066243, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0.9585715
-      objectReference: {fileID: 0}
-    - target: {fileID: 8838118512426066243, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8838118512426066243, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8838118512426066243, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: -146.9
-      objectReference: {fileID: 0}
-    - target: {fileID: 8838118512426066243, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
 --- !u!1 &1635680160
 GameObject:
   m_ObjectHideFlags: 0
@@ -441,6 +379,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 5
+  rotateSpeed: 1
 --- !u!1 &1967450859
 GameObject:
   m_ObjectHideFlags: 0
@@ -481,6 +420,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -502,6 +443,7 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
@@ -567,7 +509,6 @@ SphereCollider:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1474795023}
   - {fileID: 948264384}
   - {fileID: 1090063627}
   - {fileID: 1635680161}

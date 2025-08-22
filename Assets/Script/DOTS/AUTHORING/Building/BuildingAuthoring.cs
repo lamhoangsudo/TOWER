@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class BuildingAuthoring : MonoBehaviour
 {
-    public List<SnapPointAuthoring> snapPointsAuthorings;
     public ModelBuildingSo buildingSo;
+    private const string TAG = "SnapPointDirection";
     public class BuildingAuthoringBaker : Baker<BuildingAuthoring>
     {
         public override void Bake(BuildingAuthoring authoring)
@@ -17,19 +17,30 @@ public class BuildingAuthoring : MonoBehaviour
                 buildingID = authoring.buildingSo.buildingID,
                 snapMaxDistance = authoring.buildingSo.snapMaxDistance,
             });
-            DynamicBuffer<SnapPointBuffer> snapPointBuffers = AddBuffer<SnapPointBuffer>(entity);
-            for (int i = 0; i < authoring.snapPointsAuthorings.Count; i++)
-            {
-                snapPointBuffers.Add(new SnapPointBuffer
-                {
-                    snapPointEntity = GetEntity(authoring.snapPointsAuthorings[i].gameObject, TransformUsageFlags.Dynamic),
-                });
-            }
             AddComponent(entity, new BuildingTrackMousePosition
+            {
+                snapDirection = Enum.Direction.none,
+                snapGhostDirection = Enum.Direction.none,
+            });
+            SetComponentEnabled<BuildingTrackMousePosition>(entity, false);
+            AddComponent(entity, new IsCheckSnapPoint
             {
 
             });
-            SetComponentEnabled<BuildingTrackMousePosition>(entity, false);
+            SetComponentEnabled<IsCheckSnapPoint>(entity, false);
+            DynamicBuffer<SnapPointsDirectionBuffer> snapPointsDirectionBuffers = AddBuffer<SnapPointsDirectionBuffer>(entity);
+            for (int i = 0; i < authoring.transform.childCount; i++)
+            {
+                if (authoring.transform.GetChild(i).CompareTag(TAG))
+                {
+                    Transform child = authoring.transform.GetChild(i);
+                    snapPointsDirectionBuffers.Add(new SnapPointsDirectionBuffer
+                    {
+                        SnapPointsDirectionEntity = GetEntity(child.gameObject, TransformUsageFlags.Dynamic),
+                        direction = UtilClass.GetChildDirection(child),
+                    });
+                }
+            }
         }
     }
 }
@@ -42,7 +53,11 @@ public struct BuildingTrackMousePosition : IComponentData, IEnableableComponent
 {
     public float3 buildPosition;
     public Enum.Direction snapDirection;
-    public Enum.Direction SnapGhostDirection;
+    public Enum.Direction snapGhostDirection;
     public quaternion targetQuaternion;
+}
+public struct IsCheckSnapPoint : IComponentData, IEnableableComponent
+{
+
 }
 

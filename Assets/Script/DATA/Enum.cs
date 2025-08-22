@@ -1,7 +1,12 @@
-using UnityEngine;
 
 public static class Enum
 {
+    public enum BuildType
+    {
+        None,
+        Platform,
+        Turret,
+    }
     public enum TurretFiringPattern
     {
         Individual,

@@ -9,9 +9,8 @@ using Ray = UnityEngine.Ray;
 public partial class MouseWorldPositionTrackSystem : SystemBase
 {
     private Entity mouseWorldPositionTrackEntity;
+    private Entity playerEntity;
     private CollisionWorld collisionWorld;
-    private Entity buildingManagerEntity;
-    private Entity entityStorage;
     protected override void OnCreate()
     {
         base.OnCreate();
@@ -19,8 +18,7 @@ public partial class MouseWorldPositionTrackSystem : SystemBase
     protected override void OnStartRunning()
     {
         mouseWorldPositionTrackEntity = SystemAPI.GetSingletonEntity<MouseWorldPositionTrack>();
-        buildingManagerEntity = SystemAPI.GetSingletonEntity<BuildingManger>();
-        entityStorage = SystemAPI.GetSingletonEntity<EntitySpawnStorageTag>();
+        playerEntity = SystemAPI.GetSingletonEntity<PlayerTag>();
     }
     protected override void OnUpdate()
     {
@@ -28,7 +26,7 @@ public partial class MouseWorldPositionTrackSystem : SystemBase
         RaycastInput raycastInput = new()
         {
             Start = mouseCameraRay.origin,
-            End = mouseCameraRay.origin + mouseCameraRay.direction * 1000f,
+            End = mouseCameraRay.origin + mouseCameraRay.direction * 10f,
             Filter = new CollisionFilter
             {
                 BelongsTo = ~0u,
@@ -37,10 +35,15 @@ public partial class MouseWorldPositionTrackSystem : SystemBase
             }
         };
         collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+        RefRW<LocalTransform> localTransform = SystemAPI.GetComponentRW<LocalTransform>(mouseWorldPositionTrackEntity);
         if (collisionWorld.CastRay(raycastInput, out Unity.Physics.RaycastHit closestHit))
         {
-            RefRW<LocalTransform> localTransform = SystemAPI.GetComponentRW<LocalTransform>(mouseWorldPositionTrackEntity);
-            localTransform.ValueRW.Position = closestHit.Position;
+            localTransform.ValueRW.Position = math.lerp(localTransform.ValueRO.Position, closestHit.Position, SystemAPI.Time.DeltaTime);
+        }
+        else
+        {
+            LocalTransform localTransformPlayer = SystemAPI.GetComponent<LocalTransform>(playerEntity);
+            localTransform.ValueRW.Position = math.lerp(localTransform.ValueRO.Position, localTransformPlayer.Position + localTransformPlayer.Forward() * 10f, SystemAPI.Time.DeltaTime);
         }
     }
     protected override void OnStopRunning()

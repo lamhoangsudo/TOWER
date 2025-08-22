@@ -15,6 +15,7 @@ public partial class WorldPointViewTrackSystem : SystemBase
     {
         LocalTransform localTransform = SystemAPI.GetComponent<LocalTransform>(playerEntity);
         WorldPointView.Instance.transform.position = math.lerp(WorldPointView.Instance.transform.position, localTransform.Position, SystemAPI.Time.DeltaTime);
+        WorldPointView.Instance.transform.rotation = math.slerp(WorldPointView.Instance.transform.rotation, localTransform.Rotation, SystemAPI.Time.DeltaTime);
     }
     protected override void OnStopRunning()
     {

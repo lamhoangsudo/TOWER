@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec09cdc0a9c417747b96a4cfbc7069e2, type: 3}
   m_Name: Platform_L_SO
   m_EditorClassIdentifier: 
-  buildingGhostPrefab: {fileID: 515624981522905733, guid: ae21e5150a51c2a40ad9fc590cd9ffd0, type: 3}
+  buildingGhostPrefab: {fileID: 515624981522905733, guid: 3943fd61a32008c48a950f7869bae94a, type: 3}
   buildingPrefab: {fileID: 515624981522905733, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
   buildingID: 1
-  snapMaxDistance: 10
+  snapMaxDistance: 3
+  timeBuildMax: 1

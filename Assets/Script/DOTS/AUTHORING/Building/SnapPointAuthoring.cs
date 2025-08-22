@@ -4,7 +4,6 @@ using UnityEngine;
 public class SnapPointAuthoring : MonoBehaviour
 {
     public Enum.SnapPointType snapPointType;
-    public Enum.Direction direction;
     public class SnapPointAuthoringBaker : Baker<SnapPointAuthoring>
     {
         public override void Bake(SnapPointAuthoring authoring)
@@ -14,7 +13,6 @@ public class SnapPointAuthoring : MonoBehaviour
             {
                 snapType = authoring.snapPointType,
                 IsOccupied = false,
-                direction = authoring.direction,
             });
         }
     }
@@ -23,7 +21,6 @@ public struct SnapPoint : IComponentData
 {
     public Enum.SnapPointType snapType;
     public bool IsOccupied;
-    public Enum.Direction direction;
 }
 
 
