@@ -14,7 +14,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     /// <summary>
     /// Allows for subtrees to be loaded at runtime into the tree.
     /// </summary>
-    [NodeDescription("Selects a subtree based on the index value.")]
+    [Opsive.Shared.Utility.Description("Selects a subtree based on the index value.")]
     public class SubtreeReferenceSelector : SubtreeReference
     {
         [Tooltip("The index of the subtree that should be selected.")]

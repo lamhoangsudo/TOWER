@@ -11,7 +11,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.UnityObjects
     using System.Collections.Generic;
     using UnityEngine;
 
-    [NodeDescription("Adds the GameObject to the list.")]
+    [Opsive.Shared.Utility.Description("Adds the GameObject to the list.")]
     [Shared.Utility.Category("Lists")]
     public class AddGameObjectToList : TargetGameObjectAction
     {

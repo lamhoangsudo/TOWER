@@ -141,7 +141,8 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks
             // Get the method based on the type and parameter types.
             var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static, null, parameterTypes, null);
             if (method == null) {
-                Debug.LogError($"Error: Unable to find the method {methodName} on type {type}.");
+                Debug.LogError($"Error: Unable to find the method {methodName} on type {type}. If you are using code stripping you can prevent Unity from stripping the " +
+                    $"method with a link.xml file: https://docs.unity3d.com/6000.1/Documentation/Manual/managed-code-stripping-xml-formatting.html");
                 return null;
             }
 

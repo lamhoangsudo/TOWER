@@ -19,7 +19,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// The Conditional Evaluator is a decorator that will evaluate the specified conditional task. This conditional task can be reevaluated while the current task is active.
     /// </summary>
     [NodeIcon("63d6a403c13816a49b58d1de830ca51e", "3d3c18273075b3f40b6c921943f33964")]
-    [NodeDescription("Evaluates the specified conditional task. If the conditional task returns success then the child task is run and the child status is returned. If the conditional task does not " +
+    [Opsive.Shared.Utility.Description("Evaluates the specified conditional task. If the conditional task returns success then the child task is run and the child status is returned. If the conditional task does not " +
                      "return success then the child task is not run and a failure status is immediately returned.")]
     public class ConditionalEvaluator : DecoratorNode
     {

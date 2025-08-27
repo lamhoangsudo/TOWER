@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals.Physics
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Returns success when a collision starts. This task will only receive the physics callback if it is being reevaluated (with a conditional abort or under a parallel task).")]
+    [Opsive.Shared.Utility.Description("Returns success when a collision starts. This task will only receive the physics callback if it is being reevaluated (with a conditional abort or under a parallel task).")]
     [Shared.Utility.Category("Physics")]
     public class HasEnteredCollision : Conditional
     {

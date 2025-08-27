@@ -1,26 +1,29 @@
 using Unity.Entities;
 using UnityEngine;
-
+using static Enum;
 public class SnapPointAuthoring : MonoBehaviour
 {
-    public Enum.SnapPointType snapPointType;
+    public SnapPointType snapPointType;
     public class SnapPointAuthoringBaker : Baker<SnapPointAuthoring>
     {
         public override void Bake(SnapPointAuthoring authoring)
         {
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
-            AddComponent(entity, new SnapPoint
+            AddComponent(entity, new SnapPoint()
             {
-                snapType = authoring.snapPointType,
-                IsOccupied = false,
+                snapPointType = authoring.snapPointType,
+                isOccupied = false,
+                distanceSnapPointToBuildingGhost= 0f,
+                offset = 0f,
             });
         }
     }
 }
 public struct SnapPoint : IComponentData
 {
-    public Enum.SnapPointType snapType;
-    public bool IsOccupied;
+    public SnapPointType snapPointType;
+    public bool isOccupied;
+    public float distanceSnapPointToBuildingGhost;
+    public float offset;
 }
-
 

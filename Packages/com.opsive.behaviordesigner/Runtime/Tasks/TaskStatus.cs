@@ -3,7 +3,6 @@
 /// Copyright (c) Opsive. All Rights Reserved.
 /// https://www.opsive.com
 /// ---------------------------------------------
-
 namespace Opsive.BehaviorDesigner.Runtime.Tasks
 {
     /// <summary>

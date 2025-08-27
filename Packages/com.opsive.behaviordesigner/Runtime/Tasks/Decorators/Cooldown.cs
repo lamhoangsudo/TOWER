@@ -18,69 +18,48 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// A node representation of the cooldown task.
     /// </summary>
     [NodeIcon("b5459f67bc5033e49ad7a763cdb885bb", "480c79a18119d2a488b5d984211463f1")]
-    [NodeDescription("Waits the specified duration after the child has completed before returning the child's status of success or failure.")]
-    public struct Cooldown : ILogicNode, IParentNode, ITaskComponentData, IDecorator
+    [Opsive.Shared.Utility.Description("Waits the specified duration after the child has completed before returning the child's status of success or failure.")]
+    public class Cooldown : ECSDecoratorTask<CooldownTaskSystem, CooldownComponent>, IParentNode
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
         [Tooltip("The duration of the cooldown.")]
         [SerializeField] float m_Duration;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
         public float Duration { get => m_Duration; set => m_Duration = value; }
 
         private ushort m_ComponentIndex;
 
-        public int MaxChildCount { get { return 1; } }
-
-        public ComponentType Tag { get => typeof(CooldownTag); }
-        public System.Type SystemType { get => typeof(CooldownTaskSystem); }
+        public override ComponentType Flag { get => typeof(CooldownFlag); }
 
         /// <summary>
         /// Resets the task to its default values.
         /// </summary>
-        public void Reset() { m_Duration = 1; }
+        public override void Reset() { m_Duration = 1; }
+
+        /// <summary>
+        /// Returns a new TBufferElement for use by the system.
+        /// </summary>
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override CooldownComponent GetBufferElement()
+        {
+            return new CooldownComponent()
+            {
+                Index = RuntimeIndex,
+                Duration = m_Duration,
+                StartTime = -1,
+            };
+        }
 
         /// <summary>
         /// Adds the IBufferElementData to the entity.
         /// </summary>
         /// <param name="world">The world that the entity exists.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <returns>The index of the element within the buffer.</returns>
+        public override int AddBufferElement(World world, Entity entity, GameObject gameObject)
         {
-            DynamicBuffer<CooldownComponent> buffer;
-            if (world.EntityManager.HasBuffer<CooldownComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<CooldownComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<CooldownComponent>(entity);
-            }
-            buffer.Add(new CooldownComponent() {
-                Index = RuntimeIndex,
-                Duration = m_Duration,
-                StartTime = -1,
-            });
-            m_ComponentIndex = (ushort)(buffer.Length - 1);
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<CooldownComponent> buffer;
-            if (world.EntityManager.HasBuffer<CooldownComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<CooldownComponent>(entity);
-                buffer.Clear();
-            }
+            m_ComponentIndex = (ushort)base.AddBufferElement(world, entity, gameObject);
+            return m_ComponentIndex;
         }
 
         /// <summary>
@@ -152,7 +131,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// <summary>
     /// A DOTS tag indicating when an Cooldown node is active.
     /// </summary>
-    public struct CooldownTag : IComponentData, IEnableableComponent { }
+    public struct CooldownFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the Cooldown logic.
@@ -167,7 +146,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
         [BurstCompile]
         private void OnUpdate(ref SystemState state)
         {
-            var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<CooldownComponent>().WithAll<CooldownTag, EvaluationComponent>().Build();
+            var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<CooldownComponent>().WithAll<CooldownFlag, EvaluateFlag>().Build();
             state.Dependency = new CooldownJob()
             {
                 Time = SystemAPI.Time.ElapsedTime
@@ -206,7 +185,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
                         childTaskComponent.Status = TaskStatus.Queued;
                         taskComponents[taskComponent.Index + 1] = childTaskComponent;
 
-                        branchComponent.NextIndex = taskComponent.Index + 1;
+                        branchComponent.NextIndex = (ushort)(taskComponent.Index + 1);
                         branchComponents[taskComponent.BranchIndex] = branchComponent;
 
                         continue;

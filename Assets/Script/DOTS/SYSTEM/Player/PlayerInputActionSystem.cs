@@ -44,6 +44,8 @@ public partial class PlayerInputActionSystem : SystemBase
                 rotationSpeed = rotation.rotationSpeed,
                 yaw = rotation.yaw + mouseX * rotation.rotationSpeed,
                 pitch = rotation.pitch - mouseY * rotation.rotationSpeed,
+                pitchMax = rotation.pitchMax,
+                pitchMin = rotation.pitchMin,
             });
         }
         if (Input.GetMouseButtonDown(0))
@@ -64,6 +66,10 @@ public partial class PlayerInputActionSystem : SystemBase
                 RefRW<BuildingGhost> buildingGhost = SystemAPI.GetComponentRW<BuildingGhost>(building);
                 SystemAPI.SetComponentEnabled<IsBuilding>(building, true);
             }
+        }
+        if(Input.GetKeyDown(KeyCode.R))
+        {
+
         }
     }
     protected override void OnStopRunning()

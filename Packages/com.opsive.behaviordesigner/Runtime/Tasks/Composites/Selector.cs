@@ -18,64 +18,45 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     /// A node representation of the selector task.
     /// </summary>
     [NodeIcon("4c3d0559a9ebc604e88b16e9a3fdfa05", "de3acf0e386a26246b8bc999b1ef8e32")]
-    [NodeDescription("The selector task is similar to an \"or\" operation. It will return success as soon as one of its child tasks return success. " +
+    [Opsive.Shared.Utility.Description("The selector task is similar to an \"or\" operation. It will return success as soon as one of its child tasks return success. " +
                      "If a child task returns failure then it will sequentially run the next task. If no child task returns success then it will return failure.")]
-    public struct Selector : ILogicNode, IParentNode, ITaskComponentData, IComposite, IConditionalAbortParent, IInterruptResponder, ISavableTask, ICloneable
+    public class Selector : ECSCompositeTask<SelectorTaskSystem, SelectorComponent>, IParentNode, IConditionalAbortParent, IInterruptResponder, ISavableTask, ICloneable
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
         [Tooltip("Specifies how the child conditional tasks should be reevaluated.")]
         [SerializeField] ConditionalAbortType m_AbortType;
 
         private ushort m_ComponentIndex;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
         public ConditionalAbortType AbortType { get => m_AbortType; set => m_AbortType = value; }
-
-        public int MaxChildCount { get { return int.MaxValue; } }
-
-        public ComponentType Tag { get => typeof(SelectorTag); }
-        public Type SystemType { get => typeof(SelectorTaskSystem); }
         public Type InterruptSystemType { get => typeof(SelectorInterruptSystem); }
+
+        /// <summary>
+        /// The type of tag that should be enabled when the task is running.
+        /// </summary>
+        public override ComponentType Flag { get => typeof(SelectorFlag); }
+
+        /// <summary>
+        /// Returns a new TBufferElement for use by the system.
+        /// </summary>
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override SelectorComponent GetBufferElement()
+        {
+            return new SelectorComponent() {
+                Index = RuntimeIndex,
+            };
+        }
 
         /// <summary>
         /// Adds the IBufferElementData to the entity.
         /// </summary>
         /// <param name="world">The world that the entity exists.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <returns>The index of the element within the buffer.</returns>
+        public override int AddBufferElement(World world, Entity entity, GameObject gameObject)
         {
-            DynamicBuffer<SelectorComponent> buffer;
-            if (world.EntityManager.HasBuffer<SelectorComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<SelectorComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<SelectorComponent>(entity);
-            }
-            buffer.Add(new SelectorComponent() {
-                Index = RuntimeIndex,
-            });
-            m_ComponentIndex = (ushort)(buffer.Length - 1);
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<SelectorComponent> buffer;
-            if (world.EntityManager.HasBuffer<SelectorComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<SelectorComponent>(entity);
-                buffer.Clear();
-            }
+            m_ComponentIndex = (ushort)base.AddBufferElement(world, entity, gameObject);
+            return m_ComponentIndex;
         }
 
         /// <summary>
@@ -144,7 +125,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     /// <summary>
     /// A DOTS tag indicating when a Selector node is active.
     /// </summary>
-    public struct SelectorTag : IComponentData, IEnableableComponent { }
+    public struct SelectorFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the Selector logic.
@@ -159,7 +140,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
         [BurstCompile]
         private void OnUpdate(ref SystemState state)
         {
-            var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<SelectorComponent>().WithAll<SelectorTag, EvaluationComponent>().Build();
+            var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<SelectorComponent>().WithAll<SelectorFlag, EvaluateFlag>().Build();
             state.Dependency = new SelectorJob().ScheduleParallel(query, state.Dependency);
         }
 
@@ -253,7 +234,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
         private void OnUpdate(ref SystemState state)
         {
             foreach (var (taskComponents, selectorComponents) in
-                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<SelectorComponent>>().WithAll<InterruptTag>()) {
+                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<SelectorComponent>>().WithAll<InterruptFlag>()) {
                 for (int i = 0; i < selectorComponents.Length; ++i) {
                     var selectorComponent = selectorComponents[i];
                     // The active child will have a non-running status if it has been interrupted.

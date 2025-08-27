@@ -16,20 +16,20 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks
     /// Interface for action tasks.
     /// </summary>
     [ReflectedType]
-    [ObjectName("Actions")]
+    [DisplayName("Actions")]
     public interface IAction { }
 
     /// <summary>
     /// Interface for composite tasks.
     /// </summary>
-    [ObjectName("Composites")]
+    [DisplayName("Composites")]
     public interface IComposite { }
 
     /// <summary>
     /// Interface for conditional tasks.
     /// </summary>
     [ReflectedType(typeof(bool))]
-    [ObjectName("Conditionals")]
+    [DisplayName("Conditionals")]
     public interface IConditional { }
 
     /// <summary>
@@ -47,8 +47,40 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks
     /// <summary>
     /// Interface for decorator tasks.
     /// </summary>
-    [ObjectName("Decorators")]
+    [DisplayName("Decorators")]
     public interface IDecorator { }
+
+    /// <summary>
+    /// Interface which specifies that the object is a task.
+    /// </summary>
+    public interface IAuthoringTask
+    {
+        /// <summary>
+        /// The type of flag that should be enabled when the task is running.
+        /// </summary>
+        public ComponentType Flag { get; }
+
+        /// <summary>
+        /// The system type that the component uses.
+        /// </summary>
+        public System.Type SystemType { get; }
+
+        /// <summary>
+        /// Adds the IBufferElementData to the entity.
+        /// </summary>
+        /// <param name="world">The world that the entity exists.</param>
+        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <returns>The index of the element within the buffer.</returns>
+        public int AddBufferElement(World world, Entity entity, UnityEngine.GameObject gameObject);
+
+        /// <summary>
+        /// Clears the IBufferElementData from the entity.
+        /// </summary>
+        /// <param name="world">The world that the entity exists.</param>
+        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
+        public void ClearBufferElement(World world, Entity entity);
+    }
 
     /// <summary>
     /// Interface which specifies the IComponentData is a task.
@@ -58,6 +90,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks
         /// <summary>
         /// The type of tag that should be enabled when the task is running.
         /// </summary>
+        [System.Obsolete("ITaskComponentData.Tag is deprecated. It has been replaced with IAuthoringTask.Flag.")]
         public ComponentType Tag { get; }
 
         /// <summary>
@@ -70,7 +103,9 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks
         /// </summary>
         /// <param name="world">The world that the entity exists.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity);
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <returns>The index of the element within the buffer.</returns>
+        public int AddBufferElement(World world, Entity entity, UnityEngine.GameObject gameObject);
 
         /// <summary>
         /// Clears the IBufferElementData from the entity.
@@ -86,9 +121,9 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks
     public interface IReevaluateResponder
     {
         /// <summary>
-        /// The type of tag that should be enabled when the task is being reevaluated.
+        /// The type of flag that should be enabled when the task is being reevaluated.
         /// </summary>
-        public ComponentType ReevaluateTag { get; }
+        public ComponentType ReevaluateFlag { get; }
 
         /// <summary>
         /// The system type that the reevaluation component uses.

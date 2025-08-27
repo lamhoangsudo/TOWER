@@ -13,7 +13,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
     /// A TaskObject implementation of the Conditional task. This class can be used when the task should not be grouped by the StackedConditional task.
     /// </summary>
     [NodeIcon("dea5c23eac9d12c4cbd380cc879816ea", "2963cf3eb0c036449829254b2074c4c3")]
-    public abstract class ConditionalNode : Task, ILogicNode, IConditional, IConditionalReevaluation
+    public abstract class ConditionalNode : Task, ITreeLogicNode, IConditional, IConditionalReevaluation
     {
         [Tooltip("The index of the node.")]
         [SerializeField] ushort m_Index;

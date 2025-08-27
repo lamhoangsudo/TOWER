@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals.Math
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Compares two boolean values.")]
+    [Opsive.Shared.Utility.Description("Compares two boolean values.")]
     [Shared.Utility.Category("Math")]
     public class BoolComparison : Conditional
     {

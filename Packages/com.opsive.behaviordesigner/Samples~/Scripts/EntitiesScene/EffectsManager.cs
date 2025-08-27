@@ -123,7 +123,7 @@ namespace Opsive.BehaviorDesigner.Samples
                 entities.Dispose();
 
                 // All of the currently charging agents should be destroyed.
-                query = new EntityQueryBuilder(Allocator.Temp).WithAll<ChargeTag>().Build(entityManager);
+                query = new EntityQueryBuilder(Allocator.Temp).WithAll<ChargeFlag>().Build(entityManager);
                 entities = query.ToEntityArray(AllocatorManager.Temp);
                 for (int i = 0; i < entities.Length; ++i) {
                     m_EntityCommandBuffer.DestroyEntity(entities[i]);

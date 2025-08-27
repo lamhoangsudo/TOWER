@@ -9,7 +9,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
     using Opsive.GraphDesigner.Runtime;
 
     [NodeIcon("e0a8f1df788b6274a9a24003859dfa7e")]
-    [NodeDescription("Returns true if the specified behavior tree is active.")]
+    [Opsive.Shared.Utility.Description("Returns true if the specified behavior tree is active.")]
     public class IsBehaviorTreeActive : TargetBehaviorTreeConditional
     {
         /// <summary>

@@ -18,16 +18,10 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// A node representation of the repeater task.
     /// </summary>
     [NodeIcon("ceb6f3e7f67cde640b28b2a15ec13ffe", "bb415ca6de87c3d49ab9a94fe8a6fca8")]
-    [NodeDescription(@"The repeater task will repeat execution of its child task until the child task has been run a specified number of times. " +
+    [Opsive.Shared.Utility.Description(@"The repeater task will repeat execution of its child task until the child task has been run a specified number of times. " +
                       "It has the option of continuing to execute the child task even if the child task returns a failure.")]
-    public struct Repeater : ILogicNode, IParentNode, ITaskComponentData, IDecorator, ISavableTask
+    public class Repeater : ECSDecoratorTask<RepeaterTaskSystem, RepeaterComponent>, IParentNode, ISavableTask
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
         [Tooltip("Should the task be repeated forever?")]
         [SerializeField] bool m_RepeatForever;
         [Tooltip("The number of times the task should repeat.")]
@@ -37,57 +31,42 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
 
         private ushort m_ComponentIndex;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
         public bool RepeatForever { get => m_RepeatForever; set => m_RepeatForever = value; }
         public ushort RepeatCount { get => m_RepeatCount; set => m_RepeatCount = value; }
         public bool EndOnFailure { get => m_EndOnFailure; set => m_EndOnFailure = value; }
 
-        public int MaxChildCount { get { return 1; } }
-
-        public ComponentType Tag { get => typeof(RepeaterTag); }
-        public System.Type SystemType { get => typeof(RepeaterTaskSystem); }
+        public override ComponentType Flag { get => typeof(RepeaterFlag); }
 
         /// <summary>
         /// Resets the task to its default values.
         /// </summary>
-        public void Reset() { m_RepeatForever = true; }
+        public override void Reset() { m_RepeatForever = true; }
+
+        /// <summary>
+        /// Returns a new TBufferElement for use by the system.
+        /// </summary>
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override RepeaterComponent GetBufferElement()
+        {
+            return new RepeaterComponent()
+            {
+                Index = RuntimeIndex,
+                RepeatCount = m_RepeatForever ? -1 : m_RepeatCount,
+                EndOnFailure = m_EndOnFailure,
+            };
+        }
 
         /// <summary>
         /// Adds the IBufferElementData to the entity.
         /// </summary>
         /// <param name="world">The world that the entity exists.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <returns>The index of the element within the buffer.</returns>
+        public override int AddBufferElement(World world, Entity entity, GameObject gameObject)
         {
-            DynamicBuffer<RepeaterComponent> buffer;
-            if (world.EntityManager.HasBuffer<RepeaterComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<RepeaterComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<RepeaterComponent>(entity);
-            }
-            buffer.Add(new RepeaterComponent() {
-                Index = RuntimeIndex,
-                RepeatCount = m_RepeatForever ? -1 : m_RepeatCount,
-                EndOnFailure = m_EndOnFailure,
-            });
-            m_ComponentIndex = (ushort)(buffer.Length - 1);
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<RepeaterComponent> buffer;
-            if (world.EntityManager.HasBuffer<RepeaterComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<RepeaterComponent>(entity);
-                buffer.Clear();
-            }
+            m_ComponentIndex = (ushort)base.AddBufferElement(world, entity, gameObject);
+            return m_ComponentIndex;
         }
 
         /// <summary>
@@ -146,7 +125,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// <summary>
     /// A DOTS tag indicating when a Repeater node is active.
     /// </summary>
-    public struct RepeaterTag : IComponentData, IEnableableComponent { }
+    public struct RepeaterFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the Repeater logic.
@@ -161,7 +140,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
         [BurstCompile]
         private void OnUpdate(ref SystemState state)
         {
-            var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<RepeaterComponent>().WithAll<RepeaterTag, EvaluationComponent>().Build();
+            var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<RepeaterComponent>().WithAll<RepeaterFlag, EvaluateFlag>().Build();
             state.Dependency = new RepeaterJob().ScheduleParallel(query, state.Dependency);
         }
 
@@ -193,7 +172,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
                         repeaterBuffer[i] = repeaterComponent;
 
                         var branchComponent = branchComponents[taskComponent.BranchIndex];
-                        branchComponent.NextIndex = taskComponent.Index + 1;
+                        branchComponent.NextIndex = (ushort)(taskComponent.Index + 1);
                         branchComponents[taskComponent.BranchIndex] = branchComponent;
 
                         // Start the child.
@@ -241,7 +220,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// A node representation of the repeater task.
     /// </summary>
     [NodeIcon("ceb6f3e7f67cde640b28b2a15ec13ffe", "bb415ca6de87c3d49ab9a94fe8a6fca8")]
-    [NodeDescription(@"The repeater task will repeat execution of its child task until the child task has been run a specified number of times. " +
+    [Opsive.Shared.Utility.Description(@"The repeater task will repeat execution of its child task until the child task has been run a specified number of times. " +
                       "It has the option of continuing to execute the child task even if the child task returns a failure. Uses the GameObject workflow.")]
     public class SharedRepeater : DecoratorNode
     {

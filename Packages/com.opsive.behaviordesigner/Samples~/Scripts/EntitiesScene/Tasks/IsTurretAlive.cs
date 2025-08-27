@@ -13,59 +13,24 @@ namespace Opsive.BehaviorDesigner.Samples
     using Unity.Transforms;
     using UnityEngine;
 
-    [NodeDescription("Uses DOTS to determine if the turret is still alive.")]
+    [Opsive.Shared.Utility.Description("Uses DOTS to determine if the turret is still alive.")]
     [Shared.Utility.Category("Behavior Designer Samples/DOTS")]
-    public struct IsTurretAlive : ILogicNode, ITaskComponentData, IConditional, IReevaluateResponder
+    public class IsTurretAlive : ECSConditionalTask<IsTurretAliveTaskSystem, IsTurretAliveComponent>, IReevaluateResponder
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
-
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
-
-        public ComponentType Tag { get => typeof(IsTurretAliveTag); }
-        public System.Type SystemType { get => typeof(IsTurretAliveTaskSystem); }
-        public ComponentType ReevaluateTag { get => typeof(IsTurretAliveReevaluateTag); }
+        public override ComponentType Flag { get => typeof(IsTurretAliveFlag); }
+        public ComponentType ReevaluateFlag { get => typeof(IsTurretAliveReevaluateFlag); }
         public System.Type ReevaluateSystemType { get => typeof(IsTurretAliveReevaluateTaskSystem); }
 
         /// <summary>
-        /// Adds the IBufferElementData to the entity.
+        /// Returns a new TBufferElement for use by the system.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override IsTurretAliveComponent GetBufferElement()
         {
-            DynamicBuffer<IsTurretAliveComponent> buffer;
-            if (world.EntityManager.HasBuffer<IsTurretAliveComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<IsTurretAliveComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<IsTurretAliveComponent>(entity);
-            }
-
-            buffer.Add(new IsTurretAliveComponent()
+            return new IsTurretAliveComponent()
             {
                 Index = RuntimeIndex,
-            });
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<IsTurretAliveComponent> buffer;
-            if (world.EntityManager.HasBuffer<IsTurretAliveComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<IsTurretAliveComponent>(entity);
-                buffer.Clear();
-            }
+            };
         }
     }
 
@@ -79,9 +44,9 @@ namespace Opsive.BehaviorDesigner.Samples
     }
 
     /// <summary>
-    /// A DOTS tag indicating when a IsTurretAlive node is active.
+    /// A DOTS flag indicating when a IsTurretAlive node is active.
     /// </summary>
-    public struct IsTurretAliveTag : IComponentData, IEnableableComponent { }
+    public struct IsTurretAliveFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the IsTurretAlive logic.
@@ -104,7 +69,7 @@ namespace Opsive.BehaviorDesigner.Samples
             }
 
             foreach (var (taskComponents, isTurretAliveComponents) in
-                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<IsTurretAliveComponent>>().WithAll<IsTurretAliveTag, EvaluationComponent>()) {
+                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<IsTurretAliveComponent>>().WithAll<IsTurretAliveFlag, EvaluateFlag>()) {
                 for (int i = 0; i < isTurretAliveComponents.Length; ++i) {
                     var isTurretAliveComponent = isTurretAliveComponents[i];
                     var taskComponent = taskComponents[isTurretAliveComponent.Index];
@@ -125,7 +90,7 @@ namespace Opsive.BehaviorDesigner.Samples
     /// <summary>
     /// A DOTS tag indicating when an IsTurretAlive node needs to be reevaluated.
     /// </summary>
-    public struct IsTurretAliveReevaluateTag : IComponentData, IEnableableComponent
+    public struct IsTurretAliveReevaluateFlag : IComponentData, IEnableableComponent
     {
     }
 
@@ -150,7 +115,7 @@ namespace Opsive.BehaviorDesigner.Samples
             }
 
             foreach (var (taskComponents, isTurretAliveComponents) in
-                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<IsTurretAliveComponent>>().WithAll<IsTurretAliveReevaluateTag, EvaluationComponent>()) {
+                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<IsTurretAliveComponent>>().WithAll<IsTurretAliveReevaluateFlag, EvaluateFlag>()) {
                 for (int i = 0; i < isTurretAliveComponents.Length; ++i) {
                     var isTurretAliveComponent = isTurretAliveComponents[i];
                     var taskComponent = taskComponents[isTurretAliveComponent.Index];

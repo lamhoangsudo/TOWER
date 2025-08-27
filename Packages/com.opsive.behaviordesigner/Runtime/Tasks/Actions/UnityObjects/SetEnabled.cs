@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.UnityObjects
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Enables or disables the specified MonoBehaviour.")]
+    [Opsive.Shared.Utility.Description("Enables or disables the specified MonoBehaviour.")]
     [Shared.Utility.Category("Unity")]
     public class SetEnabled : Action
     {

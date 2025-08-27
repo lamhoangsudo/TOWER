@@ -15,7 +15,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     /// Executes the specified event.
     /// </summary>
     [NodeIcon("bde76446ddfbd234488e8d591bc75e2f", "6d03b96c0f79bee4ab2e14fc82aa0031")]
-    [NodeDescription("Sends an event to the behavior tree, returns success after sending the event.")]
+    [Opsive.Shared.Utility.Description("Sends an event to the behavior tree, returns success after sending the event.")]
     public class SendEvent : TargetBehaviorTreeAction
     {
         [Tooltip("The name of the event.")]

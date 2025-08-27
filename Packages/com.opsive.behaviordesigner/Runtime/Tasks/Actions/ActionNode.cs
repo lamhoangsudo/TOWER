@@ -13,7 +13,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     /// A TaskObject implementation of the Action task. This class can be used when the task should not be grouped by the StackedAction task.
     /// </summary>
     [NodeIcon("3bbdfa553da4d554e9d74f8d88915aac", "6437308e972f99f48953f20198fd4e94")]
-    public abstract class ActionNode : Task, ILogicNode, IAction
+    public abstract class ActionNode : Task, ITreeLogicNode, IAction
     {
         [Tooltip("The index of the node.")]
         [SerializeField] ushort m_Index;

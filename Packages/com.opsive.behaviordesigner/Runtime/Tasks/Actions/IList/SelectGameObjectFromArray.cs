@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.UnityObjects
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Selects the GameObject from the array.")]
+    [Opsive.Shared.Utility.Description("Selects the GameObject from the array.")]
     [Shared.Utility.Category("Lists")]
     public class SelectGameObjectFromArray : Action
     {

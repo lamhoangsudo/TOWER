@@ -65,11 +65,10 @@ public partial struct SnapPointCaculaterSystem : ISystem
                 {
                     if (snapPointsDirectionBuffers[i].direction == snapDirection)
                     {
-                        Entity snapPointDirectionBuilding = snapPointsDirectionBuffers[i].SnapPointsDirectionEntity;
-                        DynamicBuffer<SnapPointBuffer> snapPointBuildingBuffers = SystemAPI.GetBuffer<SnapPointBuffer>(snapPointDirectionBuilding);
-                        LocalToWorld localToWorldSnapPointBuilding = SystemAPI.GetComponent<LocalToWorld>(snapPointBuildingBuffers[0].snapPointEntity);
-                        position = localToWorldSnapPointBuilding.Position;
-                        forward = localToWorldSnapPointBuilding.Forward;
+                        Entity snapPointDirectionBuildingEntity = snapPointsDirectionBuffers[i].SnapPointsDirectionEntity;
+                        DynamicBuffer<SnapPointBuffer> snapPointBuildingBuffers = SystemAPI.GetBuffer<SnapPointBuffer>(snapPointDirectionBuildingEntity);
+                        position = snapPointBuildingBuffers[0].snapPointPosition;
+                        forward = snapPointsDirectionBuffers[i].directionVector;
                         break;
                     }
                 }
@@ -124,14 +123,14 @@ public partial struct SnapPointCaculaterSystem : ISystem
     }
     public void UpdateAllDistanceSnapPointToBuildingGhost(ref SystemState state, DynamicBuffer<SnapPointBuffer> snapPointBuffers, float3 buildPosition)
     {
-        DynamicBuffer<SnapPointBuffer> __newsnapPointBuffers__ = snapPointBuffers;
-        for (int i = 0; i < snapPointBuffers.Length; i++)
-        {
-            SnapPointBuffer snapPointBuffer = snapPointBuffers[i];
-            LocalToWorld localToWorld = SystemAPI.GetComponent<LocalToWorld>(snapPointBuffer.snapPointEntity);
-            snapPointBuffer.distanceSnapPointToBuildingGhost = math.distance(localToWorld.Position, buildPosition);
-            __newsnapPointBuffers__[i] = snapPointBuffer;
-        }
+        //DynamicBuffer<SnapPointBuffer> __newsnapPointBuffers__ = snapPointBuffers;
+        //for (int i = 0; i < snapPointBuffers.Length; i++)
+        //{
+        //    SnapPointBuffer snapPointBuffer = snapPointBuffers[i];
+        //    LocalToWorld localToWorld = SystemAPI.GetComponent<LocalToWorld>(snapPointBuffer.snapPointEntity);
+        //    snapPointBuffer.distanceSnapPointToBuildingGhost = math.distance(localToWorld.Position, buildPosition);
+        //    __newsnapPointBuffers__[i] = snapPointBuffer;
+        //}
     }
     public float3 GetClosetDirection(ref SystemState state, float3 localDir)
     {

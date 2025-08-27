@@ -9,6 +9,7 @@ using Ray = UnityEngine.Ray;
 public partial class MouseWorldPositionTrackSystem : SystemBase
 {
     private Entity mouseWorldPositionTrackEntity;
+    private MouseWorldPositionTrack mouseWorldPositionTrack;
     private Entity playerEntity;
     private CollisionWorld collisionWorld;
     protected override void OnCreate()
@@ -18,6 +19,7 @@ public partial class MouseWorldPositionTrackSystem : SystemBase
     protected override void OnStartRunning()
     {
         mouseWorldPositionTrackEntity = SystemAPI.GetSingletonEntity<MouseWorldPositionTrack>();
+        mouseWorldPositionTrack = SystemAPI.GetComponent<MouseWorldPositionTrack>(mouseWorldPositionTrackEntity);
         playerEntity = SystemAPI.GetSingletonEntity<PlayerTag>();
     }
     protected override void OnUpdate()
@@ -26,7 +28,7 @@ public partial class MouseWorldPositionTrackSystem : SystemBase
         RaycastInput raycastInput = new()
         {
             Start = mouseCameraRay.origin,
-            End = mouseCameraRay.origin + mouseCameraRay.direction * 10f,
+            End = mouseCameraRay.origin + mouseCameraRay.direction * mouseWorldPositionTrack.range,
             Filter = new CollisionFilter
             {
                 BelongsTo = ~0u,
@@ -38,12 +40,12 @@ public partial class MouseWorldPositionTrackSystem : SystemBase
         RefRW<LocalTransform> localTransform = SystemAPI.GetComponentRW<LocalTransform>(mouseWorldPositionTrackEntity);
         if (collisionWorld.CastRay(raycastInput, out Unity.Physics.RaycastHit closestHit))
         {
-            localTransform.ValueRW.Position = math.lerp(localTransform.ValueRO.Position, closestHit.Position, SystemAPI.Time.DeltaTime);
+            localTransform.ValueRW.Position = closestHit.Position;
         }
         else
         {
             LocalTransform localTransformPlayer = SystemAPI.GetComponent<LocalTransform>(playerEntity);
-            localTransform.ValueRW.Position = math.lerp(localTransform.ValueRO.Position, localTransformPlayer.Position + localTransformPlayer.Forward() * 10f, SystemAPI.Time.DeltaTime);
+            localTransform.ValueRW.Position = localTransformPlayer.Position + localTransformPlayer.Forward() * mouseWorldPositionTrack.range;
         }
     }
     protected override void OnStopRunning()

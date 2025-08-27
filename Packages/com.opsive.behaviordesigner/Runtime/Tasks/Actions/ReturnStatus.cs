@@ -7,8 +7,6 @@
 namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
 {
     using Opsive.BehaviorDesigner.Runtime.Components;
-    using Opsive.GraphDesigner.Runtime;
-    using Opsive.Shared.Utility;
     using Unity.Entities;
     using Unity.Burst;
     using UnityEngine;
@@ -17,58 +15,29 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     /// <summary>
     /// A node representation of the return status task.
     /// </summary>
-    [NodeDescription("The return status task will immediately return sucess or failure.")]
-    public struct ReturnStatus : ILogicNode, ITaskComponentData, IAction, ICloneable
+    [Opsive.Shared.Utility.Description("The return status task will immediately return sucess or failure.")]
+    public class ReturnStatus : ECSActionTask<ReturnStatusTaskSystem, ReturnStatusComponent>, ICloneable
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
         [Tooltip("Should a success status be returned? If false then failure will be returned.")]
         [SerializeField] bool m_Success;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
         public bool Success { get => m_Success; set => m_Success = value; }
 
-        public ComponentType Tag { get => typeof(ReturnStatusTag); }
-        public System.Type SystemType { get => typeof(ReturnStatusTaskSystem); }
+        /// <summary>
+        /// The type of tag that should be enabled when the task is running.
+        /// </summary>
+        public override ComponentType Flag { get => typeof(ReturnStatusFlag); }
 
         /// <summary>
-        /// Adds the IBufferElementData to the entity.
+        /// Returns a new TBufferElement for use by the system.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override ReturnStatusComponent GetBufferElement()
         {
-            DynamicBuffer<ReturnStatusComponent> buffer;
-            if (world.EntityManager.HasBuffer<ReturnStatusComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<ReturnStatusComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<ReturnStatusComponent>(entity);
-            }
-            buffer.Add(new ReturnStatusComponent() {
+            return new ReturnStatusComponent() {
                 Index = RuntimeIndex,
                 Success = m_Success
-            });
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<ReturnStatusComponent> buffer;
-            if (world.EntityManager.HasBuffer<ReturnStatusComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<ReturnStatusComponent>(entity);
-                buffer.Clear();
-            }
+            };
         }
 
         /// <summary>
@@ -102,7 +71,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     /// <summary>
     /// A DOTS tag indicating when a ReturnStatus node is active.
     /// </summary>
-    public struct ReturnStatusTag : IComponentData, IEnableableComponent { }
+    public struct ReturnStatusFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the ReturnStatus logic.
@@ -117,7 +86,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
         [BurstCompile]
         private void OnUpdate(ref SystemState state)
         {
-            var query = SystemAPI.QueryBuilder().WithAllRW<TaskComponent>().WithAllRW<ReturnStatusComponent>().WithAll<ReturnStatusTag, EvaluationComponent>().Build();
+            var query = SystemAPI.QueryBuilder().WithAllRW<TaskComponent>().WithAllRW<ReturnStatusComponent>().WithAll<ReturnStatusFlag, EvaluateFlag>().Build();
             state.Dependency = new ReturnStatusJob().ScheduleParallel(query, state.Dependency);
         }
 

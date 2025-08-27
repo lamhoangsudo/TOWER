@@ -12,7 +12,7 @@ namespace Opsive.BehaviorDesigner.Samples
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Uses the agent's speed to determine if the agent should slip.")]
+    [Opsive.Shared.Utility.Description("Uses the agent's speed to determine if the agent should slip.")]
     [Shared.Utility.Category("Behavior Designer Samples")]
     public class ShouldSlip : Conditional
     {

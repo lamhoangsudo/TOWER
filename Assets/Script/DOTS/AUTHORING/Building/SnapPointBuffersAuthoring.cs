@@ -1,27 +1,44 @@
 using System.Collections.Generic;
 using Unity.Entities;
+using Unity.Entities.UniversalDelegates;
 using UnityEngine;
-using static UnityEngine.EventSystems.EventTrigger;
 
 public class SnapPointBuffersAuthoring : MonoBehaviour
 {
     private const string TAG = "SnapPoint";
+    public List<SnapPointAuthoring> snapPointAuthorings;
+    public Enum.SnapPointType defaultSnapPointType;
     public class SnapPointBuffersAuthoringBaker : Baker<SnapPointBuffersAuthoring>
     {
         public override void Bake(SnapPointBuffersAuthoring authoring)
         {
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
             DynamicBuffer<SnapPointBuffer> snapPointBuffers = AddBuffer<SnapPointBuffer>(entity);
-            for (int i = 0; i < authoring.transform.childCount; i++)
+            if (authoring.snapPointAuthorings.Count > 0)
             {
-                if (authoring.transform.GetChild(i).CompareTag(TAG))
+                for (int i = 0; i < authoring.snapPointAuthorings.Count; i++)
                 {
-                    snapPointBuffers.Add(new SnapPointBuffer
+                    if (authoring.snapPointAuthorings[i].CompareTag(TAG))
                     {
-                        snapPointEntity = GetEntity(authoring.transform.GetChild(i).gameObject, TransformUsageFlags.Dynamic),
-                        offset = Vector3.Distance(authoring.transform.position, authoring.transform.parent.position),
-                    });
+                        snapPointBuffers.Add(new SnapPointBuffer
+                        {
+                            snapPointEntity = GetEntity(authoring.snapPointAuthorings[i].gameObject, TransformUsageFlags.Dynamic),
+                            snapPointType = authoring.snapPointAuthorings[i].snapPointType,
+                            offset = Vector3.Distance(authoring.snapPointAuthorings[i].transform.position, authoring.transform.parent.position),
+                        });
+                    }
                 }
+            }
+            else
+            {
+                snapPointBuffers.Add(new SnapPointBuffer
+                {
+                    offset = Vector3.Distance(authoring.transform.position, authoring.transform.parent.position),
+                    snapPointPosition = authoring.transform.position,
+                    snapPointType = authoring.defaultSnapPointType,
+                    isOccupied = false,
+                    distanceSnapPointToBuildingGhost = 0f,
+                });
             }
         }
     }

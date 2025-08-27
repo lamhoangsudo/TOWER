@@ -14,7 +14,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// <summary>
     /// Implements the UtilityEvaluator returning a SharedVariable value.
     /// </summary>
-    [NodeDescription("Sets the utility value to the evaluated curve value.")]
+    [Opsive.Shared.Utility.Description("Sets the utility value to the evaluated curve value.")]
     public class UtilityCurveEvaluator : UtilityEvaluator
     {
         [Tooltip("The curve that should be evaluated for the utility value.")]

@@ -250,3 +250,46 @@ RadioToggle > VisualElement > .light-radio-checkmark
 {
     background-color: rgba(0, 0, 0, 0);
 }
+
+/* || Details Panel || */
+.details-panel
+{
+    height: 100px;
+    min-height: 100px;
+    max-height: 100px;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+    border-top-width: 1px;
+}
+
+.details-panel-light
+{
+    border-top-color: rgba(140, 140, 140, 0.5);
+}
+
+.details-panel-dark
+{
+    border-top-color: rgba(76, 76, 76, 0.5);
+}
+
+.details-label
+{
+    flex-grow: 1;
+    overflow: hidden;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-top: 2px;
+    white-space: normal;
+    font-size: 11px;
+}
+
+.details-label-light
+{
+    color: rgb(80, 80, 80);
+}
+
+.details-label-dark
+{
+    color: rgb(200, 200, 200);
+}

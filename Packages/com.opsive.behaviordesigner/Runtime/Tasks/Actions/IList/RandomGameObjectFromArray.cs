@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.UnityObjects
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Sets a random GameObject value from the GameObject array.")]
+    [Opsive.Shared.Utility.Description("Sets a random GameObject value from the GameObject array.")]
     [Shared.Utility.Category("Lists")]
     public class RandomGameObjectFromArray : Action
     {

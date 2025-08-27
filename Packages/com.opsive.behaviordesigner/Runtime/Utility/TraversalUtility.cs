@@ -55,6 +55,10 @@ namespace Opsive.BehaviorDesigner.Runtime.Utility
         /// <returns>The total number of children belonging to the specified node.</returns>
         public static int GetChildCount(int index, ref DynamicBuffer<TaskComponent> taskComponents)
         {
+            if (index == ushort.MaxValue) {
+                return 0;
+            }
+
             var taskComponent = taskComponents[index];
             if (taskComponent.SiblingIndex != ushort.MaxValue) {
                 return taskComponent.SiblingIndex - taskComponent.Index - 1;

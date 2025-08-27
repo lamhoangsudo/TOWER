@@ -15,7 +15,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
     /// A TaskObject implementation of the Conditional task. This class can be used when the task should not be grouped by the StackedConditional task.
     /// </summary>
     [NodeIcon("e6fc90c130121da4f9067b5e15b02975", "69959064b54a0cb4cb077dbb6967a3e1")]
-    [NodeDescription("Returns success as soon as the event specified by eventName has been received.")]
+    [Opsive.Shared.Utility.Description("Returns success as soon as the event specified by eventName has been received.")]
     public class HasReceivedEvent : TargetBehaviorTreeConditional
     {
         [Tooltip("The name of the event that should be registered.")]
@@ -32,6 +32,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
         private string m_RegisteredEventName;
         private bool m_EventRegistered;
         private bool m_EventReceived;
+        private bool m_ResetEventReceived = true;
 
         /// <summary>
         /// The behavior tree has started.
@@ -124,11 +125,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
         /// </summary>
         private void ReceivedEvent()
         {
-            // The task has to be reevaluated in order for the event to be received.
-            if (!IsReevaluating()) {
-                return;
-            }
-
             m_EventReceived = true;
         }
 
@@ -138,11 +134,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
         /// <param name="arg1">The first parameter.</param>
         private void ReceivedEvent(object arg1)
         {
-            // The task has to be reevaluated in order for the event to be received.
-            if (!IsReevaluating()) {
-                return;
-            }
-
             m_EventReceived = true;
 
             if (m_StoredValue1 != null && m_StoredValue1.IsShared) { m_StoredValue1.SetValue(arg1); }
@@ -155,11 +146,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
         /// <param name="arg2">The second parameter.</param>
         private void ReceivedEvent(object arg1, object arg2)
         {
-            // The task has to be reevaluated in order for the event to be received.
-            if (!IsReevaluating()) {
-                return;
-            }
-
             m_EventReceived = true;
 
             if (m_StoredValue1 != null && m_StoredValue1.IsShared) { m_StoredValue1.SetValue(arg1); }
@@ -174,11 +160,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
         /// <param name="arg3">The third parameter.</param>
         private void ReceivedEvent(object arg1, object arg2, object arg3)
         {
-            // The task has to be reevaluated in order for the event to be received.
-            if (!IsReevaluating()) {
-                return;
-            }
-
             m_EventReceived = true;
 
             if (m_StoredValue1 != null && m_StoredValue1.IsShared) { m_StoredValue1.SetValue(arg1); }
@@ -187,16 +168,38 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
         }
 
         /// <summary>
+        /// Callback when the task is started.
+        /// </summary>
+        public override void OnStart()
+        {
+            base.OnStart();
+
+            if (m_ResetEventReceived) {
+                m_EventReceived = false;
+            }
+        }
+
+        /// <summary>
         /// The task has been updated.
         /// </summary>
         /// <returns>True if an event has been received.</returns>
         public override TaskStatus OnUpdate()
         {
-            if (string.IsNullOrEmpty(m_EventName.Value)) {
-                return TaskStatus.Failure;
-            }
-
             return m_EventReceived ? TaskStatus.Success : TaskStatus.Failure;
+        }
+
+        /// <summary>
+        /// Reevaluates the task logic.
+        /// </summary>
+        /// <returns>The status of the task during the reevaluation phase.</returns>
+        public override TaskStatus OnReevaluateUpdate()
+        {
+            if (m_EventReceived) {
+                // OnStart/OnUpdate will be called immediately after the task is reevaluated. Do not reset the receive status.
+                m_ResetEventReceived = false;
+                return TaskStatus.Success;
+            }
+            return TaskStatus.Failure;
         }
 
         /// <summary>
@@ -207,6 +210,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
             base.OnEnd();
 
             m_EventReceived = false;
+            m_ResetEventReceived = true;
         }
 
         /// <summary>
@@ -219,6 +223,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
 
             UnregisterEvents();
             m_EventReceived = false;
+            m_ResetEventReceived = true;
         }
 
         /// <summary>

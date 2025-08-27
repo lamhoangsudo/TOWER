@@ -10,11 +10,9 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Events
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    /// <summary>
-    /// The EventNode that is invoked when the agent exits a 2D trigger.
-    /// </summary>
     [AllowMultipleTypes]
     [NodeIcon("06864c37115f11445b04701c616d0e14", "8b8a2793322238240b4f25171d772003")]
+    [Opsive.Shared.Utility.Description("Invoked when the agent exits a 2D trigger.")]
     public class OnTriggerExit2D : EventNode
     {
         [Tooltip("The tag of the GameObject that the trigger should be checked against.")]

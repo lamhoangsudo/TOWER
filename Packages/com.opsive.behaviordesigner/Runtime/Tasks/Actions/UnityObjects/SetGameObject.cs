@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.UnityObjects
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Set the GameObject value.")]
+    [Opsive.Shared.Utility.Description("Set the GameObject value.")]
     [Shared.Utility.Category("Unity")]
     public class SetGameObject : TargetGameObjectAction
     {

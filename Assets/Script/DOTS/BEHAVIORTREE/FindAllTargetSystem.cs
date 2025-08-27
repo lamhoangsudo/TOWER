@@ -22,12 +22,9 @@ public struct FindAllTargetSystemNode : ILogicNode, ITaskComponentData, IConditi
     [field: SerializeField]
     public ushort SiblingIndex { get; set; }
     public ushort RuntimeIndex { get; set; }
-
     public ComponentType Tag => typeof(FindAllTargetSystemNodeTask);
-
     public Type SystemType => typeof(FindAllTargetSystem);
-
-    public void AddBufferElement(World world, Entity entity)
+    public int AddBufferElement(World world, Entity entity, GameObject gameObject)
     {
         DynamicBuffer<FindAllTargetSystemNodeData> buffer;
         if (world.EntityManager.HasBuffer<FindAllTargetSystemNodeData>(entity))
@@ -43,6 +40,7 @@ public struct FindAllTargetSystemNode : ILogicNode, ITaskComponentData, IConditi
         {
             Index = RuntimeIndex,
         });
+        return buffer.Length - 1;
     }
 
     public void ClearBufferElement(World world, Entity entity)
@@ -66,7 +64,7 @@ public partial struct FindAllTargetSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<TaskComponent, FindAllTargetSystemNodeData, RadarRangeRay, LocalTransform, FindAllTargetSystemNodeTask, EvaluationComponent>().Build());
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<TaskComponent, FindAllTargetSystemNodeData, RadarRangeRay, LocalTransform, FindAllTargetSystemNodeTask>().Build());
     }
 
     [BurstCompile]
@@ -88,7 +86,7 @@ public partial struct FindAllTargetSystem : ISystem
                 RefRO<RadarRangeRay>,
                 DynamicBuffer<TargetEntityBuffer>,
                 RefRO<LocalTransform>>()
-                .WithAll<FindAllTargetSystemNodeTask, EvaluationComponent>())
+                .WithAll<FindAllTargetSystemNodeTask>())
         {
             for (int i = 0; i < findTargetSystemNodeDatas.Length; i++)
             {

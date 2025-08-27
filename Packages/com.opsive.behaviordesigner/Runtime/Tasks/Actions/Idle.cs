@@ -16,54 +16,23 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     /// A node representation of the idle task.
     /// </summary>
     [NodeIcon("fc4d1b83384913b4abfbd8455db6df5b", "79a6985a753bb244fb5b32dc0f26addb")]
-    [NodeDescription("Returns a TaskStatus of running. The task will only stop when interrupted or a conditional abort is triggered.")]
-    public struct Idle : ILogicNode, ITaskComponentData, IAction
+    [Opsive.Shared.Utility.Description("Returns a TaskStatus of running. The task will only stop when interrupted or a conditional abort is triggered.")]
+    public class Idle : ECSActionTask<IdleTaskSystem, IdleComponent>
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
-
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
-
-        public ComponentType Tag { get => typeof(IdleTag); }
-        public System.Type SystemType { get => typeof(IdleTaskSystem); }
+        /// <summary>
+        /// The type of tag that should be enabled when the task is running.
+        /// </summary>
+        public override ComponentType Flag { get => typeof(IdleFlag); }
 
         /// <summary>
-        /// Adds the IBufferElementData to the entity.
+        /// Returns a new TBufferElement for use by the system.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override IdleComponent GetBufferElement()
         {
-            DynamicBuffer<IdleComponent> buffer;
-            if (world.EntityManager.HasBuffer<IdleComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<IdleComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<IdleComponent>(entity);
-            }
-            buffer.Add(new IdleComponent() {
+            return new IdleComponent() {
                 Index = RuntimeIndex
-            });
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<IdleComponent> buffer;
-            if (world.EntityManager.HasBuffer<IdleComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<IdleComponent>(entity);
-                buffer.Clear();
-            }
+            };
         }
     }
 
@@ -79,7 +48,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     /// <summary>
     /// A DOTS tag indicating when a Idle node is active.
     /// </summary>
-    public struct IdleTag : IComponentData, IEnableableComponent { }
+    public struct IdleFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the Idle logic.
@@ -94,7 +63,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
         [BurstCompile]
         private void OnUpdate(ref SystemState state)
         {
-            var query = SystemAPI.QueryBuilder().WithAllRW<TaskComponent>().WithAll<IdleComponent, IdleTag, EvaluationComponent>().Build();
+            var query = SystemAPI.QueryBuilder().WithAllRW<TaskComponent>().WithAll<IdleComponent, IdleFlag, EvaluateFlag>().Build();
             state.Dependency = new IdleJob().ScheduleParallel(query, state.Dependency);
         }
 
@@ -106,7 +75,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
         {
             /// <summary>
             /// Executes the idle logic.
-            /// </summary
+            /// </summary>
             /// <param name="taskComponents">An array of TaskComponents.</param>
             /// <param name="idleComponents">An array of IdleComponents.</param>
             [BurstCompile]

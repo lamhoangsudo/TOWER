@@ -17,15 +17,9 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     using System;
 
     [NodeIcon("b4b59e888607422409f1efa599af34ae", "e1cb9cb566a90fb4489bf31465b99747")]
-    [NodeDescription("Wait a specified amount of time. The task will return running until the task is done waiting. It will return success after the wait time has elapsed.")]
-    public struct Wait : ILogicNode, ITaskComponentData, IAction, ICloneable, IPausableTask, ISavableTask
+    [Opsive.Shared.Utility.Description("Wait a specified amount of time. The task will return running until the task is done waiting. It will return success after the wait time has elapsed.")]
+    public class Wait : ECSActionTask<WaitTaskSystem, WaitComponent>, ICloneable, IPausableTask, ISavableTask
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
         [Tooltip("The amount of time to wait (in seconds).")]
         [SerializeField] float m_Duration;
         [Tooltip("Should the wait duration be randomized?")]
@@ -37,58 +31,47 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
 
         private ushort m_ComponentIndex;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
         public float Duration { get => m_Duration; set => m_Duration = value; }
         public bool RandomDuration { get => m_RandomDuration; set => m_RandomDuration = value; }
         public uint Seed { get => m_Seed; set => m_Seed = value; }
         public RangeFloat RandomDurationRange { get => m_RandomDurationRange; set => m_RandomDurationRange = value; }
 
-        public ComponentType Tag { get => typeof(WaitTag); }
-        public Type SystemType { get => typeof(WaitTaskSystem); }
-
         /// <summary>
         /// Resets the task to its default values.
         /// </summary>
-        public void Reset() { m_Duration = m_RandomDurationRange.Min = m_RandomDurationRange.Max = 1; m_RandomDuration = false; m_Seed = 0; }
+        public override void Reset() { m_Duration = m_RandomDurationRange.Min = m_RandomDurationRange.Max = 1; m_RandomDuration = false; m_Seed = 0; }
+
+        /// <summary>
+        /// The type of tag that should be enabled when the task is running.
+        /// </summary>
+        public override ComponentType Flag { get => typeof(WaitFlag); }
+
+        /// <summary>
+        /// Returns a new TBufferElement for use by the system.
+        /// </summary>
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override WaitComponent GetBufferElement()
+        {
+            return new WaitComponent() {
+                Index = RuntimeIndex,
+                Duration = m_Duration,
+                RandomDuration = m_RandomDuration,
+                RandomDurationRange = m_RandomDurationRange,
+                Seed = m_Seed,
+            };
+        }
 
         /// <summary>
         /// Adds the IBufferElementData to the entity.
         /// </summary>
         /// <param name="world">The world that the entity exists.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <returns>The index of the element within the buffer.</returns>
+        public override int AddBufferElement(World world, Entity entity, GameObject gameObject)
         {
-            DynamicBuffer<WaitComponent> buffer;
-            if (world.EntityManager.HasBuffer<WaitComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<WaitComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<WaitComponent>(entity);
-            }
-            buffer.Add(new WaitComponent() {
-                Index = RuntimeIndex,
-                Duration = m_Duration,
-                RandomDuration = m_RandomDuration,
-                RandomDurationRange = m_RandomDurationRange,
-                Seed = m_Seed,
-            });
-            m_ComponentIndex = (ushort)(buffer.Length - 1);
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<WaitComponent> buffer;
-            if (world.EntityManager.HasBuffer<WaitComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<WaitComponent>(entity);
-                buffer.Clear();
-            }
+            m_ComponentIndex = (ushort)base.AddBufferElement(world, entity, gameObject);
+            return m_ComponentIndex;
         }
 
         /// <summary>
@@ -198,14 +181,14 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
         public uint Seed;
         [Tooltip("The random number generator for the task.")]
         public Unity.Mathematics.Random RandomNumberGenerator;
-        [Tooltip("The time that the game was paused.")]
+        [Tooltip("The time the task was paused.")]
         public double PauseTime;
     }
 
     /// <summary>
     /// A DOTS tag indicating when a Wait node is active.
     /// </summary>
-    public struct WaitTag : IComponentData, IEnableableComponent { }
+    public struct WaitFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the Wait logic.
@@ -214,18 +197,18 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     public partial struct WaitTaskSystem : ISystem
     {
         /// <summary>
-        /// Creates the job.
+        /// Updates the logic.
         /// </summary>
         /// <param name="state">The current state of the system.</param>
         [BurstCompile]
         private void OnUpdate(ref SystemState state)
         {
-            var query = SystemAPI.QueryBuilder().WithAllRW<TaskComponent>().WithAllRW<WaitComponent>().WithAll<WaitTag, EvaluationComponent>().Build();
+            var query = SystemAPI.QueryBuilder().WithAllRW<TaskComponent>().WithAllRW<WaitComponent>().WithAll<WaitFlag, EvaluateFlag>().Build();
             state.Dependency = new WaitJob() { ElapsedTime = SystemAPI.Time.ElapsedTime }.ScheduleParallel(query, state.Dependency);
         }
 
         /// <summary>
-        /// Job which executes the task logic.
+        /// Waits for the specified amount of time.
         /// </summary>
         [BurstCompile]
         private partial struct WaitJob : IJobEntity
@@ -234,9 +217,9 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
             public double ElapsedTime;
 
             /// <summary>
-            /// Executes the wait logic.
+            /// Updates the logic.
             /// </summary>
-            /// <param name="entity">The entity that is running the logic.</param>
+            /// <param name="entity">The entity.</param>
             /// <param name="taskComponents">An array of TaskComponents.</param>
             /// <param name="waitComponents">An array of WaitComponents.</param>
             [BurstCompile]
@@ -274,7 +257,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     }
 
     [NodeIcon("b4b59e888607422409f1efa599af34ae", "e1cb9cb566a90fb4489bf31465b99747")]
-    [NodeDescription("Wait a specified amount of time. The task will return running until the task is done waiting. It will return success after the wait time has elapsed. Uses the GameObject workflow.")]
+    [Opsive.Shared.Utility.Description("Wait a specified amount of time. The task will return running until the task is done waiting. It will return success after the wait time has elapsed. Uses the GameObject workflow.")]
     public class SharedWait : Action
     {
         [Tooltip("The amount of time to wait (in seconds).")]

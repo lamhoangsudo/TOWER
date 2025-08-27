@@ -20,8 +20,8 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
     public partial struct EvaluationCleanupSystem : ISystem
     {
         private EntityQuery m_EvaluateCleanupQuery;
-        private ComponentTypeHandle<EnabledTag> m_EnabledComponentHandle;
-        private ComponentTypeHandle<EvaluationComponent> m_EvaluationComponentHandle;
+        private ComponentTypeHandle<EnabledFlag> m_EnabledComponentHandle;
+        private ComponentTypeHandle<EvaluateFlag> m_EvaluateComponentHandle;
 
         /// <summary>
         /// Creates the required objects for use within the job system.
@@ -31,11 +31,11 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
         private void OnCreate(ref SystemState state)
         {
             m_EvaluateCleanupQuery = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<EvaluationComponent>()
+                .WithAll<EvaluateFlag>()
                 .WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)
                 .Build(ref state);
-            m_EnabledComponentHandle = state.GetComponentTypeHandle<EnabledTag>();
-            m_EvaluationComponentHandle = state.GetComponentTypeHandle<EvaluationComponent>();
+            m_EnabledComponentHandle = state.GetComponentTypeHandle<EnabledFlag>();
+            m_EvaluateComponentHandle = state.GetComponentTypeHandle<EvaluateFlag>();
         }
 
         /// <summary>
@@ -49,11 +49,11 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
 
             // Reset the evaluation status.
             m_EnabledComponentHandle.Update(ref state);
-            m_EvaluationComponentHandle.Update(ref state);
+            m_EvaluateComponentHandle.Update(ref state);
             var evaluationCleanupJob = new EvaluationCleanupJob()
             {
                 EnabledComponentHandle = m_EnabledComponentHandle,
-                EvaluationComponentHandle = m_EvaluationComponentHandle,
+                EvaluateComponentHandle = m_EvaluateComponentHandle,
             };
             state.Dependency = evaluationCleanupJob.ScheduleParallel(m_EvaluateCleanupQuery, state.Dependency);
         }
@@ -65,9 +65,9 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
         public struct EvaluationCleanupJob : IJobChunk
         {
             [UnityEngine.Tooltip("A reference to the Enabled Component Handle.")]
-            public ComponentTypeHandle<EnabledTag> EnabledComponentHandle;
+            public ComponentTypeHandle<EnabledFlag> EnabledComponentHandle;
             [UnityEngine.Tooltip("A reference to the Evaluate Component Handle.")]
-            public ComponentTypeHandle<EvaluationComponent> EvaluationComponentHandle;
+            public ComponentTypeHandle<EvaluateFlag> EvaluateComponentHandle;
 
             /// <summary>
             /// Resets the EvaluationComponent component value.
@@ -81,8 +81,8 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
             {
                 for (int i = 0; i < chunk.Count; i++) {
                     // If the chunk is enabled then it should be evaluated.
-                    if (chunk.IsComponentEnabled<EnabledTag>(ref EnabledComponentHandle, i)) {
-                        chunk.SetComponentEnabled<EvaluationComponent>(ref EvaluationComponentHandle, i, true);
+                    if (chunk.IsComponentEnabled<EnabledFlag>(ref EnabledComponentHandle, i)) {
+                        chunk.SetComponentEnabled<EvaluateFlag>(ref EvaluateComponentHandle, i, true);
                     }
                 }
             }
@@ -90,13 +90,13 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
     }
 
     /// <summary>
-    /// Resets the InterruptedTag enabled value.
+    /// Resets the InterruptedFlag enabled value.
     /// </summary>
     [UpdateInGroup(typeof(BehaviorTreeSystemGroup), OrderLast = true)]
     public partial struct InterruptedCleanupSystem : ISystem
     {
         private EntityQuery m_InterruptedCleanupQuery;
-        private ComponentTypeHandle<InterruptedTag> m_InterruptedComponentHandle;
+        private ComponentTypeHandle<InterruptedFlag> m_InterruptedComponentHandle;
 
         /// <summary>
         /// Creates the required objects for use within the job system.
@@ -106,9 +106,9 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
         private void OnCreate(ref SystemState state)
         {
             m_InterruptedCleanupQuery = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<InterruptedTag>()
+                .WithAll<InterruptedFlag>()
                 .Build(ref state);
-            m_InterruptedComponentHandle = state.GetComponentTypeHandle<InterruptedTag>();
+            m_InterruptedComponentHandle = state.GetComponentTypeHandle<InterruptedFlag>();
         }
 
         /// <summary>
@@ -128,16 +128,16 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
         }
 
         /// <summary>
-        /// Job that resets the InterruptedTag value.
+        /// Job that resets the InterruptedFlag value.
         /// </summary>
         [BurstCompile(CompileSynchronously = true)]
         public partial struct InterruptedCleanupJob : IJobChunk
         {
             [UnityEngine.Tooltip("A reference to the Interrupted Component Handle.")]
-            public ComponentTypeHandle<InterruptedTag> InterruptedComponentHandle;
+            public ComponentTypeHandle<InterruptedFlag> InterruptedComponentHandle;
 
             /// <summary>
-            /// Resets the InterruptedTag value.
+            /// Resets the InterruptedFlag value.
             /// </summary>
             /// <param name="entity">The entity that is being acted upon.</param>
             /// <param name="entityIndex">The index of the entity.</param>
@@ -146,7 +146,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
             {
                 for (int i = 0; i < chunk.Count; i++) {
                     // Only chunks with the tag enabled will be returned so there's no need to check if the tag is enabled.
-                    chunk.SetComponentEnabled<InterruptedTag>(ref InterruptedComponentHandle, i, false);
+                    chunk.SetComponentEnabled<InterruptedFlag>(ref InterruptedComponentHandle, i, false);
                 }
             }
         }

@@ -16,56 +16,21 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// A node representation of the return success task.
     /// </summary>
     [NodeIcon("66f47acff1d46f848bc8c22b221ee1d0", "3eb990b93a7fd6e479d6b032c7e6973f")]
-    [NodeDescription("The return success task will always return success except when the child task is running.")]
-    public struct ReturnSuccess : ILogicNode, IParentNode, ITaskComponentData, IDecorator
+    [Opsive.Shared.Utility.Description("The return success task will always return success except when the child task is running.")]
+    public class ReturnSuccess : ECSDecoratorTask<ReturnSuccessTaskSystem, ReturnSuccessComponent>, IParentNode
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
-
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
-
-        public int MaxChildCount { get { return 1; } }
-
-        public ComponentType Tag { get => typeof(ReturnSuccessTag); }
-        public System.Type SystemType { get => typeof(ReturnSuccessTaskSystem); }
+        public override ComponentType Flag { get => typeof(ReturnSuccessFlag); }
 
         /// <summary>
-        /// Adds the IBufferElementData to the entity.
+        /// Returns a new TBufferElement for use by the system.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override ReturnSuccessComponent GetBufferElement()
         {
-            DynamicBuffer<ReturnSuccessComponent> buffer;
-            if (world.EntityManager.HasBuffer<ReturnSuccessComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<ReturnSuccessComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<ReturnSuccessComponent>(entity);
-            }
-            buffer.Add(new ReturnSuccessComponent() {
+            return new ReturnSuccessComponent()
+            {
                 Index = RuntimeIndex,
-            });
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<ReturnSuccessComponent> buffer;
-            if (world.EntityManager.HasBuffer<ReturnSuccessComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<ReturnSuccessComponent>(entity);
-                buffer.Clear();
-            }
+            };
         }
     }
 
@@ -81,7 +46,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// <summary>
     /// A DOTS tag indicating when an ReturnSuccess node is active.
     /// </summary>
-    public struct ReturnSuccessTag : IComponentData, IEnableableComponent { }
+    public struct ReturnSuccessFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the ReturnSuccess logic.
@@ -96,7 +61,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
         [BurstCompile]
         private void OnUpdate(ref SystemState state)
         {
-            var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<ReturnSuccessComponent>().WithAll<ReturnSuccessTag, EvaluationComponent>().Build();
+            var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<ReturnSuccessComponent>().WithAll<ReturnSuccessFlag, EvaluateFlag>().Build();
             state.Dependency = new ReturnSuccessJob().ScheduleParallel(query, state.Dependency);
         }
 
@@ -129,7 +94,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
                         childTaskComponent.Status = TaskStatus.Queued;
                         taskComponents[taskComponent.Index + 1] = childTaskComponent;
 
-                        branchComponent.NextIndex = taskComponent.Index + 1;
+                        branchComponent.NextIndex = (ushort)(taskComponent.Index + 1);
                         branchComponents[taskComponent.BranchIndex] = branchComponent;
                         continue;
                     } else if (taskComponent.Status != TaskStatus.Running) {

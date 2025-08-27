@@ -11,10 +11,10 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     using UnityEngine;
 
     /// <summary>
-    /// A TaskObject implementation of the Composite  task.
+    /// A TaskObject implementation of the Composite task.
     /// </summary>
     [NodeIcon("3afb3814c40717440b175b6fde4e73c2", "7fb12c74939f50b41b1679eb8f9e79ab")]
-    public abstract class CompositeNode : Task, ILogicNode, IParentNode, IComposite, ITaskObjectParentNode
+    public abstract class CompositeNode : Task, ITreeLogicNode, IParentNode, IComposite, ITaskObjectParentNode
     {
         [Tooltip("The index of the node.")]
         [SerializeField] ushort m_Index;

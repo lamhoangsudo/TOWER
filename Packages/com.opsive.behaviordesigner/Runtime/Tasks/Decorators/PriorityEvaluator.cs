@@ -92,7 +92,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
         private void OnUpdate(ref SystemState state)
         {
             foreach (var (priorityValueComponents, taskComponents, entity) in
-                SystemAPI.Query<DynamicBuffer<PriorityValueComponent>, DynamicBuffer<TaskComponent>>().WithAll<PrioritySelectorTag, EvaluationComponent>().WithEntityAccess()) {
+                SystemAPI.Query<DynamicBuffer<PriorityValueComponent>, DynamicBuffer<TaskComponent>>().WithAll<PrioritySelectorFlag, EvaluateFlag>().WithEntityAccess()) {
 
                 for (int i = 0; i < priorityValueComponents.Length; ++i) {
                     var priorityValueComponent = priorityValueComponents[i];

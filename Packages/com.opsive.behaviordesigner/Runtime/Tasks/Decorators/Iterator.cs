@@ -14,7 +14,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     using UnityEngine;
 
     [NodeIcon("3c1366e1dc8fe0b46b4a6c8724194cdd", "5b924a7ff18f0544aaa585af94ac536c")]
-    [NodeDescription("Iterates through each element of the list. For each execution the Iterator task will set the next Element within the specified List.")]
+    [Opsive.Shared.Utility.Description("Iterates through each element of the list. For each execution the Iterator task will set the next Element within the specified List.")]
     public class Iterator : DecoratorNode
     {
         [Tooltip("The list that should be iterated upon.")]

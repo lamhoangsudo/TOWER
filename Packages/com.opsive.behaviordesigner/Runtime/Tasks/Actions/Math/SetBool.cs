@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.Math
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Set the boolean value.")]
+    [Opsive.Shared.Utility.Description("Set the boolean value.")]
     [Shared.Utility.Category("Math")]
     public class SetBool : Action
     {

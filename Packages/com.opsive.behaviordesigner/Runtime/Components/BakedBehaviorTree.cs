@@ -28,7 +28,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
         [Tooltip("The hashes that correspond to the TaskComponent's ComponentType.")]
         public ulong[] TagStableTypeHashes;
         [Tooltip("The hashes that correspond to the ReevaluateTaskComponent's ComponentType.")]
-        public ulong[] ReevaluateTagStableTypeHashes;
+        public ulong[] ReevaluateFlagStableTypeHashes;
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
                 var taskComponents = state.World.EntityManager.GetBuffer<TaskComponent>(entity);
                 for (int i = 0; i < taskComponents.Length; ++i) {
                     var taskComponent = taskComponents[i];
-                    taskComponent.TagComponentType = ComponentType.FromTypeIndex(TypeManager.GetTypeIndexFromStableTypeHash(bakedBehaviorTree.TagStableTypeHashes[i]));
+                    taskComponent.FlagComponentType = ComponentType.FromTypeIndex(TypeManager.GetTypeIndexFromStableTypeHash(bakedBehaviorTree.TagStableTypeHashes[i]));
                     taskComponents[i] = taskComponent;
                 }
 
@@ -77,7 +77,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
                     var reevaluateComponents = state.World.EntityManager.GetBuffer<ReevaluateTaskComponent>(entity);
                     for (int i = 0; i < reevaluateComponents.Length; ++i) {
                         var reevaluateComponent = reevaluateComponents[i];
-                        reevaluateComponent.ReevaluateTagComponentType = ComponentType.FromTypeIndex(TypeManager.GetTypeIndexFromStableTypeHash(bakedBehaviorTree.ReevaluateTagStableTypeHashes[i]));
+                        reevaluateComponent.ReevaluateFlagComponentType = ComponentType.FromTypeIndex(TypeManager.GetTypeIndexFromStableTypeHash(bakedBehaviorTree.ReevaluateFlagStableTypeHashes[i]));
                         reevaluateComponents[i] = reevaluateComponent;
                     }
                 }

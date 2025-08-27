@@ -100,7 +100,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
                             reevaluate = true;
                             if (reevaluateTaskComponent.ReevaluateStatus == ReevaluateStatus.Inactive) {
                                 reevaluateTaskComponent.ReevaluateStatus = ReevaluateStatus.Active;
-                                EntityCommandBuffer.SetComponentEnabled(entityIndex, entity, reevaluateTaskComponent.ReevaluateTagComponentType, true);
+                                EntityCommandBuffer.SetComponentEnabled(entityIndex, entity, reevaluateTaskComponent.ReevaluateFlagComponentType, true);
                             }
                         }
                     } 
@@ -110,7 +110,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
                             reevaluate = true;
                             if (reevaluateTaskComponent.ReevaluateStatus == ReevaluateStatus.Inactive) {
                                 reevaluateTaskComponent.ReevaluateStatus = ReevaluateStatus.Active;
-                                EntityCommandBuffer.SetComponentEnabled(entityIndex, entity, reevaluateTaskComponent.ReevaluateTagComponentType, true);
+                                EntityCommandBuffer.SetComponentEnabled(entityIndex, entity, reevaluateTaskComponent.ReevaluateFlagComponentType, true);
                             }
                         }
                     }
@@ -125,14 +125,14 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
                             }
 
                             if (reevaluateTaskComponents[j].ReevaluateStatus == ReevaluateStatus.Active &&
-                                reevaluateTaskComponent.ReevaluateTagComponentType == reevaluateTaskComponents[j].ReevaluateTagComponentType) {
+                                reevaluateTaskComponent.ReevaluateFlagComponentType == reevaluateTaskComponents[j].ReevaluateFlagComponentType) {
                                 keepSystemActive = true;
                                 break;
                             }
                         }
 
                         if (!keepSystemActive) {
-                            EntityCommandBuffer.SetComponentEnabled(entityIndex, entity, reevaluateTaskComponent.ReevaluateTagComponentType, false);
+                            EntityCommandBuffer.SetComponentEnabled(entityIndex, entity, reevaluateTaskComponent.ReevaluateFlagComponentType, false);
                         }
                         // The task should always disable itself.
                         taskComponent.Reevaluate = false;
@@ -228,7 +228,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
 
                             taskComponent.Reevaluate = false;
                             taskComponents[reevaluateTaskComponent.Index] = taskComponent;
-                            EntityCommandBuffer.SetComponentEnabled<InterruptTag>(entityIndex, entity, true);
+                            EntityCommandBuffer.SetComponentEnabled<InterruptFlag>(entityIndex, entity, true);
 
                             reevaluateTaskComponent.ReevaluateStatus = ReevaluateStatus.Dirty;
                             var reevaluateTaskComponentsBuffer = reevaluateTaskComponents;
@@ -255,7 +255,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
         /// <param name="state">THe current SystemState.</param>
         private void OnCreate(ref SystemState state)
         {
-            m_Query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAll<InterruptTag>().Build();
+            m_Query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAll<InterruptFlag>().Build();
         }
 
         /// <summary>
@@ -300,14 +300,15 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
                     var branchComponent = branchComponents[i];
                     if (branchComponent.InterruptType != InterruptType.None) {
                         var targetTaskComponent = taskComponents[branchComponent.InterruptIndex];
-                        var parentIndex = targetTaskComponent.ParentIndex;
+                        var parentIndex = targetTaskComponent.ParentIndex == ushort.MaxValue ? targetTaskComponent.Index : targetTaskComponent.ParentIndex;
                         TaskStatus prevActiveNewStatus;
                         if (branchComponent.InterruptType == InterruptType.Branch) {
                             branchComponent.NextIndex = branchComponent.InterruptIndex;
                             branchComponents[i] = branchComponent;
 
-                            // Set the target branch tasks to running.
+                            // Start the target task.
                             targetTaskComponent.Status = TaskStatus.Running;
+                            // Set the target branch tasks to running. Any parent that uses conditional aborts should implement IInterruptResponder.
                             while (parentIndex != ushort.MaxValue && taskComponents[parentIndex].Status != TaskStatus.Running) {
                                 var parentTaskComponent = taskComponents[parentIndex];
                                 parentTaskComponent.Status = TaskStatus.Running;
@@ -347,9 +348,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
                                     localBranchComponent.NextIndex = ushort.MaxValue;
                                     branchComponents[j] = localBranchComponent;
                                 }
-                                EntityCommandBuffer.SetComponentEnabled<InterruptedTag>(entityIndex, entity, true);
-                            } else {
-                                break;
+                                EntityCommandBuffer.SetComponentEnabled<InterruptedFlag>(entityIndex, entity, true);
                             }
                         }
 
@@ -392,7 +391,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
         private void OnUpdate(ref SystemState state)
         {
             foreach (var (branchComponents, entity) in
-                SystemAPI.Query<DynamicBuffer<BranchComponent>>().WithAll<InterruptTag>().WithEntityAccess()) {
+                SystemAPI.Query<DynamicBuffer<BranchComponent>>().WithAll<InterruptFlag>().WithEntityAccess()) {
                 for (int i = 0; i < branchComponents.Length; ++i) {
                     var branchComponent = branchComponents[i];
                     if (branchComponent.InterruptType != InterruptType.None) {
@@ -402,7 +401,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
                         var branchComponentBuffer = branchComponents;
                         branchComponentBuffer[i] = branchComponent;
 
-                        state.EntityManager.SetComponentEnabled<InterruptTag>(entity, false);
+                        state.EntityManager.SetComponentEnabled<InterruptFlag>(entity, false);
                     }
                 }
             }

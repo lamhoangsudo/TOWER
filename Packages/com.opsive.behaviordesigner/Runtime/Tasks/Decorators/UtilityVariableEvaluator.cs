@@ -13,7 +13,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// <summary>
     /// Implements the UtilityEvaluator returning a SharedVariable value.
     /// </summary>
-    [NodeDescription("Sets the utility value to the specified SharedVariable float value.")]
+    [Opsive.Shared.Utility.Description("Sets the utility value to the specified SharedVariable float value.")]
     public class UtilityVariableEvaluator : UtilityEvaluator
     {
         [Tooltip("The utility of the decorator.")]

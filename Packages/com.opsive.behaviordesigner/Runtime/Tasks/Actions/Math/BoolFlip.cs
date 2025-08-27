@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.Math
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Flips the value of the boolean.")]
+    [Opsive.Shared.Utility.Description("Flips the value of the boolean.")]
     [Shared.Utility.Category("Math")]
     public class BoolFlip : Action
     {

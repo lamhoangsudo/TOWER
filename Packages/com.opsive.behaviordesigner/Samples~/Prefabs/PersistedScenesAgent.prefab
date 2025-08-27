@@ -125,9 +125,9 @@ MonoBehaviour:
     m_TaskData:
     - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Actions.StackedAction
       m_ValueHashes: 
-      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a66622a4da7e5588b5847627e5c3afba34a71082e1b6cac520530178803e9ee2e6887b14386d1fae0088056cf0e246cfdcdf48ec5ffd4c6556ae4a06bb554569d8946fff10c773614c9
-      m_ValuePositions: 000000000200000004000000060000000a000000300000003000000039000000390000003a0000003e0000003e000000
-      m_Values: 0000ffffffff010000004f70736976652e4265686176696f7244657369676e65722e53616d706c65732e506174726f6c576179706f696e7473020000000000000000
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a66622a4da7e5588b5847627e5c3afba34a71082e1b6cac520530178803e9ee2e6887b14386d1fae0088056cf0e246cfdcdf48ec5ffd4c6556aaeef69f017affa49dbb0a3f15005da906c166874681114f0a7dd5fbd356407469e36a2df8d949743e4a06bb554569d8946fff10c773614c9
+      m_ValuePositions: 000000000200000004000000060000000a000000300000003000000039000000390000003a0000003e0000003e0000003e0000003e0000003f0000004000000040000000
+      m_Values: 0000ffffffff010000004f70736976652e4265686176696f7244657369676e65722e53616d706c65732e506174726f6c576179706f696e74730200000000000000000000
       m_UnityObjects: []
       m_Version: 3.4
     m_EventTaskData:
@@ -149,7 +149,7 @@ MonoBehaviour:
       m_Version: 3.4
     m_DisabledEventNodesData: []
     m_DisabledLogicNodesData: []
-    m_UniqueID: 1451282803
+    m_UniqueID: -86059072
     m_LogicNodePropertiesData:
     - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
       m_ValueHashes: 
@@ -167,6 +167,7 @@ MonoBehaviour:
       m_UnityObjects: []
       m_Version: 3.4
     m_GroupPropertiesData: []
+    m_SharedVariableGroupsData: []
   m_StartWhenEnabled: 1
   m_PauseWhenDisabled: 0
   m_UpdateMode: 0

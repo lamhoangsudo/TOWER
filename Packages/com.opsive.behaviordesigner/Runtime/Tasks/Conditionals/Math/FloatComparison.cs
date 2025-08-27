@@ -6,11 +6,10 @@
 /// ---------------------------------------------
 namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals.Math
 {
-    using Opsive.GraphDesigner.Runtime;
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Compares two float values.")]
+    [Opsive.Shared.Utility.Description("Compares two float values.")]
     [Shared.Utility.Category("Math")]
     public class FloatComparison : Conditional
     {

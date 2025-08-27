@@ -7,71 +7,38 @@ namespace Opsive.BehaviorDesigner.Samples
 {
     using Opsive.BehaviorDesigner.Runtime.Components;
     using Opsive.BehaviorDesigner.Runtime.Tasks;
-    using Opsive.GraphDesigner.Runtime;
     using Unity.Entities;
-    using Unity.Collections;
-    using Unity.Transforms;
     using UnityEngine;
     using System;
 
     [Tooltip("Damages any entity that has the HealthComponent.")]
     [Shared.Utility.Category("Behavior Designer Samples/DOTS")]
-    public struct Damage : ILogicNode, ITaskComponentData, IAction
+    public class Damage : ECSActionTask<DamageTaskSystem, DamageComponent>
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
         [Tooltip("The amount of damage to apply.")]
         [SerializeField] float m_DamageAmount;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
-
-        public ComponentType Tag { get => typeof(DamageTag); }
-        public System.Type SystemType { get => typeof(DamageTaskSystem); }
+        /// <summary>
+        /// The type of flag that should be enabled when the task is running.
+        /// </summary>
+        public override ComponentType Flag { get => typeof(DamageFlag); }
 
         /// <summary>
         /// Resets the task to its default values.
         /// </summary>
-        public void Reset() { m_DamageAmount = 1; }
+        public override void Reset() { m_DamageAmount = 1; }
 
         /// <summary>
-        /// Adds the IBufferElementData to the entity.
+        /// Returns a new TBufferElement for use by the system.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override DamageComponent GetBufferElement()
         {
-            DynamicBuffer<DamageComponent> buffer;
-            if (world.EntityManager.HasBuffer<DamageComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<DamageComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<DamageComponent>(entity);
-            }
-            buffer.Add(new DamageComponent()
+            return new DamageComponent()
             {
                 Index = RuntimeIndex,
                 DamageAmount = m_DamageAmount,
-            });
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<DamageComponent> buffer;
-            if (world.EntityManager.HasBuffer<DamageComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<DamageComponent>(entity);
-                buffer.Clear();
-            }
+            };
         }
     }
 
@@ -87,9 +54,9 @@ namespace Opsive.BehaviorDesigner.Samples
     }
 
     /// <summary>
-    /// A DOTS tag indicating when a Fire node is active.
+    /// A DOTS flag indicating when a Fire node is active.
     /// </summary>
-    public struct DamageTag : IComponentData, IEnableableComponent { }
+    public struct DamageFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the Damage logic.
@@ -99,19 +66,6 @@ namespace Opsive.BehaviorDesigner.Samples
     {
         public Action<float> OnDamage;
 
-        private EntityQuery m_DamageQuery;
-
-        /// <summary>
-        /// Creates the required objects for use within the job system.
-        /// </summary>
-        protected override void OnCreate()
-        {
-            m_DamageQuery = new EntityQueryBuilder(Allocator.Temp)
-                .WithAllRW<TaskComponent>().WithAllRW<LocalTransform>()
-                .WithAll<DamageComponent, EvaluationComponent>()
-                .Build(EntityManager);
-        }
-
         /// <summary>
         /// Updates the logic.
         /// </summary>
@@ -119,7 +73,7 @@ namespace Opsive.BehaviorDesigner.Samples
         {
             var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
             foreach (var (taskComponents, damageComponents) in
-                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<DamageComponent>>().WithAll<DamageTag, EvaluationComponent>()) {
+                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<DamageComponent>>().WithAll<DamageFlag, EvaluateFlag>()) {
                 for (int i = 0; i < damageComponents.Length; ++i) {
                     var damageComponent = damageComponents[i];
                     var taskComponent = taskComponents[damageComponent.Index];

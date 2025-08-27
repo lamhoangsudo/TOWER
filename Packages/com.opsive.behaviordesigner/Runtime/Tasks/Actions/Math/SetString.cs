@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.Math
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Set the string value.")]
+    [Opsive.Shared.Utility.Description("Set the string value.")]
     [Shared.Utility.Category("Math")]
     public class SetString : Action
     {

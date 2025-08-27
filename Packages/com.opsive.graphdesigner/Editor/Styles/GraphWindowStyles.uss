@@ -110,6 +110,16 @@
     border-color: rgba(173, 173, 173, 1);
 }
 
+#split-primary-button
+{
+    padding-right: 18px;
+}
+
+#split-dropdown-button
+{
+    margin-left: -22px;
+}
+
 #node-description
 {
     position: Absolute;
@@ -152,4 +162,35 @@
     margin-bottom: 0px;
     width: 14px;
     height: 14px;
+}
+
+/* SharedVariables Elements Styling */
+.grouped-highlight-dark
+{
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.grouped-highlight-light
+{
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.shared-variable-group
+{
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.shared-variable-list-element-dark .shared-variable-group
+{
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.shared-variable-group-member
+{
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.shared-variable-list-element-dark .shared-variable-group-member
+{
+    background-color: rgba(0, 0, 0, 0.1);
 }

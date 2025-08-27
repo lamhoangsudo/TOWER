@@ -33,6 +33,7 @@ public class BuildingGhostAuthoring : MonoBehaviour
                     {
                         SnapPointsDirectionEntity = GetEntity(child.gameObject, TransformUsageFlags.Dynamic),
                         direction = UtilClass.GetChildDirection(child),
+                        directionVector = child.forward,
                     });
                 }
             }
@@ -47,6 +48,6 @@ public struct BuildingGhost : IComponentData
 }
 public struct IsBuilding : IComponentData, IEnableableComponent
 {
-
+    public Entity buildingEntity;
 }
 

@@ -11,7 +11,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     using UnityEngine;
 
     [NodeIcon("e0a8f1df788b6274a9a24003859dfa7e")]
-    [NodeDescription("Stops the specified behavior tree.")]
+    [Opsive.Shared.Utility.Description("Stops the specified behavior tree.")]
     public class StopBehaviorTree : TargetBehaviorTreeAction
     {
         [SerializeField] protected SharedVariable<bool> m_PauseBehaviorTree;

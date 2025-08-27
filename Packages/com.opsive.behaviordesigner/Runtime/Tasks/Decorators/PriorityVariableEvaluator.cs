@@ -13,7 +13,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// <summary>
     /// Implements the PriorityEvaluator returning a SharedVariable value.
     /// </summary>
-    [NodeDescription("Sets the priority value to the specified SharedVariable float value.")]
+    [Opsive.Shared.Utility.Description("Sets the priority value to the specified SharedVariable float value.")]
     public class PriorityVariableEvaluator : PriorityEvaluator
     {
         [Tooltip("The priority of the decorator.")]

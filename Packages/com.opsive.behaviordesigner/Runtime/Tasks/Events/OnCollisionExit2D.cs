@@ -10,11 +10,9 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Events
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    /// <summary>
-    /// The EventNode that is invoked when the agent leaves a 2D collision.
-    /// </summary>
     [AllowMultipleTypes]
     [NodeIcon("06864c37115f11445b04701c616d0e14", "8b8a2793322238240b4f25171d772003")]
+    [Opsive.Shared.Utility.Description("Invoked when the agent leaves a 2D collision.")]
     public class OnCollisionExit2D : EventNode
     {
         [Tooltip("The tag of the GameObject that the collision should be checked against.")]

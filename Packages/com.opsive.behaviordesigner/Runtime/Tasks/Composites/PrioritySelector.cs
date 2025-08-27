@@ -10,72 +10,48 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     using Opsive.BehaviorDesigner.Runtime.Utility;
     using Opsive.GraphDesigner.Runtime;
     using Opsive.Shared.Utility;
+    using System;
+    using Unity.Burst;
     using Unity.Collections;
     using Unity.Entities;
-    using Unity.Burst;
     using UnityEngine;
-    using System;
 
     /// <summary>
     /// A node representation of the priority selector task.
     /// </summary>
     [NodeIcon("cea0f2b6cee06a742bb35dcc40202e8e", "744afc2640950e045961296f1d5800d7")]
-    [NodeDescription("Similar to the selector task, the priority selector task will return success as soon as a child task returns success. " +
+    [Opsive.Shared.Utility.Description("Similar to the selector task, the priority selector task will return success as soon as a child task returns success. " +
                      "Instead of running the tasks sequentially from left to right within the tree, the priority selector will ask the task what its priority is to determine the order. " +
                      "The higher priority tasks have a higher chance at being run first.")]
-    public struct PrioritySelector : ILogicNode, IParentNode, ITaskComponentData, IComposite, ISavableTask, ICloneable
+    public class PrioritySelector : ECSCompositeTask<PrioritySelectorTaskSystem, PrioritySelectorComponent>, IParentNode, ISavableTask, ICloneable
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
-
         private ushort m_ComponentIndex;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
+        public override ComponentType Flag { get => typeof(PrioritySelectorFlag); }
 
-        public int MaxChildCount { get { return int.MaxValue; } }
-
-        public ComponentType Tag { get => typeof(PrioritySelectorTag); }
-        public System.Type SystemType { get => typeof(PrioritySelectorTaskSystem); }
+        /// <summary>
+        /// Returns a new TBufferElement for use by the system.
+        /// </summary>
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override PrioritySelectorComponent GetBufferElement()
+        {
+            return new PrioritySelectorComponent()
+            {
+                Index = RuntimeIndex,
+            };
+        }
 
         /// <summary>
         /// Adds the IBufferElementData to the entity.
         /// </summary>
         /// <param name="world">The world that the entity exists.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <returns>The index of the element within the buffer.</returns>
+        public override int AddBufferElement(World world, Entity entity, GameObject gameObject)
         {
-            DynamicBuffer<PrioritySelectorComponent> buffer;
-            if (world.EntityManager.HasBuffer<PrioritySelectorComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<PrioritySelectorComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<PrioritySelectorComponent>(entity);
-            }
-
-            buffer.Add(new PrioritySelectorComponent() {
-                Index = RuntimeIndex,
-            });
-            m_ComponentIndex = (ushort)(buffer.Length - 1);
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<PrioritySelectorComponent> buffer;
-            if (world.EntityManager.HasBuffer<PrioritySelectorComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<PrioritySelectorComponent>(entity);
-                buffer.Clear();
-            }
+            m_ComponentIndex = (ushort)base.AddBufferElement(world, entity, gameObject);
+            return m_ComponentIndex;
         }
 
         /// <summary>
@@ -189,7 +165,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     /// <summary>
     /// A DOTS tag indicating when a PrioritySelector node is active.
     /// </summary>
-    public struct PrioritySelectorTag : IComponentData, IEnableableComponent { }
+    public struct PrioritySelectorFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the PrioritySelector logic.
@@ -206,7 +182,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
         {
             var hasPriorityValueComponent = false;
             foreach (var (branchComponents, taskComponents, prioritySelectorComponents, priorityValueComponents) in
-                SystemAPI.Query<DynamicBuffer<BranchComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<PrioritySelectorComponent>, DynamicBuffer<PriorityValueComponent>>().WithAll<PrioritySelectorTag, EvaluationComponent>()) {
+                SystemAPI.Query<DynamicBuffer<BranchComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<PrioritySelectorComponent>, DynamicBuffer<PriorityValueComponent>>().WithAll<PrioritySelectorFlag, EvaluateFlag>()) {
 
                 hasPriorityValueComponent = true;
                 for (int i = 0; i < prioritySelectorComponents.Length; ++i) {
@@ -316,7 +292,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
             // Special case where the PrioritySelectorComponent has no PriorityValueComponent children.
             if (!hasPriorityValueComponent) {
                 foreach (var (prioritySelectorComponents, taskComponents, branchComponents) in
-                    SystemAPI.Query<DynamicBuffer<PrioritySelectorComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<BranchComponent>>().WithAll<PrioritySelectorTag, EvaluationComponent>()) {
+                    SystemAPI.Query<DynamicBuffer<PrioritySelectorComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<BranchComponent>>().WithAll<PrioritySelectorFlag, EvaluateFlag>()) {
 
                     for (int i = 0; i < prioritySelectorComponents.Length; ++i) {
                         var prioritySelectorComponent = prioritySelectorComponents[i];

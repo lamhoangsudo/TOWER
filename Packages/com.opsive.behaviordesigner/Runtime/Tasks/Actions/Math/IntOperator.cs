@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.Math
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Performs a math operation on the two integers.")]
+    [Opsive.Shared.Utility.Description("Performs a math operation on the two integers.")]
     [Shared.Utility.Category("Math")]
     public class IntOperator : Action
     {

@@ -79,7 +79,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                 ClearTree();
                 m_Subtree = value as Subtree;
                 m_SubtreeOverride = false;
-                InheritSubtree(false);
+                InheritSubtree(true);
                 InitializeTree();
                 if (enabled) {
                     StartBehavior();
@@ -87,9 +87,19 @@ namespace Opsive.BehaviorDesigner.Runtime
             }
         }
 
-        public ILogicNode[] LogicNodes { get => Data.LogicNodes; set => Data.LogicNodes = value; }
+        public ILogicNode[] LogicNodes { get => Data.LogicNodes; set => Data.LogicNodes = value as ITreeLogicNode[]; }
+        public ITreeLogicNode[] TreeLogicNodes { get => Data.LogicNodes; set => Data.LogicNodes = value; }
         public IEventNode[] EventNodes { get => Data.EventNodes; set => Data.EventNodes = value; }
         public SharedVariable[] SharedVariables { get => m_Data.SharedVariables; set => m_Data.SharedVariables = value; }
+        public SharedVariableGroup[] SharedVariableGroups {
+#if UNITY_EDITOR
+            get => Data.SharedVariableGroups;
+            set => Data.SharedVariableGroups = value;
+#else
+            get => null;
+            set { }
+#endif
+        }
         public ushort[] DisabledLogicNodes { get => Data.DisabledLogicNodes; set => Data.DisabledLogicNodes = value; }
         public ushort[] DisabledEventNodes { get => Data.DisabledEventNodes; set => Data.DisabledEventNodes = value; }
 
@@ -205,7 +215,7 @@ namespace Opsive.BehaviorDesigner.Runtime
             if (m_Subtree != null) {
                 deserialized = InheritSubtree(force);
             } else if (m_Data != null) {
-                deserialized = m_Data.Deserialize(this, this, force, true, Application.isPlaying);
+                deserialized = m_Data.Deserialize(this, this, force, Application.isPlaying, Application.isPlaying);
             }
 
             // Initialize tasks after deserialization. This is only needed at edit time as the tasks are initialized elsewhere at runtime.
@@ -243,8 +253,14 @@ namespace Opsive.BehaviorDesigner.Runtime
 
             // The local behavior tree variables should be used.
             m_Data.DeserializeSharedVariables(force);
+            if (m_Subtree.DeserializeSharedVariables(force || !Application.isPlaying) && Application.isPlaying && !m_SubtreeOverride && m_Data.SharedVariables != null) {
+                // Set the binding on the subtree before the tasks are loaded. This is necessary because a new SharedVariable instance may need to be created.
+                for (int i = 0; i < m_Data.SharedVariables.Length; ++i) {
+                    m_Subtree.Data.OverrideVariableBinding(this, m_Data.SharedVariables[i]);
+                }
+            }
 
-            if (!m_Subtree.Deserialize(force, Application.isPlaying, false)) {
+            if (!m_Subtree.Deserialize(force, false, Application.isPlaying, false)) {
                 return false;
             }
 
@@ -265,6 +281,7 @@ namespace Opsive.BehaviorDesigner.Runtime
 #if UNITY_EDITOR
                 m_Data.EventNodeProperties = m_Subtree.Data.EventNodeProperties;
                 m_Data.LogicNodeProperties = m_Subtree.Data.LogicNodeProperties;
+                m_Data.SharedVariableGroups = m_Subtree.Data.SharedVariableGroups;
                 m_Data.GroupProperties = m_Subtree.Data.GroupProperties;
 #endif
                 m_GameObject = gameObject;
@@ -279,7 +296,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <param name="node">The node that should be added.</param>
         public void AddNode(ILogicNode node)
         {
-            Data.AddNode(node);
+            Data.AddNode(node as ITreeLogicNode);
         }
 
         /// <summary>
@@ -289,7 +306,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <returns>True if the node was removed.</returns>
         public bool RemoveNode(ILogicNode node)
         {
-            return Data.RemoveNode(node);
+            return Data.RemoveNode(node as ITreeLogicNode);
         }
 
         /// <summary>
@@ -401,8 +418,8 @@ namespace Opsive.BehaviorDesigner.Runtime
 
             if (s_BehaviorTreeByEntity.ContainsKey(entity)) {
                 // The behavior tree may be paused.
-                if (world.EntityManager.HasComponent<EnabledTag>(entity) && !world.EntityManager.IsComponentEnabled<EnabledTag>(entity)) {
-                    world.EntityManager.SetComponentEnabled<EnabledTag>(entity, true);
+                if (world.EntityManager.HasComponent<EnabledFlag>(entity) && !world.EntityManager.IsComponentEnabled<EnabledFlag>(entity)) {
+                    world.EntityManager.SetComponentEnabled<EnabledFlag>(entity, true);
                     if (OnBehaviorTreeStarted != null) {
                         OnBehaviorTreeStarted();
                     }
@@ -464,7 +481,7 @@ namespace Opsive.BehaviorDesigner.Runtime
             m_Entity = entity;
 
             // The tree may have already been initialized.
-            if (world.EntityManager.HasComponent<EvaluationComponent>(entity)) {
+            if (world.EntityManager.HasComponent<EvaluateFlag>(entity)) {
                 return true;
             }
 
@@ -538,7 +555,8 @@ namespace Opsive.BehaviorDesigner.Runtime
             }
 
             if (!world.EntityManager.HasBuffer<TaskComponent>(entity)) {
-                world.EntityManager.AddBuffer<TaskComponent>(entity);
+                var taskComponentBuffer = world.EntityManager.AddBuffer<TaskComponent>(entity);
+                taskComponentBuffer.EnsureCapacity(Data.LogicNodes.Length);
             }
 
             DynamicBuffer<BranchComponent> branchComponents;
@@ -548,15 +566,15 @@ namespace Opsive.BehaviorDesigner.Runtime
                 branchComponents = world.EntityManager.AddBuffer<BranchComponent>(entity);
             }
             var startBranchIndex = (ushort)branchComponents.Length;
-            branchComponents.Add(new BranchComponent() { ActiveIndex = ushort.MaxValue, NextIndex = ushort.MaxValue });
+            branchComponents.Add(new BranchComponent() { ActiveIndex = ushort.MaxValue, NextIndex = ushort.MaxValue, LastActiveIndex = ushort.MaxValue });
 
-            world.EntityManager.AddComponent<EnabledTag>(entity);
-            world.EntityManager.AddComponent<EvaluationComponent>(entity);
-            world.EntityManager.AddComponentData(entity, new EvaluationComponent() { EvaluationType = m_EvaluationType, MaxEvaluationCount = (ushort)Mathf.Max(1, m_MaxEvaluationCount) });
+            ComponentUtility.AddEvaluationComponent(world, entity, m_Data.LogicNodes.Length, m_EvaluationType, m_MaxEvaluationCount);
+            world.EntityManager.AddComponent<EnabledFlag>(entity);
+            world.EntityManager.AddComponent<EvaluateFlag>(entity);
             // A manual update mode will require the user to call the Tick method.
             if (m_UpdateMode == UpdateMode.Manual) {
-                world.EntityManager.SetComponentEnabled<EnabledTag>(entity, false);
-                world.EntityManager.SetComponentEnabled<EvaluationComponent>(entity, false);
+                world.EntityManager.SetComponentEnabled<EnabledFlag>(entity, false);
+                world.EntityManager.SetComponentEnabled<EvaluateFlag>(entity, false);
             }
 
             // Get the required parent system groups. The systems are always added to the default world.
@@ -577,19 +595,17 @@ namespace Opsive.BehaviorDesigner.Runtime
                 // Determine the branch index based off of the parent. If the parent is a parallel node then the node will be part of a new branch.
                 var branchIndex = startBranchIndex;
                 if (m_Data.LogicNodes[i].ParentIndex != ushort.MaxValue) {
+                    branchComponents = world.EntityManager.GetBuffer<BranchComponent>(entity);
                     var parentIndex = m_Data.LogicNodes[i].ParentIndex;
                     if (m_Data.LogicNodes[parentIndex] is IParallelNode) {
-                        branchIndex = (ushort)(taskComponents[i - taskOffset - 1].BranchIndex + 1);
+                        branchIndex = (ushort)branchComponents.Length;
                     } else {
                         branchIndex = taskComponents[parentIndex - taskOffset].BranchIndex;
                     }
 
                     // A new branch component may need to be added to keep track of the active task index for that branch.
-                    if (branchIndex > 0) {
-                        branchComponents = world.EntityManager.GetBuffer<BranchComponent>(entity);
-                        if (branchIndex >= branchComponents.Length) {
-                            branchComponents.Add(new BranchComponent() { ActiveIndex = ushort.MaxValue, NextIndex = ushort.MaxValue });
-                        }
+                    if (branchIndex >= branchComponents.Length) {
+                        branchComponents.Add(new BranchComponent() { ActiveIndex = ushort.MaxValue, NextIndex = ushort.MaxValue, LastActiveIndex = ushort.MaxValue });
                     }
                 }
 
@@ -602,8 +618,8 @@ namespace Opsive.BehaviorDesigner.Runtime
                     m_NodeIndexByRuntimeIndex.Add(node.RuntimeIndex, node.Index);
                 }
 
-                if (m_Data.LogicNodes[i] is ITaskComponentData taskComponentData) {
-                    taskComponentData.AddBufferElement(world, entity);
+                if (m_Data.LogicNodes[i] is IAuthoringTask authoringTask) {
+                    authoringTask.AddBufferElement(world, entity, gameObject);
                     taskComponents = world.EntityManager.GetBuffer<TaskComponent>(entity);
                     taskComponents.Add(new TaskComponent {
                         Status = TaskStatus.Inactive,
@@ -611,13 +627,13 @@ namespace Opsive.BehaviorDesigner.Runtime
                         ParentIndex = AdjustByIndexOffset(m_Data.LogicNodes[i].ParentIndex, taskOffset),
                         SiblingIndex = AdjustByIndexOffset(m_Data.LogicNodes[i].SiblingIndex, taskOffset),
                         BranchIndex = branchIndex,
-                        TagComponentType = taskComponentData.Tag,
+                        FlagComponentType = authoringTask.Flag,
                         Disabled = !IsNodeEnabled(true, m_Data.LogicNodes[i].ParentIndex) || !IsNodeEnabled(true, i),
                     });
 
-                    world.EntityManager.AddComponent(entity, taskComponentData.Tag);
-                    world.EntityManager.SetComponentEnabled(entity, taskComponentData.Tag, false);
-                    traversalTaskSystemGroup.AddSystemToUpdateList(world.GetOrCreateSystem(taskComponentData.SystemType));
+                    world.EntityManager.AddComponent(entity, authoringTask.Flag);
+                    world.EntityManager.SetComponentEnabled(entity, authoringTask.Flag, false);
+                    traversalTaskSystemGroup.AddSystemToUpdateList(world.GetOrCreateSystem(authoringTask.SystemType));
                 } else if (m_Data.LogicNodes[i] is Task taskObject) {
                     taskObject.AddBufferElement(world, entity, GetHashCode(), node.RuntimeIndex);
                     taskComponents = world.EntityManager.GetBuffer<TaskComponent>(entity);
@@ -627,41 +643,40 @@ namespace Opsive.BehaviorDesigner.Runtime
                         ParentIndex = AdjustByIndexOffset(m_Data.LogicNodes[i].ParentIndex, taskOffset),
                         SiblingIndex = AdjustByIndexOffset(m_Data.LogicNodes[i].SiblingIndex, taskOffset),
                         BranchIndex = branchIndex,
-                        TagComponentType = typeof(TaskObjectTag),
+                        FlagComponentType = typeof(TaskObjectFlag),
                         Disabled = !IsNodeEnabled(true, m_Data.LogicNodes[i].ParentIndex) || !IsNodeEnabled(true, i),
                     });
-                    world.EntityManager.AddComponent(entity, typeof(TaskObjectTag));
-                    world.EntityManager.SetComponentEnabled(entity, typeof(TaskObjectTag), false);
+                    world.EntityManager.AddComponent(entity, typeof(TaskObjectFlag));
+                    world.EntityManager.SetComponentEnabled(entity, typeof(TaskObjectFlag), false);
                     traversalTaskSystemGroup.AddSystemToUpdateList(world.GetOrCreateSystem(typeof(TaskObjectSystem)));
 
                     taskObject.Initialize(this, node.RuntimeIndex);
                 } else {
-                    Debug.LogError("Error: Unknown Task Type", this);
+                    Debug.LogError("Error: Unknown Task Type.", this);
                     continue;
                 }
 
                 // Conditional tasks can be reevaluated.
                 if (m_Data.LogicNodes[i] is IConditional && m_Data.LogicNodes[i].ParentIndex != ushort.MaxValue) {
-                    var reevaluateTag = new ComponentType();
+                    var ReevaluateFlag = new ComponentType();
                     Type reevaluateSystem;
-                    if (m_Data.LogicNodes[i] is ITaskComponentData conditionalTaskComponentData) {
+                    if (m_Data.LogicNodes[i] is IAuthoringTask conditionalAuthoringTask) {
                         if (m_Data.LogicNodes[i] is IReevaluateResponder reevaluateTask) {
-                            reevaluateTag = reevaluateTask.ReevaluateTag;
+                            ReevaluateFlag = reevaluateTask.ReevaluateFlag;
                             reevaluateSystem = reevaluateTask.ReevaluateSystemType;
                         } else {
                             Debug.LogWarning($"Warning: The task {m_Data.LogicNodes[i]} doesn't have a separate reevaluation tag. This may lead to unexpected results. It is recommend " +
                                 $"that the task implements the IReevaluate interface.");
-                            reevaluateTag = conditionalTaskComponentData.Tag;
-                            reevaluateSystem = conditionalTaskComponentData.SystemType;
+                            ReevaluateFlag = conditionalAuthoringTask.Flag;
+                            reevaluateSystem = conditionalAuthoringTask.SystemType;
                         }
                     } else {
-                        reevaluateTag = typeof(TaskObjectReevaluateTag);
+                        ReevaluateFlag = typeof(TaskObjectReevaluateFlag);
                         reevaluateSystem = typeof(TaskObjectReevaluateSystem);
                     }
-                    world.EntityManager.AddComponent(entity, reevaluateTag);
-                    world.EntityManager.SetComponentEnabled(entity, reevaluateTag, false);
-                    var entityManager = world.EntityManager;
-                    ComponentUtility.AddInterruptComponents(entityManager, entity);
+                    world.EntityManager.AddComponent(entity, ReevaluateFlag);
+                    world.EntityManager.SetComponentEnabled(entity, ReevaluateFlag, false);
+                    ComponentUtility.AddInterruptComponents(world.EntityManager, entity);
                     reevaluateTaskSystemGroup.AddSystemToUpdateList(world.GetOrCreateSystem(reevaluateSystem));
 
                     // Ignore any decorator tasks when determining the parent. Composite tasks can only be a conditional abort parent.
@@ -712,7 +727,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                         {
                             Index = node.RuntimeIndex,
                             AbortType = abortParent.AbortType,
-                            ReevaluateTagComponentType = reevaluateTag,
+                            ReevaluateFlagComponentType = ReevaluateFlag,
                             LowerPriorityLowerIndex = lowerPriorityLowerIndex,
                             LowerPriorityUpperIndex = lowerPriorityUpperIndex,
                             SelfPriorityUpperIndex = selfPriorityUpperIndex,
@@ -876,22 +891,21 @@ namespace Opsive.BehaviorDesigner.Runtime
             startTask.Status = TaskStatus.Queued;
             taskComponents[connectedIndex] = startTask;
 
-            var activeTag = taskComponents[connectedIndex].TagComponentType;
-            world.EntityManager.SetComponentEnabled(entity, activeTag, true);
+            var activeFlag = taskComponents[connectedIndex].FlagComponentType;
+            world.EntityManager.SetComponentEnabled(entity, activeFlag, true);
 
             var branchComponents = world.EntityManager.GetBuffer<BranchComponent>(entity);
             var branchComponent = branchComponents[branchIndex];
             branchComponent.ActiveIndex = branchComponent.NextIndex = connectedIndex;
-            branchComponent.ActiveTagComponentType = activeTag;
+            branchComponent.LastActiveIndex = ushort.MaxValue;
+            branchComponent.ActiveFlagComponentType = activeFlag;
             branchComponents[branchIndex] = branchComponent;
 
-            var evaluateComponent = world.EntityManager.GetComponentData<EvaluationComponent>(entity);
-            evaluateComponent.EvaluationCount = 0;
-            world.EntityManager.SetComponentData(entity, evaluateComponent);
+            ComponentUtility.ResetEvaluationComponent(world, entity);
 
             if (startEvaluation) {
-                world.EntityManager.SetComponentEnabled<EnabledTag>(entity, true);
-                world.EntityManager.SetComponentEnabled<EvaluationComponent>(entity, true);
+                world.EntityManager.SetComponentEnabled<EnabledFlag>(entity, true);
+                world.EntityManager.SetComponentEnabled<EvaluateFlag>(entity, true);
             }
             return true;
         }
@@ -1042,7 +1056,7 @@ namespace Opsive.BehaviorDesigner.Runtime
             if (world == null || entity.Index == 0) {
                 return;
             }
-            world.EntityManager.SetComponentEnabled<EvaluationComponent>(entity, true);
+            world.EntityManager.SetComponentEnabled<EvaluateFlag>(entity, true);
         }
 
         /// <summary>
@@ -1085,10 +1099,10 @@ namespace Opsive.BehaviorDesigner.Runtime
             }
 
             // The tree could be stopped after it has been paused.
-            if (world.EntityManager.HasComponent<EnabledTag>(entity)) {
-                world.EntityManager.SetComponentEnabled<EnabledTag>(entity, false);
+            if (world.EntityManager.HasComponent<EnabledFlag>(entity)) {
+                world.EntityManager.SetComponentEnabled<EnabledFlag>(entity, false);
             }
-            world.EntityManager.SetComponentEnabled<EvaluationComponent>(entity, false);
+            world.EntityManager.SetComponentEnabled<EvaluateFlag>(entity, false);
 
             if (!s_BehaviorTreeByEntity.ContainsKey(entity)) {
                 return false;
@@ -1112,7 +1126,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                 }
             }
 
-            // Removing the EnabledTag and EvaluationComponent is sufficient to pause the tree.
+            // Removing the EnabledFlag and EvaluationComponent is sufficient to pause the tree.
             if (pause) {
                 return true;
             }
@@ -1154,9 +1168,9 @@ namespace Opsive.BehaviorDesigner.Runtime
                     taskIndex = taskComponent.ParentIndex;
                 }
 
-                world.EntityManager.SetComponentEnabled(entity, branchComponent.ActiveTagComponentType, false);
-                branchComponent.ActiveIndex = branchComponent.NextIndex = ushort.MaxValue;
-                branchComponent.ActiveTagComponentType = new ComponentType();
+                world.EntityManager.SetComponentEnabled(entity, branchComponent.ActiveFlagComponentType, false);
+                branchComponent.ActiveIndex = branchComponent.NextIndex = branchComponent.LastActiveIndex = ushort.MaxValue;
+                branchComponent.ActiveFlagComponentType = new ComponentType();
                 branchComponent.InterruptType = InterruptType.None;
                 branchComponent.InterruptIndex = 0;
                 branchComponents[i] = branchComponent;
@@ -1171,7 +1185,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                     }
 
                     var reevaluateTaskComponent = reevaluateTaskComponents[i];
-                    world.EntityManager.SetComponentEnabled(entity, reevaluateTaskComponent.ReevaluateTagComponentType, false);
+                    world.EntityManager.SetComponentEnabled(entity, reevaluateTaskComponent.ReevaluateFlagComponentType, false);
                     reevaluateTaskComponent.ReevaluateStatus = ReevaluateStatus.Inactive;
                     reevaluateTaskComponent.OriginalStatus = TaskStatus.Inactive;
 
@@ -1221,8 +1235,9 @@ namespace Opsive.BehaviorDesigner.Runtime
 
             StopBehavior(world, entity, false);
 
-            world.EntityManager.RemoveComponent<EnabledTag>(entity);
-            world.EntityManager.RemoveComponent<EvaluationComponent>(entity);
+            world.EntityManager.RemoveComponent<EnabledFlag>(entity);
+            world.EntityManager.RemoveComponent<EvaluateFlag>(entity);
+            ComponentUtility.RemoveEvaluationComponent(world, entity);
 
             var branchComponents = world.EntityManager.GetBuffer<BranchComponent>(entity);
             var taskComponents = world.EntityManager.GetBuffer<TaskComponent>(entity);
@@ -1234,28 +1249,28 @@ namespace Opsive.BehaviorDesigner.Runtime
             }
 
             for (int i = 0; i < m_Data.LogicNodes.Length; ++i) {
-                if (m_Data.LogicNodes[i] is ITaskComponentData taskComponentData) {
-                    taskComponentData.ClearBufferElement(world, entity);
-                    if (world.EntityManager.HasComponent(entity, taskComponentData.Tag)) {
-                        world.EntityManager.RemoveComponent(entity, taskComponentData.Tag);
+                if (m_Data.LogicNodes[i] is IAuthoringTask authoringTask) {
+                    authoringTask.ClearBufferElement(world, entity);
+                    if (world.EntityManager.HasComponent(entity, authoringTask.Flag)) {
+                        world.EntityManager.RemoveComponent(entity, authoringTask.Flag);
                     }
                     if (m_Data.LogicNodes[i] is IReevaluateResponder reevaluateTask) {
-                        if (world.EntityManager.HasComponent(entity, reevaluateTask.ReevaluateTag)) {
-                            world.EntityManager.RemoveComponent(entity, reevaluateTask.ReevaluateTag);
+                        if (world.EntityManager.HasComponent(entity, reevaluateTask.ReevaluateFlag)) {
+                            world.EntityManager.RemoveComponent(entity, reevaluateTask.ReevaluateFlag);
                         }
                     }
                 } else if (m_Data.LogicNodes[i] is Task monoTask) {
                     monoTask.ClearBufferElement(world, entity);
                     if (m_Data.LogicNodes[i] is IConditional) {
-                        if (world.EntityManager.HasComponent(entity, typeof(TaskObjectReevaluateTag))) {
-                            world.EntityManager.RemoveComponent(entity, typeof(TaskObjectReevaluateTag));
+                        if (world.EntityManager.HasComponent(entity, typeof(TaskObjectReevaluateFlag))) {
+                            world.EntityManager.RemoveComponent(entity, typeof(TaskObjectReevaluateFlag));
                         }
-                        if (world.EntityManager.HasComponent(entity, typeof(InterruptTag))) {
-                            world.EntityManager.RemoveComponent(entity, typeof(InterruptTag));
+                        if (world.EntityManager.HasComponent(entity, typeof(InterruptFlag))) {
+                            world.EntityManager.RemoveComponent(entity, typeof(InterruptFlag));
                         }
                     }
-                    if (world.EntityManager.HasComponent(entity, typeof(TaskObjectTag))) {
-                        world.EntityManager.RemoveComponent(entity, typeof(TaskObjectTag));
+                    if (world.EntityManager.HasComponent(entity, typeof(TaskObjectFlag))) {
+                        world.EntityManager.RemoveComponent(entity, typeof(TaskObjectFlag));
                     }
                 }
             }
@@ -1274,11 +1289,9 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// </summary>
         /// <param name="name">The name of the SharedVariable that should be retrieved.</param>
         /// <returns>The SharedVariable with the specified name (can be null).</returns>
-        public SharedVariable GetVariable(string name)
+        public SharedVariable GetVariable(PropertyName name)
         {
-            Deserialize();
-
-            return m_Data.GetVariable(this, name, SharedVariable.SharingScope.Graph);
+            return GetVariable(name, SharedVariable.SharingScope.Graph);
         }
 
         /// <summary>
@@ -1287,7 +1300,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <param name="name">The name of the SharedVariable that should be retrieved.</param>
         /// <param name="scope">The scope of the SharedVariable that should be retrieved.</param>
         /// <returns>The SharedVariable with the specified name (can be null).</returns>
-        public SharedVariable GetVariable(string name, SharedVariable.SharingScope scope)
+        public SharedVariable GetVariable(PropertyName name, SharedVariable.SharingScope scope)
         {
             Deserialize();
 
@@ -1299,20 +1312,18 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// </summary>
         /// <param name="name">The name of the SharedVariable that should be retrieved.</param>
         /// <returns>The SharedVariable with the specified name (can be null).</returns>
-        public SharedVariable<T> GetVariable<T>(string name)
+        public SharedVariable<T> GetVariable<T>(PropertyName name)
         {
-            Deserialize();
-
-            return m_Data.GetVariable<T>(this, name, SharedVariable.SharingScope.Graph);
+            return GetVariable<T>(name, SharedVariable.SharingScope.Graph);
         }
 
         /// <summary>
-        /// Returns the SharedVariable of the specified name and scope.
+        /// Returns the SharedVariable of the specified name.
         /// </summary>
         /// <param name="name">The name of the SharedVariable that should be retrieved.</param>
         /// <param name="scope">The scope of the SharedVariable that should be retrieved.</param>
         /// <returns>The SharedVariable with the specified name (can be null).</returns>
-        public SharedVariable<T> GetVariable<T>(string name, SharedVariable.SharingScope scope)
+        public SharedVariable<T> GetVariable<T>(PropertyName name, SharedVariable.SharingScope scope)
         {
             Deserialize();
 
@@ -1325,11 +1336,10 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <typeparam name="T">The type of SharedVarible.</typeparam>
         /// <param name="name">The name of the SharedVariable.</param>
         /// <param name="value">The value of the SharedVariable.</param>
-        public void SetVariableValue<T>(string name, T value)
+        /// <returns>True if the value was set.</returns>
+        public bool SetVariableValue<T>(PropertyName name, T value)
         {
-            Deserialize();
-
-            m_Data.SetVariableValue<T>(this, name, value, SharedVariable.SharingScope.Graph);
+            return SetVariableValue<T>(name, value, SharedVariable.SharingScope.Graph);
         }
 
         /// <summary>
@@ -1339,11 +1349,12 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <param name="name">The name of the SharedVariable.</param>
         /// <param name="value">The value of the SharedVariable.</param>
         /// <param name="scope">The scope of the SharedVariable that should be set.</typeparam>
-        public void SetVariableValue<T>(string name, T value, SharedVariable.SharingScope scope)
+        /// <returns>True if the value was set.</returns>
+        public bool SetVariableValue<T>(PropertyName name, T value, SharedVariable.SharingScope scope)
         {
             Deserialize();
 
-            m_Data.SetVariableValue<T>(this, name, value, scope);
+            return m_Data.SetVariableValue<T>(this, name, value, scope);
         }
 
         /// <summary>
@@ -1742,7 +1753,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         {
             m_Data = new BehaviorTreeData();
             m_Data.EventNodes = other.EventNodes;
-            m_Data.LogicNodes = other.LogicNodes;
+            m_Data.LogicNodes = other.LogicNodes as ITreeLogicNode[];
             m_Data.SharedVariables = other.SharedVariables;
 
 #if UNITY_EDITOR
@@ -1827,14 +1838,14 @@ namespace Opsive.BehaviorDesigner.Runtime
                         var taskComponents = worlds[i].EntityManager.GetBuffer<TaskComponent>(entity);
                         var tagStableTypeHash = new ulong[taskComponents.Length];
                         for (int j = 0; j < taskComponents.Length; ++j) {
-                            tagStableTypeHash[j] = TypeManager.GetTypeInfo(taskComponents[j].TagComponentType.TypeIndex).StableTypeHash;
+                            tagStableTypeHash[j] = TypeManager.GetTypeInfo(taskComponents[j].FlagComponentType.TypeIndex).StableTypeHash;
                         }
-                        ulong[] reevaluateTagStableTypeHash = null;
+                        ulong[] ReevaluateFlagStableTypeHash = null;
                         if (worlds[i].EntityManager.HasBuffer<ReevaluateTaskComponent>(entity)) {
                             var reevaluateTaskComponents = worlds[i].EntityManager.GetBuffer<ReevaluateTaskComponent>(entity);
-                            reevaluateTagStableTypeHash = new ulong[reevaluateTaskComponents.Length];
+                            ReevaluateFlagStableTypeHash = new ulong[reevaluateTaskComponents.Length];
                             for (int j = 0; j < reevaluateTaskComponents.Length; ++j) {
-                                reevaluateTagStableTypeHash[j] = TypeManager.GetTypeInfo(reevaluateTaskComponents[j].ReevaluateTagComponentType.TypeIndex).StableTypeHash;
+                                ReevaluateFlagStableTypeHash[j] = TypeManager.GetTypeInfo(reevaluateTaskComponents[j].ReevaluateFlagComponentType.TypeIndex).StableTypeHash;
                             }
                         }
 
@@ -1846,7 +1857,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                             InterruptTaskSystems = GetTaskSystems<InterruptTaskSystemGroup>(worlds[i]),
                             TraversalTaskSystems = GetTaskSystems<TraversalTaskSystemGroup>(worlds[i]),
                             TagStableTypeHashes = tagStableTypeHash,
-                            ReevaluateTagStableTypeHashes = reevaluateTagStableTypeHash,
+                            ReevaluateFlagStableTypeHashes = ReevaluateFlagStableTypeHash,
                         });
                         behaviorTree.Baked = true;
                     }

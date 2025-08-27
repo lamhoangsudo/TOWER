@@ -11,7 +11,7 @@ namespace Opsive.BehaviorDesigner.Samples
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Adjusts the health amount by a strength factor.")]
+    [Opsive.Shared.Utility.Description("Adjusts the health amount by a strength factor.")]
     [Shared.Utility.Category("Behavior Designer Samples")]
     public class StrengthOperator : Action
     {

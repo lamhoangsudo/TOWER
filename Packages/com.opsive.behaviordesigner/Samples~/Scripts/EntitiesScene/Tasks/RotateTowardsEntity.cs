@@ -14,66 +14,35 @@ namespace Opsive.BehaviorDesigner.Samples
     using Unity.Transforms;
     using UnityEngine;
 
-    [NodeDescription("Uses DOTS to rotate around the center. This task will always return a status of running.")]
+    [Opsive.Shared.Utility.Description("Uses DOTS to rotate around the center. This task will always return a status of running.")]
     [Shared.Utility.Category("Behavior Designer Samples/DOTS")]
-    public struct RotateTowardsEntity : ILogicNode, ITaskComponentData, IAction
+    public class RotateTowardsEntity : ECSActionTask<RotateTowardsEntityTaskSystem, RotateTowardsEntityComponent>
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
         [Tooltip("The angular speed of the agent.")]
         [SerializeField] float m_AngularSpeed;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
+        /// <summary>
+        /// The type of flag that should be enabled when the task is running.
+        /// </summary>
+        public override ComponentType Flag { get => typeof(RotateTowardsEntityFlag); }
 
-        public ComponentType Tag { get => typeof(RotateTowardsEntityTag); }
-        public System.Type SystemType { get => typeof(RotateTowardsEntityTaskSystem); }
+        /// <summary>
+        /// Returns a new TBufferElement for use by the system.
+        /// </summary>
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override RotateTowardsEntityComponent GetBufferElement()
+        {
+            return new RotateTowardsEntityComponent()
+            {
+                Index = RuntimeIndex,
+                AngularSpeed = m_AngularSpeed,
+            };
+        }
 
         /// <summary>
         /// Resets the task to its default values.
         /// </summary>
-        public void Reset() { m_AngularSpeed = 2; }
-
-        /// <summary>
-        /// Adds the IBufferElementData to the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<RotateTowardsEntityComponent> buffer;
-            if (world.EntityManager.HasBuffer<RotateTowardsEntityComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<RotateTowardsEntityComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<RotateTowardsEntityComponent>(entity);
-            }
-
-            buffer.Add(new RotateTowardsEntityComponent()
-            {
-                Index = RuntimeIndex,
-                AngularSpeed = m_AngularSpeed,
-            });
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<RotateTowardsEntityComponent> buffer;
-            if (world.EntityManager.HasBuffer<RotateTowardsEntityComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<RotateTowardsEntityComponent>(entity);
-                buffer.Clear();
-            }
-        }
+        public override void Reset() { m_AngularSpeed = 2; }
     }
 
     /// <summary>
@@ -88,9 +57,9 @@ namespace Opsive.BehaviorDesigner.Samples
     }
 
     /// <summary>
-    /// A DOTS tag indicating when a RotateTowardsEntity node is active.
+    /// A DOTS flag indicating when a RotateTowardsEntity node is active.
     /// </summary>
-    public struct RotateTowardsEntityTag : IComponentData, IEnableableComponent { }
+    public struct RotateTowardsEntityFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the RotateTowardsEntity logic.
@@ -107,7 +76,7 @@ namespace Opsive.BehaviorDesigner.Samples
         {
             var deltaTime = SystemAPI.Time.DeltaTime;
             foreach (var (localTransform, taskComponents, rotateTorwardsTargetComponents) in
-                SystemAPI.Query<RefRW<LocalTransform>, DynamicBuffer<TaskComponent>, DynamicBuffer<RotateTowardsEntityComponent>>().WithAll<RotateTowardsEntityTag, EvaluationComponent>()) {
+                SystemAPI.Query<RefRW<LocalTransform>, DynamicBuffer<TaskComponent>, DynamicBuffer<RotateTowardsEntityComponent>>().WithAll<RotateTowardsEntityFlag, EvaluateFlag>()) {
                 for (int i = 0; i < rotateTorwardsTargetComponents.Length; ++i) {
                     var rotateTowardsEntityComponent = rotateTorwardsTargetComponents[i];
                     var taskComponent = taskComponents[rotateTowardsEntityComponent.Index];

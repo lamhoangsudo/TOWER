@@ -88,52 +88,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buildingSo: {fileID: 11400000, guid: 645bcc531cfbb6b4b95b92811b64285f, type: 2}
---- !u!1 &3186077919878985178
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8023811851262768862}
-  - component: {fileID: 3591821835802904137}
-  m_Layer: 8
-  m_Name: SnapPoint
-  m_TagString: SnapPoint
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &8023811851262768862
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3186077919878985178}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7953621047020372431}
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!114 &3591821835802904137
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3186077919878985178}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 964a329017694d94aa89d0cce14a23a9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SnapPointAuthoring
-  snapPointType: 1
-  direction: 0
 --- !u!1 &3604728361288039839
 GameObject:
   m_ObjectHideFlags: 0
@@ -163,8 +117,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0.7, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 6419799895158013342}
+  m_Children: []
   m_Father: {fileID: 8838118512426066243}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!114 &515091941015360949
@@ -179,6 +132,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c378d204366c4cf468a84b9dd3661562, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnapPointBuffersAuthoring
+  snapPointAuthorings: []
+  defaultSnapPointType: 1
 --- !u!1 &3621735701544994382
 GameObject:
   m_ObjectHideFlags: 0
@@ -208,8 +163,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 8023811851262768862}
+  m_Children: []
   m_Father: {fileID: 8838118512426066243}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!114 &6759391780307641872
@@ -224,98 +178,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c378d204366c4cf468a84b9dd3661562, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnapPointBuffersAuthoring
---- !u!1 &4732726772002510519
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 6419799895158013342}
-  - component: {fileID: 3187811303490074079}
-  m_Layer: 8
-  m_Name: SnapPoint
-  m_TagString: SnapPoint
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &6419799895158013342
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4732726772002510519}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 4012979154358977010}
-  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
---- !u!114 &3187811303490074079
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4732726772002510519}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 964a329017694d94aa89d0cce14a23a9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SnapPointAuthoring
-  snapPointType: 1
-  direction: 0
---- !u!1 &5560040553429907713
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4133979482693784531}
-  - component: {fileID: 5916269994883500605}
-  m_Layer: 8
-  m_Name: SnapPoint
-  m_TagString: SnapPoint
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &4133979482693784531
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5560040553429907713}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1140538820852955146}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5916269994883500605
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5560040553429907713}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 964a329017694d94aa89d0cce14a23a9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SnapPointAuthoring
-  snapPointType: 1
-  direction: 0
+  snapPointAuthorings: []
+  defaultSnapPointType: 1
 --- !u!1 &6086729549617502943
 GameObject:
   m_ObjectHideFlags: 0
@@ -345,8 +209,7 @@ Transform:
   m_LocalPosition: {x: -1.47, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 5485508633881936008}
+  m_Children: []
   m_Father: {fileID: 8838118512426066243}
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!114 &6724301588332899336
@@ -361,52 +224,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c378d204366c4cf468a84b9dd3661562, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnapPointBuffersAuthoring
---- !u!1 &6359962949252382697
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5485508633881936008}
-  - component: {fileID: 4842911429897584957}
-  m_Layer: 8
-  m_Name: SnapPoint
-  m_TagString: SnapPoint
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &5485508633881936008
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6359962949252382697}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 8318175485637657890}
-  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
---- !u!114 &4842911429897584957
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6359962949252382697}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 964a329017694d94aa89d0cce14a23a9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SnapPointAuthoring
-  snapPointType: 1
-  direction: 0
+  snapPointAuthorings: []
+  defaultSnapPointType: 1
 --- !u!1 &6980327838719994257
 GameObject:
   m_ObjectHideFlags: 0
@@ -436,8 +255,7 @@ Transform:
   m_LocalPosition: {x: 1.47, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 4796807733569072230}
+  m_Children: []
   m_Father: {fileID: 8838118512426066243}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!114 &5188705797048614325
@@ -452,6 +270,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c378d204366c4cf468a84b9dd3661562, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnapPointBuffersAuthoring
+  snapPointAuthorings: []
+  defaultSnapPointType: 1
 --- !u!1 &7687958851000247801
 GameObject:
   m_ObjectHideFlags: 0
@@ -481,8 +301,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 1.527}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 4133979482693784531}
+  m_Children: []
   m_Father: {fileID: 8838118512426066243}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2920618509257598398
@@ -497,98 +316,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c378d204366c4cf468a84b9dd3661562, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnapPointBuffersAuthoring
---- !u!1 &7764591169154884071
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 6485492792948889720}
-  - component: {fileID: 1790885966152944387}
-  m_Layer: 8
-  m_Name: SnapPoint
-  m_TagString: SnapPoint
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &6485492792948889720
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7764591169154884071}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 45967820503219247}
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
---- !u!114 &1790885966152944387
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7764591169154884071}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 964a329017694d94aa89d0cce14a23a9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SnapPointAuthoring
-  snapPointType: 1
-  direction: 0
---- !u!1 &8359880766007084816
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4796807733569072230}
-  - component: {fileID: 5314042988929013045}
-  m_Layer: 8
-  m_Name: SnapPoint
-  m_TagString: SnapPoint
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &4796807733569072230
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8359880766007084816}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1655254595113793261}
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
---- !u!114 &5314042988929013045
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8359880766007084816}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 964a329017694d94aa89d0cce14a23a9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SnapPointAuthoring
-  snapPointType: 1
-  direction: 0
+  snapPointAuthorings: []
+  defaultSnapPointType: 1
 --- !u!1 &8515515036907713614
 GameObject:
   m_ObjectHideFlags: 0
@@ -618,8 +347,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: -1.527}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 6485492792948889720}
+  m_Children: []
   m_Father: {fileID: 8838118512426066243}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!114 &3575657819964583616
@@ -634,6 +362,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c378d204366c4cf468a84b9dd3661562, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnapPointBuffersAuthoring
+  snapPointAuthorings: []
+  defaultSnapPointType: 1
 --- !u!1001 &8977806735060745248
 PrefabInstance:
   m_ObjectHideFlags: 0

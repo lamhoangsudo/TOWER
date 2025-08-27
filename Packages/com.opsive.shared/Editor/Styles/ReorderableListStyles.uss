@@ -36,6 +36,17 @@
 	flex-grow: 1;
 	flex-shrink: 0;
 	flex-basis: 0;    
+    border-top-width: 1px;
+}
+
+.list-item-dark
+{
+    border-top-color: rgba(0, 0, 0, 0.2);
+}
+
+.list-item-light
+{
+    border-top-color: rgba(125, 125, 125, 0.4);
 }
 
 .list-item-selected-light
@@ -46,6 +57,21 @@
 .list-item-selected-dark
 {
     background-color: rgb(62, 95, 150);
+}
+
+.list-item-hovered-light
+{
+    background-color: rgb(200, 200, 200);
+}
+
+.list-item-hovered-dark
+{
+    background-color: rgb(85, 85, 85);
+}
+
+.list-item-dragged
+{
+    opacity: 0.6;
 }
 
 #knob
@@ -128,6 +154,24 @@
 .button-disabled-dark
 {
     color: rgb(107, 107, 107);
+}
+
+#drop-bar
+{
+    position: Absolute;
+    height: 2px;
+    left: 0px;
+    right: 0px;
+}
+
+.drop-bar-dark
+{
+    background-color: rgb(58, 121, 187);
+}
+
+.drop-bar-light
+{
+    background-color: rgb(62, 103, 156);
 }
 
 #footer

@@ -20,62 +20,38 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     /// A node representation of the parallel task.
     /// </summary>
     [NodeIcon("f612c025389b22640b1b6df88f4502e7", "8a4a401bcfb527a48a08351efaf92e14")]
-    [NodeDescription("Similar to the sequence task, the parallel task will run each child task until a child task returns failure. " +
+    [Opsive.Shared.Utility.Description("Similar to the sequence task, the parallel task will run each child task until a child task returns failure. " +
                      "The parallel task will run all of its children tasks simultaneously versus running each task one at a time. " +
                      "Like the sequence class, the parallel task will return success once all of its children tasks have return success. " +
                      "If one tasks returns failure the parallel task will end all of the child tasks and return failure.")]
-    public struct Parallel : ILogicNode, IParentNode, IParallelNode, ITaskComponentData, IComposite
+    public class Parallel : ECSCompositeTask<ParallelTaskSystem, ParallelComponent>, IParentNode, IParallelNode
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
-
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
-
-        public int MaxChildCount { get { return int.MaxValue; } }
-
-        public ComponentType Tag { get => typeof(ParallelTag); }
-        public System.Type SystemType { get => typeof(ParallelTaskSystem); }
+        public override ComponentType Flag { get => typeof(ParallelFlag); }
 
         /// <summary>
         /// Adds the IBufferElementData to the entity.
         /// </summary>
         /// <param name="world">The world that the entity exists.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <returns>The index of the element within the buffer.</returns>
+        public override int AddBufferElement(World world, Entity entity, GameObject gameObject)
         {
-            DynamicBuffer<ParallelComponent> buffer;
-            if (world.EntityManager.HasBuffer<ParallelComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<ParallelComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<ParallelComponent>(entity);
-            }
-            buffer.Add(new ParallelComponent() {
-                Index = RuntimeIndex,
-            });
-
-            var entityManager = world.EntityManager;
-            ComponentUtility.AddInterruptComponents(entityManager, entity);
+            var index = base.AddBufferElement(world, entity, gameObject);
+            ComponentUtility.AddInterruptComponents(world.EntityManager, entity);
+            return index;
         }
 
         /// <summary>
-        /// Clears the IBufferElementData from the entity.
+        /// Returns a new TBufferElement for use by the system.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override ParallelComponent GetBufferElement()
         {
-            DynamicBuffer<ParallelComponent> buffer;
-            if (world.EntityManager.HasBuffer<ParallelComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<ParallelComponent>(entity);
-                buffer.Clear();
-            }
+            return new ParallelComponent()
+            {
+                Index = RuntimeIndex
+            };
         }
     }
 
@@ -93,7 +69,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     /// <summary>
     /// A DOTS tag indicating when a Parallel node is active.
     /// </summary>
-    public struct ParallelTag : IComponentData, IEnableableComponent { }
+    public struct ParallelFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the Parallel logic.
@@ -111,7 +87,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
         /// <param name="state">THe current SystemState.</param>
         private void OnCreate(ref SystemState state)
         {
-            m_Query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<ParallelComponent>().WithAll<ParallelTag, EvaluationComponent>().Build();
+            m_Query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<ParallelComponent>().WithAll<ParallelFlag, EvaluateFlag>().Build();
         }
 
         /// <summary>
@@ -233,7 +209,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
                                 taskComponents[j] = childTaskComponent;
 
                                 branchComponent = branchComponents[childTaskComponent.BranchIndex];
-                                EntityCommandBuffer.SetComponentEnabled<InterruptedTag>(entityIndex, entity, true);
+                                EntityCommandBuffer.SetComponentEnabled<InterruptedFlag>(entityIndex, entity, true);
                                 if (branchComponent.ActiveIndex == childTaskComponent.Index) {
                                     branchComponent.NextIndex = ushort.MaxValue;
                                     branchComponents[childTaskComponent.BranchIndex] = branchComponent;

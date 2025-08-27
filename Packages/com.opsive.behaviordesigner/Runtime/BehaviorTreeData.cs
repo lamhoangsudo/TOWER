@@ -37,7 +37,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         [Tooltip("The unique ID of the data.")]
         [SerializeField] private int m_UniqueID;
 
-        private ILogicNode[] m_Tasks;
+        private ITreeLogicNode[] m_Tasks;
         private IEventNode[] m_EventTasks;
         private SharedVariable[] m_SharedVariables;
         private ushort[] m_DisabledLogicNodes;
@@ -45,7 +45,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         private Dictionary<VariableAssignment, SharedVariable> m_VariableByNameMap;
         private int m_RuntimeUniqueID;
 
-        public ILogicNode[] LogicNodes
+        public ITreeLogicNode[] LogicNodes
         {
             get => m_Tasks;
             set {
@@ -53,7 +53,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                     m_Tasks = null;
                 } else {
                     if (m_Tasks == null) {
-                        m_Tasks = new ILogicNode[value.Length];
+                        m_Tasks = new ITreeLogicNode[value.Length];
                     } else if (m_Tasks.Length != value.Length) {
                         Array.Resize(ref m_Tasks, value.Length);
                     }
@@ -94,14 +94,18 @@ namespace Opsive.BehaviorDesigner.Runtime
         [SerializeField] private Serialization[] m_EventNodePropertiesData;
         [Tooltip("The serialized group properties data.")]
         [SerializeField] private Serialization[] m_GroupPropertiesData;
+        [Tooltip("The serialized shared variables group data.")]
+        [SerializeField] private Serialization[] m_SharedVariableGroupsData;
 
         private LogicNodeProperties[] m_LogicNodeProperties;
         private NodeProperties[] m_EventNodeProperties;
         private GroupProperties[] m_GroupProperties;
+        [System.NonSerialized] private SharedVariableGroup[] m_SharedVariableGroups;
 
         public LogicNodeProperties[] LogicNodeProperties { get => m_LogicNodeProperties; set { m_LogicNodeProperties = value; } }
         public NodeProperties[] EventNodeProperties { get => m_EventNodeProperties; set { m_EventNodeProperties = value; } }
         public GroupProperties[] GroupProperties { get => m_GroupProperties; set => m_GroupProperties = value; }
+        public SharedVariableGroup[] SharedVariableGroups { get => m_SharedVariableGroups; set => m_SharedVariableGroups = value;  }
 #endif
 
         private ResizableArray<SubtreeNodesReference> m_SubtreeNodesReference;
@@ -121,10 +125,10 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// Adds the specified node.
         /// </summary>
         /// <param name="node">The node that should be added.</param>
-        public void AddNode(ILogicNode node)
+        public void AddNode(ITreeLogicNode node)
         {
             if (m_Tasks == null) {
-                m_Tasks = new ILogicNode[1];
+                m_Tasks = new ITreeLogicNode[1];
             } else {
                 Array.Resize(ref m_Tasks, m_Tasks.Length + 1);
             }
@@ -140,13 +144,13 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// </summary>
         /// <param name="node">The node that should be removed.</param>
         /// <returns>True if the node was removed.</returns>
-        public bool RemoveNode(ILogicNode node)
+        public bool RemoveNode(ITreeLogicNode node)
         {
             if (m_Tasks == null || node.Index >= m_Tasks.Length) {
                 return false;
             }
 
-            var dest = new ILogicNode[m_Tasks.Length - 1];
+            var dest = new ITreeLogicNode[m_Tasks.Length - 1];
             Array.Copy(m_Tasks, dest, node.Index);
             Array.Copy(m_Tasks, node.Index + 1, dest, node.Index, m_Tasks.Length - node.Index - 1);
             m_Tasks = dest;
@@ -195,7 +199,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// </summary>
         public void Serialize()
         {
-            m_TaskData = Serialization.Serialize<ILogicNode>(m_Tasks, ValidateSerializedObject);
+            m_TaskData = Serialization.Serialize<ITreeLogicNode>(m_Tasks, ValidateSerializedObject);
             m_EventTaskData = Serialization.Serialize<IEventNode>(m_EventTasks, ValidateSerializedObject);
             SerializeSharedVariables();
             m_DisabledEventNodesData = Serialization.Serialize<ushort>(m_DisabledEventNodes);
@@ -204,7 +208,7 @@ namespace Opsive.BehaviorDesigner.Runtime
 
 #if UNITY_EDITOR
             // Ensure the node data is up to date.
-            if (m_LogicNodeProperties != null) {
+            if (m_LogicNodeProperties != null && m_Tasks != null && m_LogicNodeProperties.Length < m_Tasks.Length) {
                 for (int i = 0; i < m_LogicNodeProperties.Length; ++i) {
                     var nodeData = m_LogicNodeProperties[i].Data;
                     nodeData.ParentIndex = m_Tasks[i].ParentIndex;
@@ -310,6 +314,9 @@ namespace Opsive.BehaviorDesigner.Runtime
         public void SerializeSharedVariables()
         {
             m_SharedVariableData = Serialization.Serialize<SharedVariable>(m_SharedVariables);
+#if UNITY_EDITOR
+            m_SharedVariableGroupsData = Serialization.Serialize<SharedVariableGroup>(m_SharedVariableGroups);
+#endif
 
             // Update the mapping for any variable name changes.
             if (m_VariableByNameMap == null) {
@@ -343,12 +350,12 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <param name="graphComponent">The component that the graph is being deserialized from.</param>
         /// <param name="graph">The graph that is being deserialized.</param>
         /// <param name="force">Should the behavior tree be force deserialized?</param>
-        /// <param name="variableForce">Should the shared variables be force deserialized?</param>
+        /// <param name="forceSharedVariables">Should the shared variables be force deserialized?</param>
         /// <param name="injectSubtrees">Should the subtrees be injected into the behavior tree?</param>
         /// <param name="canDeepCopyVariables">Can the SharedVariables be deep copied?</param>
         /// <param name="sharedVariableOverrides">A list of SharedVariables that should override the current SharedVariable value.</param>
         /// <returns>True if the tree was deserialized.</returns>
-        public bool Deserialize(IGraphComponent graphComponent, IGraph graph, bool force, bool injectSubtrees, bool canDeepCopyVariables = true, SharedVariableOverride[] sharedVariableOverrides = null)
+        public bool Deserialize(IGraphComponent graphComponent, IGraph graph, bool force, bool forceSharedVariables, bool injectSubtrees, bool canDeepCopyVariables = true, SharedVariableOverride[] sharedVariableOverrides = null)
         {
             // No need to deserialize if the data is already deserialized.
             if ((m_Tasks != null || m_EventTasks != null || m_SharedVariables != null) && !force) {
@@ -358,7 +365,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                 return true;
             }
 
-            return DeserializeInternal(graphComponent, graph, force, injectSubtrees, canDeepCopyVariables, sharedVariableOverrides);
+            return DeserializeInternal(graphComponent, graph, force, forceSharedVariables, injectSubtrees, canDeepCopyVariables, sharedVariableOverrides);
         }
 
         /// <summary>
@@ -367,11 +374,12 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <param name="graphComponent">The component that the graph is being deserialized from.</param>
         /// <param name="graph">The graph that is being deserialized.</param>
         /// <param name="force">Should the behavior tree be force deserialized?</param>
+        /// <param name="forceSharedVariables">Should the shared variables be force deserialized?</param>
         /// <param name="injectSubtrees">Should the subtrees be injected into the behavior tree?</param>
         /// <param name="canDeepCopyVariables">Can the SharedVariables be deep copied?</param>
         /// <param name="sharedVariableOverrides">A list of SharedVariables that should override the current SharedVariable value.</param>
         /// <returns>True if the tree was deserialized.</returns>
-        private bool DeserializeInternal(IGraphComponent graphComponent, IGraph graph, bool force, bool injectSubtrees, bool canDeepCopyVariables, SharedVariableOverride[] sharedVariableOverrides = null)
+        private bool DeserializeInternal(IGraphComponent graphComponent, IGraph graph, bool force, bool forceSharedVariables, bool injectSubtrees, bool canDeepCopyVariables, SharedVariableOverride[] sharedVariableOverrides = null)
         {
             // Prevent the tree from being deserialized recusrively.
             if (m_Deserializing) {
@@ -414,7 +422,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                 m_GroupProperties = null;
             }
 #endif
-            DeserializeSharedVariables(force, sharedVariableOverrides);
+            DeserializeSharedVariables(forceSharedVariables, sharedVariableOverrides);
             m_VariableByNameMap = PopulateSharedVariablesMapping(graph, canDeepCopyVariables);
 
             // The disabled node indicies need to be deserialized before the nodes.
@@ -456,13 +464,18 @@ namespace Opsive.BehaviorDesigner.Runtime
                 m_SubtreeNodesReference.Clear();
             }
             if (m_TaskData != null && m_TaskData.Length > 0) {
-                m_Tasks = new ILogicNode[m_TaskData.Length];
+                m_Tasks = new ITreeLogicNode[m_TaskData.Length];
                 for (int i = 0; i < m_TaskData.Length; ++i) {
                     try {
-                        m_Tasks[i] = m_TaskData[i].DeserializeFields(MemberVisibility.Public, ValidateDeserializedTypeObject, (object fieldInfoObj, object task, object value) =>
+                        var task = m_TaskData[i].DeserializeFields(MemberVisibility.Public, ValidateDeserializedTypeObject, (object fieldInfoObj, object task, object value) =>
                         {
                             return ValidateDeserializedObject(fieldInfoObj, task, value, ref m_VariableByNameMap, ref taskReferences, sharedVariableOverrides);
                         }) as ILogicNode;
+                        if (task is ITreeLogicNode treeLogicNode) {
+                            m_Tasks[i] = treeLogicNode;
+                        } else if (task is ILogicNode) {
+                            Debug.LogError($"Error: The task {m_TaskData[i].ObjectType} at index {i} must implement ITreeLogicNode.");
+                        }
                     } catch (Exception e) {
                         Debug.LogError($"Error: Unable to load task {m_TaskData[i].ObjectType} at index {i} due to exception:\n{e}");
                     }
@@ -490,7 +503,6 @@ namespace Opsive.BehaviorDesigner.Runtime
 
                     // The RuntimeIndex is assigned later when the tree is initialized.
                     m_Tasks[i].RuntimeIndex = ushort.MaxValue;
-
 #if UNITY_EDITOR
                     // Sanity checks.
                     if (m_Tasks[i].Index >= m_TaskData.Length) { m_Tasks[i].Index = (ushort)i; }
@@ -526,17 +538,17 @@ namespace Opsive.BehaviorDesigner.Runtime
                                     continue;
                                 }
 
-                                var deserializedNodes = new ILogicNode[subtrees.Length][];
+                                var deserializedNodes = new ITreeLogicNode[subtrees.Length][];
                                 for (int j = 0; j < subtrees.Length; ++j) {
                                     if (subtrees[j] == null) {
                                         continue;
                                     }
-                                    if (!subtrees[j].Deserialize(graphComponent, force, true, true, subtreeReference.SharedVariableOverrides)) {
+                                    if (!subtrees[j].Deserialize(graphComponent, force, forceSharedVariables, true, true, subtreeReference.SharedVariableOverrides)) {
                                         errorState = true;
                                         break;
                                     };
                                     // Keep a reference to the deserialized nodes. This will ensure they are unique and do not get overwritten.
-                                    deserializedNodes[j] = subtrees[j].LogicNodes;
+                                    deserializedNodes[j] = subtrees[j].TreeLogicNodes;
 
                                     // Add any new subtree variables to the current tree.
                                     if (subtrees[j].SharedVariables != null) {
@@ -758,7 +770,11 @@ namespace Opsive.BehaviorDesigner.Runtime
         public bool DeserializeSharedVariables(bool force, SharedVariableOverride[] sharedVariableOverrides = null)
         {
             // No need to deserialize if the data is already deserialized.
-            if (m_SharedVariables != null && !force) {
+            if (!force && (m_SharedVariables != null
+#if UNITY_EDITOR
+                || m_SharedVariableGroups != null
+#endif
+                )) {
                 return false;
             }
 
@@ -793,6 +809,17 @@ namespace Opsive.BehaviorDesigner.Runtime
             } else {
                 m_SharedVariables = null;
             }
+
+#if UNITY_EDITOR
+            if (m_SharedVariableGroupsData != null && m_SharedVariableGroupsData.Length > 0) {
+                m_SharedVariableGroups = new SharedVariableGroup[m_SharedVariableGroupsData.Length];
+                for (int i = 0; i < m_SharedVariableGroupsData.Length; ++i) {
+                    m_SharedVariableGroups[i] = m_SharedVariableGroupsData[i].DeserializeFields(MemberVisibility.Public) as SharedVariableGroup;
+                }
+            } else {
+                m_SharedVariableGroups = null;
+            }
+#endif
 
             return true;
         }
@@ -841,7 +868,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         public struct VariableAssignment
         {
             [Tooltip("The name of the SharedVariable.")]
-            public string Name;
+            public PropertyName Name;
             [Tooltip("The scope of the SharedVariable.")]
             public SharedVariable.SharingScope Scope;
 
@@ -850,7 +877,7 @@ namespace Opsive.BehaviorDesigner.Runtime
             /// </summary>
             /// <param name="name">The name of the SharedVariable.</param>
             /// <param name="scope">The scope of the SharedVariable.</param>
-            public VariableAssignment(string name, SharedVariable.SharingScope scope)
+            public VariableAssignment(PropertyName name, SharedVariable.SharingScope scope)
             {
                 Name = name;
                 Scope = scope;
@@ -993,7 +1020,7 @@ namespace Opsive.BehaviorDesigner.Runtime
             [Tooltip("A reference to the subtrees that are loaded.")]
             public Subtree[] Subtrees;
             [Tooltip("The deserialized nodes.")]
-            public ILogicNode[][] Nodes;
+            public ITreeLogicNode[][] Nodes;
         }
 
         /// <summary>
@@ -1215,7 +1242,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                 for (int j = 0; j < subtreeAssignments[i].NodeCount; ++j) {
                     var origNode = m_SubtreeNodesReference[subtreeAssignments[i].ReferenceIndex].Nodes[subtreeAssignments[i].SubtreeIndex][j];
                     // The node needs to be copied to prevent the same node from being used in multiple trees.
-                    var node = CopyUtility.DeepCopy(m_SubtreeNodesReference[subtreeAssignments[i].ReferenceIndex].Nodes[subtreeAssignments[i].SubtreeIndex][j]) as ILogicNode;
+                    var node = CopyUtility.DeepCopy(m_SubtreeNodesReference[subtreeAssignments[i].ReferenceIndex].Nodes[subtreeAssignments[i].SubtreeIndex][j]) as ITreeLogicNode;
                     node.Index = (ushort)(subtreeIndex + j);
                     node.RuntimeIndex = ushort.MaxValue;
                     if (j == 0) {
@@ -1253,7 +1280,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// </summary>
         /// <param name="type">The type of Node that should be retrieved.</typeparam>
         /// <returns>The Node of the specified type (can be null).</returns>
-        public ILogicNode GetNode(Type type)
+        public ITreeLogicNode GetNode(Type type)
         {
             if (m_Tasks == null) {
                 return null;
@@ -1292,7 +1319,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <param name="node">The node to retrieve the child count of.</param>
         /// <param name="nodes">All of the nodes that belong to the graph.</param>
         /// <returns>The total number of children belonging to the specified node.</returns>
-        public int GetChildCount(ILogicNode node, ILogicNode[] nodes)
+        public int GetChildCount(ITreeLogicNode node, ITreeLogicNode[] nodes)
         {
             if (node.SiblingIndex != ushort.MaxValue) {
                 return node.SiblingIndex - node.Index - 1;
@@ -1344,7 +1371,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                 var subtreeReference = m_SubtreeNodesReference[i].SubtreeReference;
                 subtreeReference.EvaluateSubtrees(graphComponent);
                 var reevaluatedSubtrees = subtreeReference.Subtrees;
-                ILogicNode[][] reevaluatedNodes;
+                ITreeLogicNode[][] reevaluatedNodes;
                 if (reevaluatedSubtrees == null) {
                     continue;
                 }
@@ -1361,18 +1388,18 @@ namespace Opsive.BehaviorDesigner.Runtime
                     continue;
                 }
 
-                reevaluatedNodes = new ILogicNode[reevaluatedSubtrees.Length][];
+                reevaluatedNodes = new ITreeLogicNode[reevaluatedSubtrees.Length][];
                 var errorState = false;
                 for (int j = 0; j < reevaluatedSubtrees.Length; ++j) {
                     if (reevaluatedSubtrees[j] == null) {
                         continue;
                     }
-                    if (!reevaluatedSubtrees[j].Deserialize(graphComponent, true, true, true, subtreeReference.SharedVariableOverrides)) {
+                    if (!reevaluatedSubtrees[j].Deserialize(graphComponent, true, true, true, true, subtreeReference.SharedVariableOverrides)) {
                         errorState = true;
                         break;
                     };
                     // Keep a reference to the deserialized nodes. This will ensure they are unique and do not get overwritten.
-                    reevaluatedNodes[j] = reevaluatedSubtrees[j].LogicNodes;
+                    reevaluatedNodes[j] = reevaluatedSubtrees[j].TreeLogicNodes;
                 }
                 if (errorState) {
                     continue;
@@ -1388,7 +1415,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                 var nodeCount = m_SubtreeNodesReference[i].NodeCount;
 
                 // Replace the first node with the subtree reference, and remove the rest of the added nodes.
-                m_Tasks[m_SubtreeNodesReference[i].NodeIndex + nodeOffset] = m_SubtreeNodesReference[i].SubtreeReference as ILogicNode;
+                m_Tasks[m_SubtreeNodesReference[i].NodeIndex + nodeOffset] = m_SubtreeNodesReference[i].SubtreeReference as ITreeLogicNode;
                 for (int j = m_SubtreeNodesReference[i].NodeIndex + nodeOffset + 1; j < m_Tasks.Length - nodeCount + 1; ++j) {
                     m_Tasks[j] = m_Tasks[j + nodeCount - 1];
                     m_Tasks[j].Index = (ushort)j;
@@ -1471,12 +1498,8 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <param name="name">The name of the SharedVariable that should be retrieved.</typeparam>
         /// <param name="scope">The scope of the SharedVariable that should be retrieved.</param>
         /// <returns>The SharedVariable with the specified name (can be null).</returns>
-        public SharedVariable GetVariable(IGraph graph, string name, SharedVariable.SharingScope scope)
+        public SharedVariable GetVariable(IGraph graph, PropertyName name, SharedVariable.SharingScope scope)
         {
-            if (string.IsNullOrEmpty(name)) {
-                return null;
-            }
-
             if (m_VariableByNameMap == null) {
                 DeserializeSharedVariables(false, null);
                 m_VariableByNameMap = PopulateSharedVariablesMapping(graph, true);
@@ -1496,22 +1519,10 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <param name="name">The name of the SharedVariable that should be retrieved.</typeparam>
         /// <param name="scope">The scope of the SharedVariable that should be retrieved.</param>
         /// <returns>The SharedVariable with the specified name (can be null).</returns>
-        public SharedVariable<T> GetVariable<T>(IGraph graph, string name, SharedVariable.SharingScope scope)
+        public SharedVariable<T> GetVariable<T>(IGraph graph, PropertyName name, SharedVariable.SharingScope scope)
         {
-            if (string.IsNullOrEmpty(name)) {
-                return null;
-            }
 
-            if (m_VariableByNameMap == null) {
-                DeserializeSharedVariables(false, null);
-                m_VariableByNameMap = PopulateSharedVariablesMapping(graph, true);
-            }
-
-            if (m_VariableByNameMap != null && m_VariableByNameMap.TryGetValue(new VariableAssignment(name, scope), out var variable)) {
-                return variable as SharedVariable<T>;
-            }
-
-            return null;
+            return GetVariable(graph, name, scope) as SharedVariable<T>;
         }
 
         /// <summary>
@@ -1521,22 +1532,52 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <param name="graph">The graph that the data belongs to.</typeparam>
         /// <param name="name">The name of the SharedVariable.</param>
         /// <param name="value">The value of the SharedVariable.</param>
-        public void SetVariableValue<T>(IGraph graph, string name, T value, SharedVariable.SharingScope scope)
+        /// <param name="scope">The scope of the SharedVariable that should be set.</typeparam>
+        /// <returns>True if the value was set.</returns>
+        public bool SetVariableValue<T>(IGraph graph, PropertyName name, T value, SharedVariable.SharingScope scope)
         {
-            if (string.IsNullOrEmpty(name)) {
-                return;
-            }
-
             if (m_VariableByNameMap == null) {
                 DeserializeSharedVariables(false, null);
                 m_VariableByNameMap = PopulateSharedVariablesMapping(graph, true);
             }
 
             if (m_VariableByNameMap == null || !m_VariableByNameMap.TryGetValue(new VariableAssignment(name, scope), out var variable)) {
-                return;
+                return false;
             }
 
             (variable as SharedVariable<T>).Value = value;
+            return true;
+        }
+
+        /// <summary>
+        /// Overrides the SharedVariable binding. The name must match an exsting variable.
+        /// </summary>
+        /// <param name="graph">The graph that the data belongs to.</typeparam>
+        /// <param name="variable">The reference to the SharedVariable.</param>
+        internal void OverrideVariableBinding(IGraph graph, SharedVariable variable)
+        {
+            if (string.IsNullOrEmpty(variable.Name)) {
+                return;
+            }
+
+            DeserializeSharedVariables(false, null);
+            var dirty = false;
+            if (m_SharedVariables != null) {
+                for (int i = 0; i < m_SharedVariables.Length; ++i) {
+                    if (m_SharedVariables[i].Name == variable.Name) {
+                        var variableType = variable.GetType();
+                        if (variableType.IsGenericType && variableType.GetGenericTypeDefinition().IsAssignableFrom(typeof(SharedVariableBinding<>))) {
+                            m_SharedVariables[i] = variable.Clone() as SharedVariable;
+                            dirty = true;
+                        }
+                        break;
+                    } 
+                }
+            }
+
+            if (dirty) {
+                m_VariableByNameMap = PopulateSharedVariablesMapping(graph, true);
+            }
         }
 
         /// <summary>
@@ -1554,9 +1595,12 @@ namespace Opsive.BehaviorDesigner.Runtime
             var dirty = false;
             if (m_SharedVariables != null) {
                 for (int i = 0; i < m_SharedVariables.Length; ++i) {
-                    if (m_SharedVariables[i].Name == variable.Name && m_SharedVariables[i].GetType() == variable.GetType()) {
-                        m_SharedVariables[i].SetValue(variable.GetValue());
-                        dirty = true;
+                    if (m_SharedVariables[i].Name == variable.Name) {
+                        var variableType = variable.GetType();
+                        if (m_SharedVariables[i].GetType() == variableType) {
+                            m_SharedVariables[i].SetValue(variable.GetValue());
+                            dirty = true;
+                        }
                         break;
                     }
                 }

@@ -8,7 +8,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
 {
     using Opsive.BehaviorDesigner.Runtime.Components;
     using Opsive.BehaviorDesigner.Runtime.Groups;
-    using Opsive.BehaviorDesigner.Runtime.Systems;
     using Opsive.BehaviorDesigner.Runtime.Tasks.Composites;
     using Unity.Entities;
     using UnityEngine;
@@ -100,7 +99,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
         private void OnUpdate(ref SystemState state)
         {
             foreach (var (utilityValueComponents, taskComponents, entity) in
-                SystemAPI.Query<DynamicBuffer<UtilityValueComponent>, DynamicBuffer<TaskComponent>>().WithAll<EvaluationComponent>().WithEntityAccess()) {
+                SystemAPI.Query<DynamicBuffer<UtilityValueComponent>, DynamicBuffer<TaskComponent>>().WithAll<EvaluateFlag>().WithEntityAccess()) {
 
                 for (int i = 0; i < utilityValueComponents.Length; ++i) {
                     var utilityValueComponent = utilityValueComponents[i];

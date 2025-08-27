@@ -20,20 +20,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
         /// </summary>
         /// <returns>The status of the task during the reevaluation phase.</returns>
         public virtual TaskStatus OnReevaluateUpdate() { return OnUpdate(); }
-
-        /// <summary>
-        /// Is the task being reevaluated? 
-        /// </summary>
-        /// <returns>True if the task is being reevaluated.</returns>
-        protected bool IsReevaluating()
-        {
-            var taskComponents = m_BehaviorTree.World.EntityManager.GetBuffer<TaskComponent>(m_BehaviorTree.Entity, true);
-            if (m_RuntimeIndex >= taskComponents.Length) {
-                return false;
-            }
-
-            return taskComponents[m_RuntimeIndex].Reevaluate;
-        }
     }
 }
 #endif

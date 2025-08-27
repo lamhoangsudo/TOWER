@@ -6,6 +6,8 @@ public class MovementAuthoring : MonoBehaviour
 {
     public float moveSpeed;
     public float rotateSpeed;
+    public float pitchMin;
+    public float pitchMax;
     public class MovementAuthoringBaker : Baker<MovementAuthoring>
     {
         public override void Bake(MovementAuthoring authoring)
@@ -15,9 +17,11 @@ public class MovementAuthoring : MonoBehaviour
             {
                 moveSpeed = authoring.moveSpeed,
             });
-            AddComponent(entity, new Rotation
+            AddComponent(entity, new Rotation()
             {
                 rotationSpeed = authoring.rotateSpeed,
+                pitchMin = authoring.pitchMin,
+                pitchMax = authoring.pitchMax,
             });
         }
     }
@@ -32,6 +36,8 @@ public struct Rotation : IComponentData
     public float rotationSpeed;
     public float yaw;
     public float pitch;
+    public float pitchMax;
+    public float pitchMin;
 }
 
 

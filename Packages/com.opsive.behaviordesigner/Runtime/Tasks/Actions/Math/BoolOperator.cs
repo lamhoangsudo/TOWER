@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.Math
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Performs a math operation on the two booleans.")]
+    [Opsive.Shared.Utility.Description("Performs a math operation on the two booleans.")]
     [Shared.Utility.Category("Math")]
     public class BoolOperator : Action
     {

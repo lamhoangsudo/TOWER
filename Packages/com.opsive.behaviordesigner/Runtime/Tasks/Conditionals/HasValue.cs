@@ -11,7 +11,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
     using System.Collections;
     using UnityEngine;
 
-    [NodeDescription("Returns true if the specified variable has a value.")]
+    [Opsive.Shared.Utility.Description("Returns true if the specified variable has a value.")]
     public class HasValue : Conditional
     {
         [Tooltip("The variable to compare.")]

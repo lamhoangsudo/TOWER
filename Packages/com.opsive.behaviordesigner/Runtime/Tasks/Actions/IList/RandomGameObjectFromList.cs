@@ -11,7 +11,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.UnityObjects
     using UnityEngine;
     using System.Collections.Generic;
 
-    [NodeDescription("Sets a random GameObject value from the GameObject list.")]
+    [Opsive.Shared.Utility.Description("Sets a random GameObject value from the GameObject list.")]
     [Shared.Utility.Category("Lists")]
     public class RandomGameObjectFromList : Action
     {

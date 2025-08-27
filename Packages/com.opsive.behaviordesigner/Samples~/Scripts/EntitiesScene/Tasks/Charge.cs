@@ -7,77 +7,44 @@ namespace Opsive.BehaviorDesigner.Samples
 {
     using Opsive.BehaviorDesigner.Runtime.Components;
     using Opsive.BehaviorDesigner.Runtime.Tasks;
-    using Opsive.GraphDesigner.Runtime;
     using Unity.Burst;
     using Unity.Entities;
     using Unity.Collections;
     using Unity.Mathematics;
     using Unity.Transforms;
     using UnityEngine;
-    using System;
 
-    [NodeDescription("Uses DOTS to move towards the center point, returns success when the agent is less than the arrive distance.")]
+    [Opsive.Shared.Utility.Description("Uses DOTS to move towards the center point, returns success when the agent is less than the arrive distance.")]
     [Shared.Utility.Category("Behavior Designer Samples/DOTS")]
-    public struct Charge : ILogicNode, ITaskComponentData, IAction
+    public class Charge : ECSActionTask<ChargeTaskSystem, ChargeComponent>
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
         [Tooltip("The speed of the agent.")]
         [SerializeField] float m_Speed;
         [Tooltip("The distance away from the target when the agent has arrived at the target.")]
         [SerializeField] float m_ArriveDistance;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
-
-        public ComponentType Tag { get => typeof(ChargeTag); }
-        public Type SystemType { get => typeof(ChargeTaskSystem); }
+        /// <summary>
+        /// The type of flag that should be enabled when the task is running.
+        /// </summary>
+        public override ComponentType Flag { get => typeof(ChargeFlag); }
 
         /// <summary>
         /// Resets the task to its default values.
         /// </summary>
-        public void Reset() { m_Speed = 10; m_ArriveDistance = 0.1f; }
+        public override void Reset() { m_Speed = 10; m_ArriveDistance = 0.1f; }
 
         /// <summary>
-        /// Adds the IBufferElementData to the entity.
+        /// Returns a new TBufferElement for use by the system.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override ChargeComponent GetBufferElement()
         {
-            DynamicBuffer<ChargeComponent> buffer;
-            if (world.EntityManager.HasBuffer<ChargeComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<ChargeComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<ChargeComponent>(entity);
-            }
-
-            buffer.Add(new ChargeComponent()
+            return new ChargeComponent()
             {
                 Index = RuntimeIndex,
                 Speed = m_Speed,
                 ArriveDistance = m_ArriveDistance,
-            });
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<ChargeComponent> buffer;
-            if (world.EntityManager.HasBuffer<ChargeComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<ChargeComponent>(entity);
-                buffer.Clear();
-            }
+            };
         }
     }
 
@@ -95,9 +62,9 @@ namespace Opsive.BehaviorDesigner.Samples
     }
 
     /// <summary>
-    /// A DOTS tag indicating when a Charge node is active.
+    /// A DOTS flag indicating when a Charge node is active.
     /// </summary>
-    public struct ChargeTag : IComponentData, IEnableableComponent { }
+    public struct ChargeFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the Charge logic.
@@ -116,7 +83,7 @@ namespace Opsive.BehaviorDesigner.Samples
         {
             m_ChargeQuery = new EntityQueryBuilder(Allocator.Temp)
                 .WithAllRW<TaskComponent>().WithAllRW<LocalTransform>()
-                .WithAll<ChargeComponent, EvaluationComponent>()
+                .WithAll<ChargeComponent, EvaluateFlag>()
                 .Build(ref state);
         }
 

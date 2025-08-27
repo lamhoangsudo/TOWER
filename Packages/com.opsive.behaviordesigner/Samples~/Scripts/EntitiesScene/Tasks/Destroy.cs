@@ -14,73 +14,41 @@ namespace Opsive.BehaviorDesigner.Samples
     using Unity.Transforms;
     using UnityEngine;
 
-    [NodeDescription("Destroys the Entity.")]
+    [Opsive.Shared.Utility.Description("Destroys the Entity.")]
     [Shared.Utility.Category("Behavior Designer Samples/DOTS")]
-    public struct Destroy : ILogicNode, ITaskComponentData, IAction
+    public class Destroy : ECSActionTask<DestroyTaskSystem, DestroyComponent>
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
-
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
-
-        public ComponentType Tag { get => typeof(DestroyTag); }
-        public System.Type SystemType { get => typeof(DestroyTaskSystem); }
+        /// <summary>
+        /// The type of flag that should be enabled when the task is running.
+        /// </summary>
+        public override ComponentType Flag { get => typeof(DestroyFlag); }
 
         /// <summary>
-        /// Adds the IBufferElementData to the entity.
+        /// Returns a new TBufferElement for use by the system.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override DestroyComponent GetBufferElement()
         {
-            DynamicBuffer<DestroyTaskComponent> buffer;
-            if (world.EntityManager.HasBuffer<DestroyTaskComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<DestroyTaskComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<DestroyTaskComponent>(entity);
-            }
-
-            buffer.Add(new DestroyTaskComponent()
+            return new DestroyComponent()
             {
                 Index = RuntimeIndex,
-            });
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<DestroyTaskComponent> buffer;
-            if (world.EntityManager.HasBuffer<DestroyTaskComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<DestroyTaskComponent>(entity);
-                buffer.Clear();
-            }
+            };
         }
     }
 
     /// <summary>
     /// The DOTS data structure for the Destroy struct.
     /// </summary>
-    public struct DestroyTaskComponent : IBufferElementData
+    public struct DestroyComponent : IBufferElementData
     {
         [Tooltip("The index of the node.")]
         public ushort Index;
     }
 
     /// <summary>
-    /// A DOTS tag indicating when a Destroy node is active.
+    /// A DOTS flag indicating when a Destroy node is active.
     /// </summary>
-    public struct DestroyTag : IComponentData, IEnableableComponent { }
+    public struct DestroyFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the Destroy logic.
@@ -99,7 +67,7 @@ namespace Opsive.BehaviorDesigner.Samples
         {
             m_DestroyQuery = new EntityQueryBuilder(Allocator.Temp)
                 .WithAllRW<TaskComponent>().WithAllRW<LocalTransform>()
-                .WithAll<DestroyTaskComponent, EvaluationComponent>()
+                .WithAll<DestroyComponent, EvaluateFlag>()
                 .Build(ref state);
         }
 
@@ -112,7 +80,7 @@ namespace Opsive.BehaviorDesigner.Samples
         {
             var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
             foreach (var (destroyComponents, taskComponents, entity) in
-                SystemAPI.Query<DynamicBuffer<DestroyTaskComponent>, DynamicBuffer<TaskComponent>>().WithAll<DestroyTag, EvaluationComponent>().WithEntityAccess()) {
+                SystemAPI.Query<DynamicBuffer<DestroyComponent>, DynamicBuffer<TaskComponent>>().WithAll<DestroyFlag, EvaluateFlag>().WithEntityAccess()) {
                 for (int i = 0; i < destroyComponents.Length; ++i) {
                     var destroyComponent = destroyComponents[i];
                     var taskComponent = taskComponents[destroyComponent.Index];

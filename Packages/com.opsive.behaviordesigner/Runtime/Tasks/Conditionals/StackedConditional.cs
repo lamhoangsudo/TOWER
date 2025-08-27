@@ -12,7 +12,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
     /// The StackedConditional task allows for multiple conditionals to be added to the same node.
     /// </summary>
     [NodeIcon("b2368834b8b80144a8b1ab97b609e966", "86fbf527a2c761e45bc4a47cf4894902")]
-    [NodeDescription("Allows multiple conditional tasks to be added to a single node.")]
+    [Opsive.Shared.Utility.Description("Allows multiple conditional tasks to be added to a single node.")]
     public class StackedConditional : StackedTask, IConditional, IConditionalReevaluation
     {
         /// <summary>

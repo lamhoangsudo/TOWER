@@ -7,65 +7,29 @@ namespace Opsive.BehaviorDesigner.Samples
 {
     using Opsive.BehaviorDesigner.Runtime.Components;
     using Opsive.BehaviorDesigner.Runtime.Tasks;
-    using Opsive.GraphDesigner.Runtime;
     using Unity.Burst;
     using Unity.Entities;
     using Unity.Transforms;
     using UnityEngine;
 
-    [NodeDescription("Uses DOTS to determine if the entity has a target.")]
+    [Opsive.Shared.Utility.Description("Uses DOTS to determine if the entity has a target.")]
     [Shared.Utility.Category("Behavior Designer Samples/DOTS")]
-    public struct HasTarget : ILogicNode, ITaskComponentData, IConditional, IReevaluateResponder
+    public class HasTarget : ECSConditionalTask<HasTargetTaskSystem, HasTargetComponent>, IReevaluateResponder
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
-
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
-
-        public ComponentType Tag { get => typeof(HasTargetTag); }
-        public System.Type SystemType { get => typeof(HasTargetTaskSystem); }
-        public ComponentType ReevaluateTag { get => typeof(HasTargetReevaluateTag); }
+        public override ComponentType Flag { get => typeof(HasTargetFlag); }
+        public ComponentType ReevaluateFlag { get => typeof(HasTargetReevaluateFlag); }
         public System.Type ReevaluateSystemType { get => typeof(HasTargetReevaluateTaskSystem); }
 
         /// <summary>
-        /// Adds the IBufferElementData to the entity.
+        /// Returns a new TBufferElement for use by the system.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override HasTargetComponent GetBufferElement()
         {
-            DynamicBuffer<HasTargetComponent> buffer;
-            if (world.EntityManager.HasBuffer<HasTargetComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<HasTargetComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<HasTargetComponent>(entity);
-            }
-
-            buffer.Add(new HasTargetComponent()
+            return new HasTargetComponent()
             {
                 Index = RuntimeIndex,
-            });
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<HasTargetComponent> buffer;
-            if (world.EntityManager.HasBuffer<HasTargetComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<HasTargetComponent>(entity);
-                buffer.Clear();
-            }
+            };
         }
     }
 
@@ -79,9 +43,9 @@ namespace Opsive.BehaviorDesigner.Samples
     }
 
     /// <summary>
-    /// A DOTS tag indicating when a HasTarget node is active.
+    /// A DOTS flag indicating when a HasTarget node is active.
     /// </summary>
-    public struct HasTargetTag : IComponentData, IEnableableComponent { }
+    public struct HasTargetFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the HasTarget logic.
@@ -97,7 +61,7 @@ namespace Opsive.BehaviorDesigner.Samples
         private void OnUpdate(ref SystemState state)
         {
             foreach (var (taskComponents, hasTargetComponents) in
-                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<HasTargetComponent>>().WithAll<HasTargetTag, EvaluationComponent>()) {
+                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<HasTargetComponent>>().WithAll<HasTargetFlag, EvaluateFlag>()) {
                 for (int i = 0; i < hasTargetComponents.Length; ++i) {
                     var hasTargetComponent = hasTargetComponents[i];
                     var taskComponent = taskComponents[hasTargetComponent.Index];
@@ -125,7 +89,7 @@ namespace Opsive.BehaviorDesigner.Samples
     /// <summary>
     /// A DOTS tag indicating when an HasTarget node needs to be reevaluated.
     /// </summary>
-    public struct HasTargetReevaluateTag : IComponentData, IEnableableComponent
+    public struct HasTargetReevaluateFlag : IComponentData, IEnableableComponent
     {
     }
 
@@ -143,7 +107,7 @@ namespace Opsive.BehaviorDesigner.Samples
         private void OnUpdate(ref SystemState state)
         {
             foreach (var (taskComponents, hasTargetComponents) in
-                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<HasTargetComponent>>().WithAll<HasTargetReevaluateTag, EvaluationComponent>()) {
+                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<HasTargetComponent>>().WithAll<HasTargetReevaluateFlag, EvaluateFlag>()) {
                 for (int i = 0; i < hasTargetComponents.Length; ++i) {
                     var hasTargetComponent = hasTargetComponents[i];
                     var taskComponent = taskComponents[hasTargetComponent.Index];

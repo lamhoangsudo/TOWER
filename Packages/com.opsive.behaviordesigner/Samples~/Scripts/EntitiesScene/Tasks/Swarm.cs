@@ -7,7 +7,6 @@ namespace Opsive.BehaviorDesigner.Samples
 {
     using Opsive.BehaviorDesigner.Runtime.Components;
     using Opsive.BehaviorDesigner.Runtime.Tasks;
-    using Opsive.GraphDesigner.Runtime;
     using Unity.Burst;
     using Unity.Entities;
     using Unity.Collections;
@@ -15,66 +14,35 @@ namespace Opsive.BehaviorDesigner.Samples
     using Unity.Transforms;
     using UnityEngine;
 
-    [NodeDescription("Uses DOTS to rotate around the center. This task will always return a status of running.")]
+    [Opsive.Shared.Utility.Description("Uses DOTS to rotate around the center. This task will always return a status of running.")]
     [Shared.Utility.Category("Behavior Designer Samples/DOTS")]
-    public struct Swarm : ILogicNode, ITaskComponentData, IAction
+    public class Swarm : ECSActionTask<SwarmTaskSystem, SwarmComponent>
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
         [Tooltip("The angular speed of the agent.")]
         [SerializeField] float m_AngularSpeed;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
+        /// <summary>
+        /// The type of flag that should be enabled when the task is running.
+        /// </summary>
+        public override ComponentType Flag { get => typeof(SwarmFlag); }
 
-        public ComponentType Tag { get => typeof(SwarmTag); }
-        public System.Type SystemType { get => typeof(SwarmTaskSystem); }
+        /// <summary>
+        /// Returns a new TBufferElement for use by the system.
+        /// </summary>
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override SwarmComponent GetBufferElement()
+        {
+            return new SwarmComponent()
+            {
+                Index = RuntimeIndex,
+                AngularSpeed = m_AngularSpeed,
+            };
+        }
 
         /// <summary>
         /// Resets the task to its default values.
         /// </summary>
-        public void Reset() { m_AngularSpeed = 2; }
-
-        /// <summary>
-        /// Adds the IBufferElementData to the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<SwarmComponent> buffer;
-            if (world.EntityManager.HasBuffer<SwarmComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<SwarmComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<SwarmComponent>(entity);
-            }
-
-            buffer.Add(new SwarmComponent()
-            {
-                Index = RuntimeIndex,
-                AngularSpeed = m_AngularSpeed,
-            });
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<SwarmComponent> buffer;
-            if (world.EntityManager.HasBuffer<SwarmComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<SwarmComponent>(entity);
-                buffer.Clear();
-            }
-        }
+        public override void Reset() { m_AngularSpeed = 2; }
     }
 
     /// <summary>
@@ -89,9 +57,9 @@ namespace Opsive.BehaviorDesigner.Samples
     }
 
     /// <summary>
-    /// A DOTS tag indicating when a Swarm node is active.
+    /// A DOTS flag indicating when a Swarm node is active.
     /// </summary>
-    public struct SwarmTag : IComponentData, IEnableableComponent { }
+    public struct SwarmFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the Swarm logic.
@@ -110,7 +78,7 @@ namespace Opsive.BehaviorDesigner.Samples
         {
             m_SwarmQuery = new EntityQueryBuilder(Allocator.Temp)
                 .WithAllRW<TaskComponent>().WithAllRW<LocalTransform>()
-                .WithAll<SwarmComponent, SwarmTag, EvaluationComponent>()
+                .WithAll<SwarmComponent, SwarmFlag, EvaluateFlag>()
                 .Build(ref state);
         }
 

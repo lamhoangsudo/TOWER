@@ -15,7 +15,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Events
     [NodeIcon("8c35407905159694e8b83df15d3b039b", "df820d6e71423194188c7dcb1c1ae2e2")]
     public class Start : IEventNode
     {
-        [Tooltip("The index of the ILogicNode that the IEventNode is connected to. ushort.MaxValue indicates no connection.")]
+        [Tooltip("The index of the ITreeLogicNode that the IEventNode is connected to. ushort.MaxValue indicates no connection.")]
         [SerializeField] protected ushort m_ConnectedIndex;
 
         public ushort ConnectedIndex { get => m_ConnectedIndex; set => m_ConnectedIndex = value; }

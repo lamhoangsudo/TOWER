@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.6311237, g: 0.7175128, b: 0.7877586, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -417,7 +416,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_UniqueID
-      value: -1001656631
+      value: -304509139
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_TaskData.Array.size
@@ -497,7 +496,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_TaskData.Array.data[0].m_Values.Array.size
-      value: 73
+      value: 75
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_TaskData.Array.data[1].m_Values.Array.size
@@ -1841,7 +1840,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_TaskData.Array.data[0].m_ValuePositions.Array.size
-      value: 16
+      value: 21
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_TaskData.Array.data[1].m_ValuePositions.Array.size
@@ -1865,7 +1864,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_TaskData.Array.data[0].m_LongValueHashes.Array.size
-      value: 16
+      value: 21
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_TaskData.Array.data[0].m_UnityObjects.Array.data[0]
@@ -2312,6 +2311,26 @@ PrefabInstance:
       value: 69
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Data.m_TaskData.Array.data[0].m_ValuePositions.Array.data[16]
+      value: 69
+      objectReference: {fileID: 0}
+    - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Data.m_TaskData.Array.data[0].m_ValuePositions.Array.data[17]
+      value: 69
+      objectReference: {fileID: 0}
+    - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Data.m_TaskData.Array.data[0].m_ValuePositions.Array.data[18]
+      value: 70
+      objectReference: {fileID: 0}
+    - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Data.m_TaskData.Array.data[0].m_ValuePositions.Array.data[19]
+      value: 71
+      objectReference: {fileID: 0}
+    - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Data.m_TaskData.Array.data[0].m_ValuePositions.Array.data[20]
+      value: 71
+      objectReference: {fileID: 0}
+    - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_TaskData.Array.data[1].m_LongValueHashes.Array.data[0]
       value: 2962117259717031728
       objectReference: {fileID: 0}
@@ -2637,10 +2656,30 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_TaskData.Array.data[0].m_LongValueHashes.Array.data[14]
-      value: -8530567197348880156
+      value: 5330765626298986414
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_TaskData.Array.data[0].m_LongValueHashes.Array.data[15]
+      value: -8009083142115446565
+      objectReference: {fileID: 0}
+    - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Data.m_TaskData.Array.data[0].m_LongValueHashes.Array.data[16]
+      value: -1147272864745384340
+      objectReference: {fileID: 0}
+    - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Data.m_TaskData.Array.data[0].m_LongValueHashes.Array.data[17]
+      value: 5046112089465150887
+      objectReference: {fileID: 0}
+    - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Data.m_TaskData.Array.data[0].m_LongValueHashes.Array.data[18]
+      value: 4870524859087730334
+      objectReference: {fileID: 0}
+    - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Data.m_TaskData.Array.data[0].m_LongValueHashes.Array.data[19]
+      value: -8530567197348880156
+      objectReference: {fileID: 0}
+    - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Data.m_TaskData.Array.data[0].m_LongValueHashes.Array.data[20]
       value: -3957478287605629114
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
@@ -7157,15 +7196,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_LogicNodePropertiesData.Array.data[0].m_Values.Array.data[36]
-      value: 166
+      value: 80
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_LogicNodePropertiesData.Array.data[0].m_Values.Array.data[37]
-      value: 55
+      value: 226
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_LogicNodePropertiesData.Array.data[0].m_Values.Array.data[38]
-      value: 249
+      value: 248
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_LogicNodePropertiesData.Array.data[0].m_Values.Array.data[39]
@@ -7181,7 +7220,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_LogicNodePropertiesData.Array.data[0].m_Values.Array.data[42]
-      value: 82
+      value: 80
       objectReference: {fileID: 0}
     - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
       propertyPath: m_Data.m_LogicNodePropertiesData.Array.data[0].m_Values.Array.data[43]
@@ -10232,12 +10271,12 @@ MonoBehaviour:
   m_RequiresColorTexture: 0
   m_Version: 2
   m_TaaSettings:
-    quality: 3
-    frameInfluence: 0.1
-    jitterScale: 1
-    mipBias: 0
-    varianceClampScale: 0.9
-    contrastAdaptiveSharpening: 0
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
 --- !u!1 &1559288522
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.Math
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Performs a math operation on the two floats.")]
+    [Opsive.Shared.Utility.Description("Performs a math operation on the two floats.")]
     [Shared.Utility.Category("Math")]
     public class FloatOperator : Action
     {

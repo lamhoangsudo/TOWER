@@ -7,10 +7,8 @@
 namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
 {
     using Opsive.BehaviorDesigner.Runtime.Components;
-    using Opsive.BehaviorDesigner.Runtime.Utility;
     using Opsive.GraphDesigner.Runtime;
     using Opsive.GraphDesigner.Runtime.Variables;
-    using Opsive.Shared.Utility;
     using Unity.Burst;
     using Unity.Entities;
     using UnityEngine;
@@ -20,74 +18,41 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
     /// A node representation of the random probability task.
     /// </summary>
     [NodeIcon("69bf50f8923f54c4c8bb8e258883a411", "6c5770241610a4c4aae4ac3af0ac8bf8")]
-    [NodeDescription("The random probability task will return success when the random probability is below the succeed probability. It will otherwise return failure.")]
-    public class RandomProbability : ILogicNode, ITaskComponentData, IConditional, IReevaluateResponder, ICloneable
+    [Opsive.Shared.Utility.Description("The random probability task will return success when the random probability is below the succeed probability. It will otherwise return failure.")]
+    public class RandomProbability : ECSConditionalTask<RandomProbabilityTaskSystem, RandomProbabilityComponent>, IReevaluateResponder, ICloneable
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
         [Tooltip("The probability of the task returning success.")]
         [SerializeField] [Range(0, 1)] float m_SuccessProbability;
         [Tooltip("The seed of the random number generator. Set to 0 to use the entity index as the seed.")]
         [SerializeField] uint m_Seed;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
         public float SuccessProbability { get => m_SuccessProbability; set => m_SuccessProbability = value; }
         public uint Seed { get => m_Seed; set => m_Seed = value; }
 
-        public ComponentType Tag { get => typeof(RandomProbabilityTag); }
-        public System.Type SystemType { get => typeof(RandomProbabilityTaskSystem); }
-        public ComponentType ReevaluateTag { get => typeof(RandomProbabilityReevaluateTag); }
+        public override ComponentType Flag { get => typeof(RandomProbabilityFlag); }
+        public ComponentType ReevaluateFlag { get => typeof(RandomProbabilityReevaluateFlag); }
         public System.Type ReevaluateSystemType { get => typeof(RandomProbabilityReevaluateTaskSystem); }
 
         /// <summary>
-        /// Resets the task to its default values.
+        /// Returns a new TBufferElement for use by the system.
         /// </summary>
-        public void Reset()
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override RandomProbabilityComponent GetBufferElement()
         {
-            m_SuccessProbability = 1;
-        }
-
-        /// <summary>
-        /// Adds the IBufferElementData to the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<RandomProbabilityComponent> buffer;
-            if (world.EntityManager.HasBuffer<RandomProbabilityComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<RandomProbabilityComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<RandomProbabilityComponent>(entity);
-            }
-
-            buffer.Add(new RandomProbabilityComponent()
+            return new RandomProbabilityComponent()
             {
                 Index = RuntimeIndex,
                 SuccessProbability = m_SuccessProbability,
                 Seed = m_Seed,
-            });
+            };
         }
 
         /// <summary>
-        /// Clears the IBufferElementData from the entity.
+        /// Resets the task to its default values.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
+        public override void Reset()
         {
-            DynamicBuffer<RandomProbabilityComponent> buffer;
-            if (world.EntityManager.HasBuffer<RandomProbabilityComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<RandomProbabilityComponent>(entity);
-                buffer.Clear();
-            }
+            m_SuccessProbability = 1;
         }
 
         /// <summary>
@@ -123,7 +88,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
     /// <summary>
     /// A DOTS tag indicating when a RandomProbability node is active.
     /// </summary>
-    public struct RandomProbabilityTag : IComponentData, IEnableableComponent { }
+    public struct RandomProbabilityFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the RandomProbability logic.
@@ -138,7 +103,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
         [BurstCompile]
         private void OnUpdate(ref SystemState state)
         {
-            var query = SystemAPI.QueryBuilder().WithAllRW<TaskComponent>().WithAllRW<RandomProbabilityComponent>().WithAll<RandomProbabilityTag, EvaluationComponent>().Build();
+            var query = SystemAPI.QueryBuilder().WithAllRW<TaskComponent>().WithAllRW<RandomProbabilityComponent>().WithAll<RandomProbabilityFlag, EvaluateFlag>().Build();
             state.Dependency = new RandomProbabilityJob().ScheduleParallel(query, state.Dependency);
         }
 
@@ -187,7 +152,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
     /// <summary>
     /// A DOTS tag indicating when an RandomProbability node needs to be reevaluated.
     /// </summary>
-    public struct RandomProbabilityReevaluateTag : IComponentData, IEnableableComponent
+    public struct RandomProbabilityReevaluateFlag : IComponentData, IEnableableComponent
     {
     }
 
@@ -205,7 +170,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
         private void OnUpdate(ref SystemState state)
         {
             foreach (var (taskComponents, randomProbabilityComponents, entity) in
-                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<RandomProbabilityComponent>>().WithAll<RandomProbabilityReevaluateTag, EvaluationComponent>().WithEntityAccess()) {
+                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<RandomProbabilityComponent>>().WithAll<RandomProbabilityReevaluateFlag, EvaluateFlag>().WithEntityAccess()) {
                 for (int i = 0; i < randomProbabilityComponents.Length; ++i) {
                     var randomProbabilityComponent = randomProbabilityComponents[i];
                     var taskComponent = taskComponents[randomProbabilityComponent.Index];
@@ -230,7 +195,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals
     }
 
     [NodeIcon("69bf50f8923f54c4c8bb8e258883a411", "6c5770241610a4c4aae4ac3af0ac8bf8")]
-    [NodeDescription("The random probability task will return success when the random probability is below the succeed probability. It will otherwise return failure.")]
+    [Opsive.Shared.Utility.Description("The random probability task will return success when the random probability is below the succeed probability. It will otherwise return failure.")]
     public class SharedRandomProbability : Conditional
     {
         [Tooltip("The probability of the task returning success.")]

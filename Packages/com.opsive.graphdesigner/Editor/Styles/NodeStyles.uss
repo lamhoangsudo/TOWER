@@ -30,6 +30,7 @@ EventNode
 #node-container
 {
     align-self: stretch;
+    flex-grow: 1;
     border-width: 1px 1px 1px 1px;
     border-radius: 3px 3px 3px 3px;
     padding-top: 8px;

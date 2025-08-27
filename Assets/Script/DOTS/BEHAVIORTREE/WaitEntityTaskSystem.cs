@@ -10,7 +10,6 @@ using System;
 using Opsive.BehaviorDesigner.Runtime.Tasks;
 using Opsive.BehaviorDesigner.Runtime.Tasks.Actions;
 [NodeIcon("b4b59e888607422409f1efa599af34ae", "e1cb9cb566a90fb4489bf31465b99747")]
-[NodeDescription("WaitEntity a specified amount of time. The task will return running until the task is done waiting. It will return success after the wait time has elapsed.")]
 public struct WaitEntity : ILogicNode, ITaskComponentData, IAction, IPausableTask, ISavableTask
 {
     [Tooltip("The index of the node.")]
@@ -26,23 +25,6 @@ public struct WaitEntity : ILogicNode, ITaskComponentData, IAction, IPausableTas
     public ushort RuntimeIndex { get; set; }
     public ComponentType Tag { get => typeof(WaitEntityTag); }
     public Type SystemType { get => typeof(WaitEntityTaskSystem); }
-    public void AddBufferElement(World world, Entity entity)
-    {
-        DynamicBuffer<WaitEntityComponent> buffer;
-        if (world.EntityManager.HasBuffer<WaitEntityComponent>(entity))
-        {
-            buffer = world.EntityManager.GetBuffer<WaitEntityComponent>(entity);
-        }
-        else
-        {
-            buffer = world.EntityManager.AddBuffer<WaitEntityComponent>(entity);
-        }
-        buffer.Add(new WaitEntityComponent()
-        {
-            Index = RuntimeIndex,
-        });
-        m_ComponentIndex = (ushort)(buffer.Length - 1);
-    }
     public void ClearBufferElement(World world, Entity entity)
     {
         DynamicBuffer<WaitEntityComponent> buffer;
@@ -89,6 +71,24 @@ public struct WaitEntity : ILogicNode, ITaskComponentData, IAction, IPausableTas
         waitComponent.StartTime = Time.time - (double)data[1];
         waitComponents[m_ComponentIndex] = waitComponent;
     }
+
+    public int AddBufferElement(World world, Entity entity, GameObject gameObject)
+    {
+        DynamicBuffer<WaitEntityComponent> buffer;
+        if (world.EntityManager.HasBuffer<WaitEntityComponent>(entity))
+        {
+            buffer = world.EntityManager.GetBuffer<WaitEntityComponent>(entity);
+        }
+        else
+        {
+            buffer = world.EntityManager.AddBuffer<WaitEntityComponent>(entity);
+        }
+        buffer.Add(new WaitEntityComponent()
+        {
+            Index = RuntimeIndex,
+        });
+        return buffer.Length - 1;
+    }
 }
 public struct WaitEntityComponent : IBufferElementData
 {
@@ -113,7 +113,7 @@ public partial struct WaitEntityTaskSystem : ISystem
     [BurstCompile]
     private void OnCreate(ref SystemState state)
     {
-        query = SystemAPI.QueryBuilder().WithAll<TaskComponent, WaitEntityComponent, WaitEntityTag, EvaluationComponent, RadarRangeRay>().Build();
+        query = SystemAPI.QueryBuilder().WithAll<TaskComponent, WaitEntityComponent, WaitEntityTag, RadarRangeRay>().Build();
         state.RequireForUpdate(query);
     }
     [BurstCompile]

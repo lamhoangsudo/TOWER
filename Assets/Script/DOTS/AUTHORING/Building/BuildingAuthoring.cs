@@ -38,6 +38,7 @@ public class BuildingAuthoring : MonoBehaviour
                     {
                         SnapPointsDirectionEntity = GetEntity(child.gameObject, TransformUsageFlags.Dynamic),
                         direction = UtilClass.GetChildDirection(child),
+                        directionVector = child.forward,
                     });
                 }
             }

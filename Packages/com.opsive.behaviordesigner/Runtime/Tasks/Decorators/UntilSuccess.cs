@@ -16,56 +16,21 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// A node representation of the until success task.
     /// </summary>
     [NodeIcon("f2e750025a5812640919385b75319d6f", "4e9ac4f2dd8bfe741a5f889efb1ade67")]
-    [NodeDescription("The until success task will keep executing its child task until the child task returns success.")]
-    public struct UntilSuccess : ILogicNode, IParentNode, ITaskComponentData, IDecorator
+    [Opsive.Shared.Utility.Description("The until success task will keep executing its child task until the child task returns success.")]
+    public class UntilSuccess : ECSDecoratorTask<UntilSuccessTaskSystem, UntilSuccessComponent>, IParentNode
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
-
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
-
-        public int MaxChildCount { get { return 1; } }
-
-        public ComponentType Tag { get => typeof(UntilSuccessTag); }
-        public System.Type SystemType { get => typeof(UntilSuccessTaskSystem); }
+        public override ComponentType Flag { get => typeof(UntilSuccessFlag); }
 
         /// <summary>
-        /// Adds the IBufferElementData to the entity.
+        /// Returns a new TBufferElement for use by the system.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override UntilSuccessComponent GetBufferElement()
         {
-            DynamicBuffer<UntilSuccessComponent> buffer;
-            if (world.EntityManager.HasBuffer<UntilSuccessComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<UntilSuccessComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<UntilSuccessComponent>(entity);
-            }
-            buffer.Add(new UntilSuccessComponent() {
+            return new UntilSuccessComponent()
+            {
                 Index = RuntimeIndex,
-            });
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<UntilSuccessComponent> buffer;
-            if (world.EntityManager.HasBuffer<UntilSuccessComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<UntilSuccessComponent>(entity);
-                buffer.Clear();
-            }
+            };
         }
     }
 
@@ -81,7 +46,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// <summary>
     /// A DOTS tag indicating when an UntilSuccess node is active.
     /// </summary>
-    public struct UntilSuccessTag : IComponentData, IEnableableComponent { }
+    public struct UntilSuccessFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the UntilSuccess logic.
@@ -96,7 +61,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
         [BurstCompile]
         private void OnUpdate(ref SystemState state)
         {
-            var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<UntilSuccessComponent>().WithAll<UntilSuccessTag, EvaluationComponent>().Build();
+            var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<UntilSuccessComponent>().WithAll<UntilSuccessFlag, EvaluateFlag>().Build();
             state.Dependency = new UntilSuccessJob().ScheduleParallel(query, state.Dependency);
         }
 
@@ -129,7 +94,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
                         childTaskComponent.Status = TaskStatus.Queued;
                         taskComponents[taskComponent.Index + 1] = childTaskComponent;
 
-                        branchComponent.NextIndex = taskComponent.Index + 1;
+                        branchComponent.NextIndex = (ushort)(taskComponent.Index + 1);
                         branchComponents[taskComponent.BranchIndex] = branchComponent;
                         continue;
                     } else if (taskComponent.Status != TaskStatus.Running) {
@@ -148,7 +113,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
                         childTaskComponent.Status = TaskStatus.Queued;
                         taskComponents[taskComponent.Index + 1] = childTaskComponent;
 
-                        branchComponent.NextIndex = taskComponent.Index + 1;
+                        branchComponent.NextIndex = (ushort)(taskComponent.Index + 1);
                         branchComponents[taskComponent.BranchIndex] = branchComponent;
                         continue;
                     }

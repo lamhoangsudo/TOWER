@@ -15,10 +15,10 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Events
 
     [AllowMultipleTypes]
     [NodeIcon("10ed9753a0870c84889dc42a7de397a8", "98f584ca47ddad64d9878314395ce160")]
-    [NodeDescription("EventNode that is invoked when an interrupt occurs.")]
+    [Opsive.Shared.Utility.Description("EventNode that is invoked when an interrupt occurs.")]
     public class OnInterrupt : IEventNode, IEventNodeEntityReceiver
     {
-        [Tooltip("The index of the ILogicNode that the IEventNode is connected to. ushort.MaxValue indicates no connection.")]
+        [Tooltip("The index of the ITreeLogicNode that the IEventNode is connected to. ushort.MaxValue indicates no connection.")]
         [SerializeField] protected ushort m_ConnectedIndex;
         [Tooltip("The node that caused the interruption.")]
         [SerializeField] ILogicNode m_InterruptionSource;
@@ -91,7 +91,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Events
         private void OnUpdate(ref SystemState state)
         {
             foreach (var (branchComponents, taskComponents, onInterruptEvents, entity) in
-                SystemAPI.Query<DynamicBuffer<BranchComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<OnInterruptEventComponent>>().WithAll<InterruptTag>().WithEntityAccess()) {
+                SystemAPI.Query<DynamicBuffer<BranchComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<OnInterruptEventComponent>>().WithAll<InterruptFlag>().WithEntityAccess()) {
                 for (int i = 0; i < branchComponents.Length; ++i) {
                     var branchComponent = branchComponents[i];
                     if (branchComponent.InterruptType != InterruptType.None) {
@@ -107,13 +107,13 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Events
                                     var taskComponentsBuffer = taskComponents;
                                     taskComponentsBuffer[onInterruptEvent.ConnectedIndex] = startTask;
 
-                                    var activeTag = taskComponents[onInterruptEvent.ConnectedIndex].TagComponentType;
+                                    var activeTag = taskComponents[onInterruptEvent.ConnectedIndex].FlagComponentType;
                                     state.EntityManager.SetComponentEnabled(entity, activeTag, true);
 
                                     var connectedBranchIndex = taskComponents[onInterruptEvent.ConnectedIndex].BranchIndex;
                                     branchComponent = branchComponents[connectedBranchIndex];
                                     branchComponent.ActiveIndex = branchComponent.NextIndex = onInterruptEvent.ConnectedIndex;
-                                    branchComponent.ActiveTagComponentType = activeTag;
+                                    branchComponent.ActiveFlagComponentType = activeTag;
                                     var branchComponentsBuffer = branchComponents;
                                     branchComponentsBuffer[connectedBranchIndex] = branchComponent;
                                 }

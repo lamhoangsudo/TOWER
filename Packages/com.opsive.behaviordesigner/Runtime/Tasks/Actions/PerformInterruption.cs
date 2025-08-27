@@ -15,47 +15,30 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     using Unity.Collections;
 
     [NodeIcon("7c0aba0d8377aac48966d8e3f817a2a8", "90105f40f82a30e45b08d150c1928950")]
-    [NodeDescription("Performs the actual interruption. This will immediately stop the specified tasks from running and will return success or failure depending on the value of interrupt success.")]
-    public struct PerformInterruption : ILogicNode, ITaskComponentData, IAction
+    [Opsive.Shared.Utility.Description("Performs the actual interruption. This will immediately stop the specified tasks from running and will return success or failure depending on the value of interrupt success.")]
+    public class PerformInterruption : ECSActionTask<PerformInterruptionTaskSystem, PerformInterruptionComponent>
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
         [Tooltip("The task that should be interrupted.")]
         [SerializeField] ILogicNode[] m_InterruptTasks;
         [Tooltip("Should the interrupted task return success?")]
         [SerializeField] bool m_InterruptSuccess;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
-
-        public ComponentType Tag { get => typeof(PerformInterruptionTag); }
-        public System.Type SystemType { get => typeof(PerformInterruptionTaskSystem); }
+        /// <summary>
+        /// The type of tag that should be enabled when the task is running.
+        /// </summary>
+        public override ComponentType Flag { get => typeof(PerformInterruptionFlag); }
 
         /// <summary>
-        /// Adds the IBufferElementData to the entity.
+        /// Returns a new TBufferElement for use by the system.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override PerformInterruptionComponent GetBufferElement()
         {
             if (m_InterruptTasks == null || m_InterruptTasks.Length == 0) {
                 UnityEngine.Debug.LogError("Error: At least one interrupt task must be specified.");
-                return;
+                return new PerformInterruptionComponent();
             }
 
-            DynamicBuffer<PerformInterruptionComponent> buffer;
-            if (world.EntityManager.HasBuffer<PerformInterruptionComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<PerformInterruptionComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<PerformInterruptionComponent>(entity);
-            }
-            
             var indicies = new ushort[m_InterruptTasks.Length];
             var nullTaskCount = 0;
             for (int i = 0; i < m_InterruptTasks.Length; ++i) {
@@ -78,28 +61,25 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
             var blobAsset = builder.CreateBlobAssetReference<IndiciesBlob>(Allocator.Persistent);
             builder.Dispose();
 
-            buffer.Add(new PerformInterruptionComponent() {
+            return new PerformInterruptionComponent() {
                 Index = RuntimeIndex,
                 InterruptIndicies = blobAsset,
                 InterruptSuccess = m_InterruptSuccess
-            });
-
-            var entityManager = world.EntityManager;
-            ComponentUtility.AddInterruptComponents(entityManager, entity);
+            };
         }
 
         /// <summary>
-        /// Clears the IBufferElementData from the entity.
+        /// Adds the IBufferElementData to the entity.
         /// </summary>
         /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
+        /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <returns>The index of the element within the buffer.</returns>
+        public override int AddBufferElement(World world, Entity entity, GameObject gameObject)
         {
-            DynamicBuffer<PerformInterruptionComponent> buffer;
-            if (world.EntityManager.HasBuffer<PerformInterruptionComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<PerformInterruptionComponent>(entity);
-                buffer.Clear();
-            }
+            var index = base.AddBufferElement(world, entity, gameObject);
+            ComponentUtility.AddInterruptComponents(world.EntityManager, entity);
+            return index;
         }
     }
 
@@ -117,9 +97,9 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     }
     
     /// <summary>
-    /// A DOTS tag indicating when a PerformInterruption node is active.
+    /// A DOTS flag indicating when a PerformInterruption node is active.
     /// </summary>
-    public struct PerformInterruptionTag : IComponentData, IEnableableComponent { }
+    public struct PerformInterruptionFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the PerformInterruption logic.
@@ -135,7 +115,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
         private void OnUpdate(ref SystemState state)
         {
             foreach (var (branchComponents, taskComponents, performInterruptionComponents, entity) in
-                SystemAPI.Query<DynamicBuffer<BranchComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<PerformInterruptionComponent>>().WithAll<PerformInterruptionTag, EvaluationComponent>().WithEntityAccess()) {
+                SystemAPI.Query<DynamicBuffer<BranchComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<PerformInterruptionComponent>>().WithAll<PerformInterruptionFlag, EvaluateFlag>().WithEntityAccess()) {
                 for (int i = 0; i < performInterruptionComponents.Length; ++i) {
                     var performInterruptionComponent = performInterruptionComponents[i];
                     var taskComponent = taskComponents[performInterruptionComponent.Index];
@@ -154,7 +134,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
                             branchComponentsBuffer[interruptTaskComponent.BranchIndex] = interruptBranchComponent;
                         }
 
-                        state.EntityManager.SetComponentEnabled<InterruptTag>(entity, true);
+                        state.EntityManager.SetComponentEnabled<InterruptFlag>(entity, true);
                     }
                 }
             }

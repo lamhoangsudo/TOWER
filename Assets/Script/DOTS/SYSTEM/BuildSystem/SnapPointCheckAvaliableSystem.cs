@@ -25,13 +25,11 @@ public partial struct SnapPointCheckAvaliableSystem : ISystem
                 DynamicBuffer<SnapPointBuffer> snapPointBuffers = SystemAPI.GetBuffer<SnapPointBuffer>(snapPointsDirectionBuffers[i].SnapPointsDirectionEntity);
                 for (int j = 0; j < snapPointBuffers.Length; j++)
                 {
-                    LocalToWorld localToWorld = SystemAPI.GetComponent<LocalToWorld>(snapPointBuffers[j].snapPointEntity);
                     CollisionWorld collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
-                    SnapPointBuffer snapPointBuffer = snapPointBuffers[j];
                     RaycastInput raycastInput = new()
                     {
-                        Start = localToWorld.Position,
-                        End = localToWorld.Position + localToWorld.Forward * 0.1f,
+                        Start = snapPointBuffers[j].snapPointPosition,
+                        End = snapPointBuffers[j].snapPointPosition + snapPointsDirectionBuffers[i].directionVector * 0.1f,
                         Filter = new CollisionFilter
                         {
                             BelongsTo = ~0u,

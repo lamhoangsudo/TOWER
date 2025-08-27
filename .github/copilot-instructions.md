@@ -1,8 +1,8 @@
 <!-- UNITY CODE ASSIST INSTRUCTIONS START -->
 - Project name: TOWER
-- Unity version: Unity 6000.2.0f1
+- Unity version: Unity 6000.2.1f1
 - Active game object:
-  - Name: SnapPointUp
-  - Tag: SnapPointDirection
+  - Name: Platform_L_Ghost
+  - Tag: Untagged
   - Layer: Building
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

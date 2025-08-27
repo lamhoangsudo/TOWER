@@ -11,7 +11,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.UnityObjects
     using Opsive.Shared.Utility;
     using UnityEngine;
 
-    [NodeDescription("Adds the GameObject to the array.")]
+    [Opsive.Shared.Utility.Description("Adds the GameObject to the array.")]
     [Shared.Utility.Category("Lists")]
     public class AddGameObjectToArray : TargetGameObjectAction
     {

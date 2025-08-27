@@ -14,7 +14,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     /// Allows for subtrees to be loaded at runtime into the tree.
     /// </summary>
     [NodeIcon("e0a8f1df788b6274a9a24003859dfa7e")]
-    [NodeDescription("Loads the specified subtrees in at runtime.")]
+    [Opsive.Shared.Utility.Description("Loads the specified subtrees in at runtime.")]
     public class SubtreeReference : ActionNode, ISubtreeReference
     {
         [Tooltip("The subtrees that should be loaded.")]

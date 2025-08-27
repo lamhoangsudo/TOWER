@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.UnityObjects
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Returns success as soon as the current Animator state ends.")]
+    [Opsive.Shared.Utility.Description("Returns success as soon as the current Animator state ends.")]
     [Shared.Utility.Category("Unity")]
     public class WaitForAnimatorState : TargetGameObjectAction
     {

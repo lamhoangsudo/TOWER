@@ -14,7 +14,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     /// A TaskObject implementation of the Decorator task.
     /// </summary>
     [NodeIcon("9abc6c99a8db43b49b2b0d48cca90105", "1ee7d6a0873e3d942b556d3093d8173f")]
-    public abstract class DecoratorNode : Task, ILogicNode, IParentNode, IDecorator, ITaskObjectParentNode
+    public abstract class DecoratorNode : Task, ITreeLogicNode, IParentNode, IDecorator, ITaskObjectParentNode
     {
         [Tooltip("The index of the node.")]
         [SerializeField] ushort m_Index;

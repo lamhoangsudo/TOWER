@@ -20,65 +20,39 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     /// A node representation of the utility selector task.
     /// </summary>
     [NodeIcon("9d36cd363c3e08246a6e9eaf5ad99d69", "db3d0b77c7f9e0b4f9157aa03178836a")]
-    [NodeDescription("The utility selector task evaluates the child tasks using Utility Theory AI. The child task can return the utility value " +
+    [Opsive.Shared.Utility.Description("The utility selector task evaluates the child tasks using Utility Theory AI. The child task can return the utility value " +
                      "at that particular time. The task with the highest utility value will be selected and the existing running task will be aborted. The utility selector " +
                      "task reevaluates its children every tick.")]
-    public struct UtilitySelector : ILogicNode, IParentNode, ITaskComponentData, IComposite, ISavableTask, ICloneable
+    public class UtilitySelector : ECSCompositeTask<UtilitySelectorTaskSystem, UtilitySelectorComponent>, IParentNode, ISavableTask, ICloneable
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
-
         private ushort m_ComponentIndex;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
+        public override ComponentType Flag { get => typeof(UtilitySelectorFlag); }
 
-        public int MaxChildCount { get { return int.MaxValue; } }
-
-        public ComponentType Tag { get => typeof(UtilitySelectorTag); }
-        public System.Type SystemType { get => typeof(UtilitySelectorTaskSystem); }
+        /// <summary>
+        /// Returns a new TBufferElement for use by the system.
+        /// </summary>
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override UtilitySelectorComponent GetBufferElement()
+        {
+            return new UtilitySelectorComponent()
+            {
+                Index = RuntimeIndex,
+            };
+        }
 
         /// <summary>
         /// Adds the IBufferElementData to the entity.
         /// </summary>
         /// <param name="world">The world that the entity exists.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <returns>The index of the element within the buffer.</returns>
+        public override int AddBufferElement(World world, Entity entity, GameObject gameObject)
         {
-            DynamicBuffer<UtilitySelectorComponent> buffer;
-            if (world.EntityManager.HasBuffer<UtilitySelectorComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<UtilitySelectorComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<UtilitySelectorComponent>(entity);
-            }
-
-            buffer.Add(new UtilitySelectorComponent() {
-                Index = RuntimeIndex,
-            });
-            m_ComponentIndex = (ushort)(buffer.Length - 1);
-
-            var entityManager = world.EntityManager;
-            ComponentUtility.AddInterruptComponents(entityManager, entity);
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<UtilitySelectorComponent> buffer;
-            if (world.EntityManager.HasBuffer<UtilitySelectorComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<UtilitySelectorComponent>(entity);
-                buffer.Clear();
-            }
+            m_ComponentIndex = (ushort)base.AddBufferElement(world, entity, gameObject);
+            ComponentUtility.AddInterruptComponents(world.EntityManager, entity);
+            return m_ComponentIndex;
         }
 
         /// <summary>
@@ -172,7 +146,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     /// <summary>
     /// A DOTS tag indicating when a UtilitySelector node is active.
     /// </summary>
-    public struct UtilitySelectorTag : IComponentData, IEnableableComponent { }
+    public struct UtilitySelectorFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the UtilitySelector logic.
@@ -189,7 +163,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
         {
             var hasUtilityValueComponent = false;
             foreach (var (utilitySelectorComponents, utilityValueComponents, taskComponents, branchComponents, entity) in
-                SystemAPI.Query<DynamicBuffer<UtilitySelectorComponent>, DynamicBuffer<UtilityValueComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<BranchComponent>>().WithAll<EvaluationComponent>().WithEntityAccess()) {
+                SystemAPI.Query<DynamicBuffer<UtilitySelectorComponent>, DynamicBuffer<UtilityValueComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<BranchComponent>>().WithAll<EvaluateFlag>().WithEntityAccess()) {
 
                 hasUtilityValueComponent = true;
                 for (int i = 0; i < utilitySelectorComponents.Length; ++i) {
@@ -295,7 +269,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
                     if (taskComponents[activeTaskIndex].Status == TaskStatus.Running){
                         branchComponent.InterruptType = InterruptType.Branch;
                         branchComponent.InterruptIndex = utilitySelectorComponent.UtilityItems[highestIndex].TaskIndex;
-                        state.EntityManager.SetComponentEnabled<InterruptTag>(entity, true);
+                        state.EntityManager.SetComponentEnabled<InterruptFlag>(entity, true);
                         branchComponentBuffer[taskComponent.BranchIndex] = branchComponent;
                         continue;
                     }
@@ -322,7 +296,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
             // Special case where the UtilitySelectorComponent has no UtilityValueComponent children.
             if (!hasUtilityValueComponent) {
                 foreach (var (utilitySelectorComponents, taskComponents, branchComponents) in
-                    SystemAPI.Query<DynamicBuffer<UtilitySelectorComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<BranchComponent>>().WithAll<UtilitySelectorTag, EvaluationComponent>()) {
+                    SystemAPI.Query<DynamicBuffer<UtilitySelectorComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<BranchComponent>>().WithAll<UtilitySelectorFlag, EvaluateFlag>()) {
 
                     for (int i = 0; i < utilitySelectorComponents.Length; ++i) {
                         var utilitySelectorComponent = utilitySelectorComponents[i];

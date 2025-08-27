@@ -11,11 +11,8 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Events
     using Opsive.Shared.Events;
     using UnityEngine;
 
-    /// <summary>
-    /// The EventNode that is invoked when the specified event is received.
-    /// </summary>
     [AllowMultipleTypes]
-    [NodeDescription("EventNode that is invoked when the specified event is received")]
+    [Opsive.Shared.Utility.Description("Invoked when the specified event is received")]
     public class OnReceivedEvent : EventNode
     {
         [Tooltip("The name of the event that starts the branch.")]

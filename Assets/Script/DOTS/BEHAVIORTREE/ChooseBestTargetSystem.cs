@@ -20,10 +20,8 @@ public struct ChooseBestTargetSystemNode : ILogicNode, ITaskComponentData, ICond
     public ushort RuntimeIndex { get; set; }
 
     public ComponentType Tag => typeof(ChooseBestTargetNodeTask);
-
     public Type SystemType => typeof(ChooseBestTargetSystem);
-
-    public void AddBufferElement(World world, Entity entity)
+    public int AddBufferElement(World world, Entity entity, GameObject gameObject)
     {
         DynamicBuffer<ChooseBestTargetNodeData> buffer;
         if (world.EntityManager.HasBuffer<ChooseBestTargetNodeData>(entity))
@@ -39,6 +37,7 @@ public struct ChooseBestTargetSystemNode : ILogicNode, ITaskComponentData, ICond
         {
             Index = RuntimeIndex,
         });
+        return buffer.Length - 1;
     }
 
     public void ClearBufferElement(World world, Entity entity)
@@ -61,7 +60,7 @@ public partial struct ChooseBestTargetSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<TaskComponent, ChooseBestTargetNodeData, TargetEntityBuffer, Turret, ChooseBestTargetNodeTask, EvaluationComponent>().Build());
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<TaskComponent, ChooseBestTargetNodeData, TargetEntityBuffer, Turret, ChooseBestTargetNodeTask>().Build());
     }
 
     [BurstCompile]
@@ -79,7 +78,7 @@ public partial struct ChooseBestTargetSystem : ISystem
                 DynamicBuffer<ChooseBestTargetNodeData>,
                 DynamicBuffer<TargetEntityBuffer>,
                 RefRW<Turret>>()
-                .WithAll<ChooseBestTargetNodeTask, EvaluationComponent>())
+                .WithAll<ChooseBestTargetNodeTask>())
         {
             for (int i = 0; i < chooseBestTargetNodeDatas.Length; i++)
             {

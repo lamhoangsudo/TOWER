@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.UnityObjects
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Removes the GameObject from the array.")]
+    [Opsive.Shared.Utility.Description("Removes the GameObject from the array.")]
     [Shared.Utility.Category("Lists")]
     public class RemoveGameObjectFromArray : TargetGameObjectAction
     {

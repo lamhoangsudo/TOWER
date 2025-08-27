@@ -20,62 +20,40 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     /// A node representation of the parallel selector task.
     /// </summary>
     [NodeIcon("d47aff1a00bcc6d4da8ca0df32ed8415", "108591b5d7a6bd94383d16a62cb3b4a7")]
-    [NodeDescription("Similar to the selector task, the parallel selector task will return success as soon as a child task returns success. " +
+    [Opsive.Shared.Utility.Description("Similar to the selector task, the parallel selector task will return success as soon as a child task returns success. " +
                      "The parallel task will run all of its children tasks simultaneously versus running each task one at a time. " +
                      "If one tasks returns success the parallel selector task will end all of the child tasks and return success. " +
                      "If every child task returns failure then the parallel selector task will return failure.")]
-    public struct ParallelSelector : ILogicNode, IParentNode, IParallelNode, ITaskComponentData, IComposite
+    public class ParallelSelector : ECSCompositeTask<ParallelSelectorTaskSystem, ParallelSelectorComponent>, IParentNode, IParallelNode
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
+        /// <summary>
+        /// The type of tag that should be enabled when the task is running.
+        /// </summary>
+        public override ComponentType Flag { get => typeof(ParallelSelectorFlag); }
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
-
-        public int MaxChildCount { get { return int.MaxValue; } }
-
-        public ComponentType Tag { get => typeof(ParallelSelectorTag); }
-        public System.Type SystemType { get => typeof(ParallelSelectorTaskSystem); }
+        /// <summary>
+        /// Returns a new TBufferElement for use by the system.
+        /// </summary>
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override ParallelSelectorComponent GetBufferElement()
+        {
+            return new ParallelSelectorComponent() {
+                Index = RuntimeIndex,
+            };
+        }
 
         /// <summary>
         /// Adds the IBufferElementData to the entity.
         /// </summary>
         /// <param name="world">The world that the entity exists.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <returns>The index of the element within the buffer.</returns>
+        public override int AddBufferElement(World world, Entity entity, GameObject gameObject)
         {
-            DynamicBuffer<ParallelSelectorComponent> buffer;
-            if (world.EntityManager.HasBuffer<ParallelSelectorComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<ParallelSelectorComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<ParallelSelectorComponent>(entity);
-            }
-            buffer.Add(new ParallelSelectorComponent() {
-                Index = RuntimeIndex,
-            });
-
-            var entityManager = world.EntityManager;
-            ComponentUtility.AddInterruptComponents(entityManager, entity);
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<ParallelSelectorComponent> buffer;
-            if (world.EntityManager.HasBuffer<ParallelSelectorComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<ParallelSelectorComponent>(entity);
-                buffer.Clear();
-            }
+            var index = base.AddBufferElement(world, entity, gameObject);
+            ComponentUtility.AddInterruptComponents(world.EntityManager, entity);
+            return index;
         }
     }
 
@@ -93,7 +71,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     /// <summary>
     /// A DOTS tag indicating when a ParallelSelector node is active.
     /// </summary>
-    public struct ParallelSelectorTag : IComponentData, IEnableableComponent { }
+    public struct ParallelSelectorFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the ParallelSelector logic.
@@ -111,7 +89,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
         /// <param name="state">THe current SystemState.</param>
         private void OnCreate(ref SystemState state)
         {
-            m_Query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<ParallelSelectorComponent>().WithAll<ParallelSelectorTag, EvaluationComponent>().Build();
+            m_Query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<ParallelSelectorComponent>().WithAll<ParallelSelectorFlag, EvaluateFlag>().Build();
         }
 
         /// <summary>
@@ -233,7 +211,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
                                 taskComponents[j] = childTaskComponent;
 
                                 branchComponent = branchComponents[childTaskComponent.BranchIndex];
-                                EntityCommandBuffer.SetComponentEnabled<InterruptedTag>(entityIndex, entity, true);
+                                EntityCommandBuffer.SetComponentEnabled<InterruptedFlag>(entityIndex, entity, true);
                                 if (branchComponent.ActiveIndex == childTaskComponent.Index) {
                                     branchComponent.NextIndex = ushort.MaxValue;
                                     branchComponents[childTaskComponent.BranchIndex] = branchComponent;

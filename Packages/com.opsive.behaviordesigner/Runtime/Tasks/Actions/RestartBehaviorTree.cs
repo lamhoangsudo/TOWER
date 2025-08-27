@@ -11,7 +11,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     using UnityEngine;
 
     [NodeIcon("e0a8f1df788b6274a9a24003859dfa7e")]
-    [NodeDescription("Restarts the specified behavior tree.")]
+    [Opsive.Shared.Utility.Description("Restarts the specified behavior tree.")]
     public class RestartBehaviorTree : TargetBehaviorTreeAction
     {
         private TaskStatus m_Status;

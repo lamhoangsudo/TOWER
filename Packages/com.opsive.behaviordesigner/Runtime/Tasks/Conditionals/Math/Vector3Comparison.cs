@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals.Math
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Compares two Vector3 values.")]
+    [Opsive.Shared.Utility.Description("Compares two Vector3 values.")]
     [Shared.Utility.Category("Math")]
     public class Vector3Comparison : Conditional
     {

@@ -495,8 +495,8 @@ namespace Opsive.BehaviorDesigner.Runtime.Utility
             }
 
             // Stop the behavior tree so all tasks issue their end callback.
-            var enableEntity = behaviorTree.World.EntityManager.HasComponent<EnabledTag>(behaviorTree.Entity) && behaviorTree.World.EntityManager.IsComponentEnabled<EnabledTag>(behaviorTree.Entity);
-            var evaluateEntity = behaviorTree.World.EntityManager.HasComponent<EvaluationComponent>(behaviorTree.Entity) && behaviorTree.World.EntityManager.IsComponentEnabled<EvaluationComponent>(behaviorTree.Entity);
+            var enableEntity = behaviorTree.World.EntityManager.HasComponent<EnabledFlag>(behaviorTree.Entity) && behaviorTree.World.EntityManager.IsComponentEnabled<EnabledFlag>(behaviorTree.Entity);
+            var evaluateEntity = behaviorTree.World.EntityManager.HasComponent<EvaluateFlag>(behaviorTree.Entity) && behaviorTree.World.EntityManager.IsComponentEnabled<EvaluateFlag>(behaviorTree.Entity);
             var active = behaviorTree.IsActive();
             if (active) {
                 behaviorTree.StopBehavior();
@@ -512,10 +512,10 @@ namespace Opsive.BehaviorDesigner.Runtime.Utility
             // Restore the branch info components.
             for (int i = 0; i < saveData.BranchComponents.Length; ++i) {
                 branchComponents[i] = (BranchComponent)saveData.BranchComponents[i].DeserializeFields(MemberVisibility.Public);
-                if (branchComponents[i].ActiveTagComponentType.TypeIndex == TypeIndex.Null) {
+                if (branchComponents[i].ActiveFlagComponentType.TypeIndex == TypeIndex.Null) {
                     continue;
                 }
-                behaviorTree.World.EntityManager.SetComponentEnabled(behaviorTree.Entity, branchComponents[i].ActiveTagComponentType, true);
+                behaviorTree.World.EntityManager.SetComponentEnabled(behaviorTree.Entity, branchComponents[i].ActiveFlagComponentType, true);
             }
 
             if (behaviorTree.World.EntityManager.HasBuffer<ReevaluateTaskComponent>(behaviorTree.Entity)) {
@@ -523,10 +523,10 @@ namespace Opsive.BehaviorDesigner.Runtime.Utility
                 // Restore the reevaluated components.
                 for (int i = 0; i < saveData.ReevaluateTaskComponents.Length; ++i) {
                     reevaluatedTaskComponents[i] = (ReevaluateTaskComponent)saveData.ReevaluateTaskComponents[i].DeserializeFields(MemberVisibility.Public);
-                    if (reevaluatedTaskComponents[i].ReevaluateTagComponentType.TypeIndex == TypeIndex.Null) {
+                    if (reevaluatedTaskComponents[i].ReevaluateFlagComponentType.TypeIndex == TypeIndex.Null) {
                         continue;
                     }
-                    behaviorTree.World.EntityManager.SetComponentEnabled(behaviorTree.Entity, reevaluatedTaskComponents[i].ReevaluateTagComponentType, true);
+                    behaviorTree.World.EntityManager.SetComponentEnabled(behaviorTree.Entity, reevaluatedTaskComponents[i].ReevaluateFlagComponentType, true);
                 }
             }
 
@@ -603,10 +603,10 @@ namespace Opsive.BehaviorDesigner.Runtime.Utility
                 behaviorTree.StartBehavior();
             }
             if (enableEntity) {
-                behaviorTree.World.EntityManager.SetComponentEnabled<EnabledTag>(behaviorTree.Entity, true);
+                behaviorTree.World.EntityManager.SetComponentEnabled<EnabledFlag>(behaviorTree.Entity, true);
             }
             if (evaluateEntity) {
-                behaviorTree.World.EntityManager.SetComponentEnabled<EvaluationComponent>(behaviorTree.Entity, true);
+                behaviorTree.World.EntityManager.SetComponentEnabled<EvaluateFlag>(behaviorTree.Entity, true);
             }
 
             return true;

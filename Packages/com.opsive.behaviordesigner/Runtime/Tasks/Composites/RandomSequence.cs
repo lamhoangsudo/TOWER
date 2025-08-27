@@ -20,20 +20,14 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     /// A node representation of the random sequence task.
     /// </summary>
     [NodeIcon("edb30349221143a408c76da55a6aa809", "cfb9039832ed52748b617bde070898dc")]
-    [NodeDescription("Similar to the sequence task, the random sequence task will return success as soon as every child task returns success.  " +
+    [Opsive.Shared.Utility.Description("Similar to the sequence task, the random sequence task will return success as soon as every child task returns success.  " +
                      "The difference is that the random sequence class will run its children in a random order. The sequence task is deterministic " +
                      "in that it will always run the tasks from left to right within the tree. The random sequence task shuffles the child tasks up and then begins " +
                      "execution in a random order. Other than that the random sequence class is the same as the sequence class. It will stop running tasks " +
                      "as soon as a single task ends in failure. On a task failure it will stop executing all of the child tasks and return failure. " +
                      "If no child returns failure then it will return success.")]
-    public struct RandomSequence : ILogicNode, IParentNode, ITaskComponentData, IComposite, IConditionalAbortParent, IInterruptResponder, ISavableTask, ICloneable
+    public class RandomSequence : ECSCompositeTask<RandomSequenceTaskSystem, RandomSequenceComponent>, IParentNode, IConditionalAbortParent, IInterruptResponder, ISavableTask, ICloneable
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
         [Tooltip("Specifies how the child conditional tasks should be reevaluated.")]
         [SerializeField] ConditionalAbortType m_AbortType;
         [Tooltip("The seed of the random number generator. Set to 0 to use the entity index as the seed.")]
@@ -41,51 +35,36 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
 
         private ushort m_ComponentIndex;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
         public ConditionalAbortType AbortType { get => m_AbortType; set => m_AbortType = value; }
         public uint Seed { get => m_Seed; set => m_Seed = value; }
 
-        public int MaxChildCount { get { return int.MaxValue; } }
-
-        public ComponentType Tag { get => typeof(RandomSequenceTag); }
-        public Type SystemType { get => typeof(RandomSequenceTaskSystem); }
+        public override ComponentType Flag { get => typeof(RandomSequenceFlag); }
         public Type InterruptSystemType { get => typeof(RandomSequenceInterruptSystem); }
+
+        /// <summary>
+        /// Returns a new TBufferElement for use by the system.
+        /// </summary>
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override RandomSequenceComponent GetBufferElement()
+        {
+            return new RandomSequenceComponent()
+            {
+                Index = RuntimeIndex,
+                Seed = m_Seed,
+            };
+        }
 
         /// <summary>
         /// Adds the IBufferElementData to the entity.
         /// </summary>
         /// <param name="world">The world that the entity exists.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <returns>The index of the element within the buffer.</returns>
+        public override int AddBufferElement(World world, Entity entity, GameObject gameObject)
         {
-            DynamicBuffer<RandomSequenceComponent> buffer;
-            if (world.EntityManager.HasBuffer<RandomSequenceComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<RandomSequenceComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<RandomSequenceComponent>(entity);
-            }
-            buffer.Add(new RandomSequenceComponent() {
-                Index = RuntimeIndex,
-                Seed = m_Seed,
-            });
-            m_ComponentIndex = (ushort)(buffer.Length - 1);
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<RandomSequenceComponent> buffer;
-            if (world.EntityManager.HasBuffer<RandomSequenceComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<RandomSequenceComponent>(entity);
-                buffer.Clear();
-            }
+            m_ComponentIndex = (ushort)base.AddBufferElement(world, entity, gameObject);
+            return m_ComponentIndex;
         }
 
         /// <summary>
@@ -178,7 +157,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     /// <summary>
     /// A DOTS tag indicating when a RandomSequence node is active.
     /// </summary>
-    public struct RandomSequenceTag : IComponentData, IEnableableComponent { }
+    public struct RandomSequenceFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the RandomSequence logic.
@@ -194,7 +173,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
         private void OnUpdate(ref SystemState state)
         {
             foreach (var (branchComponents, taskComponents, randomSequenceComponents, entity) in
-                SystemAPI.Query<DynamicBuffer<BranchComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<RandomSequenceComponent>>().WithAll<RandomSequenceTag, EvaluationComponent>().WithEntityAccess()) {
+                SystemAPI.Query<DynamicBuffer<BranchComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<RandomSequenceComponent>>().WithAll<RandomSequenceFlag, EvaluateFlag>().WithEntityAccess()) {
                 for (int i = 0; i < randomSequenceComponents.Length; ++i) {
                     var randomSequenceComponent = randomSequenceComponents[i];
                     var taskComponent = taskComponents[randomSequenceComponent.Index];
@@ -322,7 +301,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
         private void OnUpdate(ref SystemState state)
         {
             foreach (var (taskComponents, randomSequenceComponents) in
-                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<RandomSequenceComponent>>().WithAll<InterruptTag>()) {
+                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<RandomSequenceComponent>>().WithAll<InterruptFlag>()) {
                 for (int i = 0; i < randomSequenceComponents.Length; ++i) {
                     var randomSequenceComponent = randomSequenceComponents[i];
                     // The active child will have a non-running status if it has been interrupted.

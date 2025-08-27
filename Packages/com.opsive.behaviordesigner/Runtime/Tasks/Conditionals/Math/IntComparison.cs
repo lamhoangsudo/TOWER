@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals.Math
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Compares two integer values.")]
+    [Opsive.Shared.Utility.Description("Compares two integer values.")]
     [Shared.Utility.Category("Math")]
     public class IntComparison : Conditional
     {

@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals.Math
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [NodeDescription("Compares two GameObject values.")]
+    [Opsive.Shared.Utility.Description("Compares two GameObject values.")]
     [Shared.Utility.Category("Math")]
     public class GameObjectComparison : Conditional
     {

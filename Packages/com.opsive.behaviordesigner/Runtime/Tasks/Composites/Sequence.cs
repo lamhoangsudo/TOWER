@@ -18,64 +18,45 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     /// A node representation of the sequence task.
     /// </summary>
     [NodeIcon("8981cc246f900b24da46ae10eb49b68b", "4a7b39d8e0d056a4a9d8eb390b4bc9b8")]
-    [NodeDescription("The sequence task is similar to an \"and\" operation. It will return failure as soon as one of its child tasks return failure. " +
+    [Opsive.Shared.Utility.Description("The sequence task is similar to an \"and\" operation. It will return failure as soon as one of its child tasks return failure. " +
                      "If a child task returns success then it will sequentially run the next task. If all child tasks return success then it will return success.")]
-    public struct Sequence : ILogicNode, IParentNode, ITaskComponentData, IComposite, IConditionalAbortParent, IInterruptResponder, ISavableTask, ICloneable
+    public class Sequence : ECSCompositeTask<SequenceTaskSystem, SequenceComponent>, IParentNode, IConditionalAbortParent, IInterruptResponder, ISavableTask, ICloneable
     {
-        [Tooltip("The index of the node.")]
-        [SerializeField] ushort m_Index;
-        [Tooltip("The parent index of the node. ushort.MaxValue indicates no parent.")]
-        [SerializeField] ushort m_ParentIndex;
-        [Tooltip("The sibling index of the node. ushort.MaxValue indicates no sibling.")]
-        [SerializeField] ushort m_SiblingIndex;
         [Tooltip("Specifies how the child conditional tasks should be reevaluated.")]
         [SerializeField] ConditionalAbortType m_AbortType;
 
         private ushort m_ComponentIndex;
 
-        public ushort Index { get => m_Index; set => m_Index = value; }
-        public ushort ParentIndex { get => m_ParentIndex; set { m_ParentIndex = value; } }
-        public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
-        public ushort RuntimeIndex { get; set; }
         public ConditionalAbortType AbortType { get => m_AbortType; set => m_AbortType = value; }
-
-        public int MaxChildCount { get { return int.MaxValue; } }
-
-        public ComponentType Tag { get => typeof(SequenceTag); }
-        public Type SystemType { get => typeof(SequenceTaskSystem); }
         public Type InterruptSystemType { get => typeof(SequenceInterruptSystem); }
+
+        /// <summary>
+        /// The type of tag that should be enabled when the task is running.
+        /// </summary>
+        public override ComponentType Flag { get => typeof(SequenceFlag); }
+
+        /// <summary>
+        /// Returns a new TBufferElement for use by the system.
+        /// </summary>
+        /// <returns>A new TBufferElement for use by the system.</returns>
+        public override SequenceComponent GetBufferElement()
+        {
+            return new SequenceComponent() {
+                Index = RuntimeIndex,
+            };
+        }
 
         /// <summary>
         /// Adds the IBufferElementData to the entity.
         /// </summary>
         /// <param name="world">The world that the entity exists.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        public void AddBufferElement(World world, Entity entity)
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <returns>The index of the element within the buffer.</returns>
+        public override int AddBufferElement(World world, Entity entity, GameObject gameObject)
         {
-            DynamicBuffer<SequenceComponent> buffer;
-            if (world.EntityManager.HasBuffer<SequenceComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<SequenceComponent>(entity);
-            } else {
-                buffer = world.EntityManager.AddBuffer<SequenceComponent>(entity);
-            }
-            buffer.Add(new SequenceComponent() {
-                Index = RuntimeIndex,
-            });
-            m_ComponentIndex = (ushort)(buffer.Length - 1);
-        }
-
-        /// <summary>
-        /// Clears the IBufferElementData from the entity.
-        /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
-        /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
-        public void ClearBufferElement(World world, Entity entity)
-        {
-            DynamicBuffer<SequenceComponent> buffer;
-            if (world.EntityManager.HasBuffer<SequenceComponent>(entity)) {
-                buffer = world.EntityManager.GetBuffer<SequenceComponent>(entity);
-                buffer.Clear();
-            }
+            m_ComponentIndex = (ushort)base.AddBufferElement(world, entity, gameObject);
+            return m_ComponentIndex;
         }
 
         /// <summary>
@@ -144,7 +125,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     /// <summary>
     /// A DOTS tag indicating when a Sequence node is active.
     /// </summary>
-    public struct SequenceTag : IComponentData, IEnableableComponent { }
+    public struct SequenceFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the Sequence logic.
@@ -159,7 +140,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
         [BurstCompile]
         private void OnUpdate(ref SystemState state)
         {
-            var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<SequenceComponent>().WithAll<SequenceTag, EvaluationComponent>().Build();
+            var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<SequenceComponent>().WithAll<SequenceFlag, EvaluateFlag>().Build();
             state.Dependency = new SequenceJob().ScheduleParallel(query, state.Dependency);
         }
 
@@ -253,7 +234,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
         private void OnUpdate(ref SystemState state)
         {
             foreach (var (taskComponents, sequenceComponents) in
-                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<SequenceComponent>>().WithAll<InterruptTag>()) {
+                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<SequenceComponent>>().WithAll<InterruptFlag>()) {
                 for (int i = 0; i < sequenceComponents.Length; ++i) {
                     var sequenceComponent = sequenceComponents[i];
                     if (taskComponents[sequenceComponent.ActiveChildIndex].Status != TaskStatus.Running) {

@@ -35,9 +35,9 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
     }
 
     /// <summary>
-    /// A DOTS tag indicating when an TaskObject node is active.
+    /// A DOTS flag indicating when an TaskObject node is active.
     /// </summary>
-    public struct TaskObjectTag : IComponentData, IEnableableComponent { }
+    public struct TaskObjectFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Runs the TaskObject logic.
@@ -55,7 +55,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
             // When the task is interrupted there is no callback which prevents Task.OnEnd from being called. Track the status within the referenced task object and if the status is different then
             // the task was aborted and OnEnd needs to be called.
             foreach (var (taskObjectComponents, taskComponents, entity) in
-                SystemAPI.Query<DynamicBuffer<TaskObjectComponent>, DynamicBuffer<TaskComponent>>().WithAll<InterruptedTag>().WithEntityAccess()) {
+                SystemAPI.Query<DynamicBuffer<TaskObjectComponent>, DynamicBuffer<TaskComponent>>().WithAll<InterruptedFlag>().WithEntityAccess()) {
                 var behaviorTree = BehaviorTree.GetBehaviorTree(entity);
                 if (behaviorTree == null) {
                     continue;
@@ -75,7 +75,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
 
             // Update the task objects.
             foreach (var (taskObjectComponents, taskComponents, branchComponents, entity) in
-                SystemAPI.Query<DynamicBuffer<TaskObjectComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<BranchComponent>>().WithAll<TaskObjectTag, EvaluationComponent>().WithEntityAccess()) {
+                SystemAPI.Query<DynamicBuffer<TaskObjectComponent>, DynamicBuffer<TaskComponent>, DynamicBuffer<BranchComponent>>().WithAll<TaskObjectFlag, EvaluateFlag>().WithEntityAccess()) {
 
                 var behaviorTree = BehaviorTree.GetBehaviorTree(entity);
                 if (behaviorTree == null) {
@@ -133,17 +133,17 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
                             var taskComponentBuffer = taskComponents;
                             var childCount = TraversalUtility.GetChildCount(taskComponent.Index, ref taskComponentBuffer);
                             var branchComponentBuffer = branchComponents;
-                            for (ushort j = (ushort)(taskComponent.Index + 1); j < taskComponent.Index + childCount; ++j) {
+                            for (ushort j = (ushort)(taskComponent.Index + 1); j < taskComponent.Index + 1 + childCount; ++j) {
                                 var childTaskComponent = taskComponents[j];
                                 if (childTaskComponent.Status == TaskStatus.Running || childTaskComponent.Status == TaskStatus.Queued) {
                                     childTaskComponent.Status = status;
                                     taskComponentBuffer[j] = childTaskComponent;
 
                                     var branchComponent = branchComponents[childTaskComponent.BranchIndex];
-                                    if (!SystemAPI.HasComponent<InterruptTag>(entity)) {
+                                    if (!SystemAPI.HasComponent<InterruptFlag>(entity)) {
                                         ComponentUtility.AddInterruptComponents(behaviorTree.World.EntityManager, entity);
                                     }
-                                    SystemAPI.SetComponentEnabled<InterruptedTag>(entity, true);
+                                    SystemAPI.SetComponentEnabled<InterruptedFlag>(entity, true);
                                     if (branchComponent.ActiveIndex == childTaskComponent.Index) {
                                         branchComponent.NextIndex = ushort.MaxValue;
                                         branchComponentBuffer[childTaskComponent.BranchIndex] = branchComponent;
@@ -160,7 +160,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
     /// <summary>
     /// A DOTS tag indicating when an TaskObject node needs to be reevaluated.
     /// </summary>
-    public struct TaskObjectReevaluateTag : IComponentData, IEnableableComponent
+    public struct TaskObjectReevaluateFlag : IComponentData, IEnableableComponent
     {
     }
 
@@ -177,7 +177,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
         private void OnUpdate(ref SystemState state)
         {
             foreach (var (taskComponents, taskObjectComponents, entity) in
-                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<TaskObjectComponent>>().WithAll<TaskObjectReevaluateTag, EvaluationComponent>().WithEntityAccess()) {
+                SystemAPI.Query<DynamicBuffer<TaskComponent>, DynamicBuffer<TaskObjectComponent>>().WithAll<TaskObjectReevaluateFlag, EvaluateFlag>().WithEntityAccess()) {
                 for (int i = 0; i < taskObjectComponents.Length; ++i) {
                     var taskObjectComponent = taskObjectComponents[i];
                     var taskComponent = taskComponents[taskObjectComponent.Index];

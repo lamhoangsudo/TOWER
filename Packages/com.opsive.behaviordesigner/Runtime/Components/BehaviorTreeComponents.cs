@@ -7,15 +7,16 @@
 namespace Opsive.BehaviorDesigner.Runtime.Components
 {
     using Opsive.BehaviorDesigner.Runtime.Tasks;
+    using System.Runtime.InteropServices;
+    using Unity.Collections;
     using Unity.Entities;
     using UnityEngine;
-    using System.Runtime.InteropServices;
 
     /// <summary>
     /// The runtime DOTS data associated with a task.
     /// </summary>
     [System.Serializable]
-    public struct TaskComponent : IBufferElementData, IEnableableComponent
+    public struct TaskComponent : IBufferElementData
     {
         [Tooltip("The current execution status of the task.")]
         //public TaskStatus Status;
@@ -42,13 +43,15 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
         //public ushort m_BranchIndex;
         //public ushort BranchIndex { get { return m_BranchIndex; } set { UnityEngine.Debug.Log(Index + " branch: " + value); m_BranchIndex = value; } }
         [Tooltip("The component type responsible for indicating that the task is active.")]
-        public ComponentType TagComponentType;
+        public ComponentType FlagComponentType;
         [Tooltip("Can the task be reevaluated with conditional aborts?")]
         [MarshalAs(UnmanagedType.U1)]
         public bool CanReevaluate;
         [Tooltip("Is the task being reevaluated with conditional aborts?")]
         [MarshalAs(UnmanagedType.U1)]
         public bool Reevaluate;
+        //public bool m_Reevaluate;
+        //public bool Reevaluate { get { return m_Reevaluate; } set { UnityEngine.Debug.Log(Index + " reevaluate: " + value + " " + GetHashCode());  m_Reevaluate = value; } }
         [Tooltip("Is the task disabled?")]
         [MarshalAs(UnmanagedType.U1)]
         public bool Disabled;
@@ -57,7 +60,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
     /// <summary>
     /// Specifies if the behavior tree is enabled.
     /// </summary>
-    public struct EnabledTag : IComponentData, IEnableableComponent
+    public struct EnabledFlag : IComponentData, IEnableableComponent
     {
     }
 
@@ -82,15 +85,69 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
     /// <summary>
     /// Specifies if the tree should be evaluated.
     /// </summary>
-    public struct EvaluationComponent : IComponentData, IEnableableComponent
+    public struct EvaluationComponent32 : IComponentData
     {
         [Tooltip("Specifies how many tasks should be updated during a single tick.")]
         public EvaluationType EvaluationType;
         [Tooltip("The maximum number of tasks that can run if the evaluation type is set to EvaluationType.Count.")]
         public ushort MaxEvaluationCount;
-        [Tooltip("The number of tasks that have been evaluated within the current frame.")]
-        public ushort EvaluationCount;
+        [Tooltip("Based on the EvaluationType, a mask of the tasks that have been evaluated or the number of tasks that have executed. For EvaluationType.Count, EvaluatedTasks[0] is used as the counter.")]
+        public FixedList32Bytes<ulong> EvaluatedTasks;
     }
+
+    /// <summary>
+    /// Specifies if the tree should be evaluated.
+    /// </summary>
+    public struct EvaluationComponent64 : IComponentData
+    {
+        [Tooltip("Specifies how many tasks should be updated during a single tick.")]
+        public EvaluationType EvaluationType;
+        [Tooltip("The maximum number of tasks that can run if the evaluation type is set to EvaluationType.Count.")]
+        public ushort MaxEvaluationCount;
+        [Tooltip("Based on the EvaluationType, a mask of the tasks that have been evaluated or the number of tasks that have executed. For EvaluationType.Count, EvaluatedTasks[0] is used as the counter.")]
+        public FixedList64Bytes<ulong> EvaluatedTasks;
+    }
+
+    /// <summary>
+    /// Specifies if the tree should be evaluated.
+    /// </summary>
+    public struct EvaluationComponent128 : IComponentData
+    {
+        [Tooltip("Specifies how many tasks should be updated during a single tick.")]
+        public EvaluationType EvaluationType;
+        [Tooltip("The maximum number of tasks that can run if the evaluation type is set to EvaluationType.Count.")]
+        public ushort MaxEvaluationCount;
+        [Tooltip("Based on the EvaluationType, a mask of the tasks that have been evaluated or the number of tasks that have executed. For EvaluationType.Count, EvaluatedTasks[0] is used as the counter.")]
+        public FixedList128Bytes<ulong> EvaluatedTasks;
+    }
+
+    /// <summary>
+    /// Specifies if the tree should be evaluated.
+    /// </summary>
+    public struct EvaluationComponent512 : IComponentData
+    {
+        [Tooltip("Specifies how many tasks should be updated during a single tick.")]
+        public EvaluationType EvaluationType;
+        [Tooltip("The maximum number of tasks that can run if the evaluation type is set to EvaluationType.Count.")]
+        public ushort MaxEvaluationCount;
+        [Tooltip("Based on the EvaluationType, a mask of the tasks that have been evaluated or the number of tasks that have executed. For EvaluationType.Count, EvaluatedTasks[0] is used as the counter.")]
+        public FixedList512Bytes<ulong> EvaluatedTasks;
+    }
+
+    /// <summary>
+    /// Specifies if the tree should be evaluated.
+    /// </summary>
+    public struct EvaluationComponent4096 : IComponentData
+    {
+        [Tooltip("Specifies how many tasks should be updated during a single tick.")]
+        public EvaluationType EvaluationType;
+        [Tooltip("The maximum number of tasks that can run if the evaluation type is set to EvaluationType.Count.")]
+        public ushort MaxEvaluationCount;
+        [Tooltip("Based on the EvaluationType, a mask of the tasks that have been evaluated or the number of tasks that have executed. For EvaluationType.Count, EvaluatedTasks[0] is used as the counter.")]
+        public FixedList4096Bytes<ulong> EvaluatedTasks;
+    }
+
+    public struct EvaluateFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Specifies how the branch was interrupted.
@@ -109,17 +166,19 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
     public struct BranchComponent : IBufferElementData
     {
         [Tooltip("The index of the task that is currently active.")]
-        public int ActiveIndex;
-        //public int m_ActiveIndex;
-        //public int ActiveIndex { get { return m_ActiveIndex; } set { Debug.Log(string.Format("Active: {0}", value)); m_ActiveIndex = value; } }
+        public ushort ActiveIndex;
+        //public ushort m_ActiveIndex;
+        //public ushort ActiveIndex { get { return m_ActiveIndex; } set { Debug.Log(string.Format("Active: {0}", value)); m_ActiveIndex = value; } }
         [Tooltip("The index of the task that should execute next.")]
-        public int NextIndex;
-        //public int m_NextIndex;
-        //public int NextIndex { get { return m_NextIndex; } set { Debug.Log(string.Format("Next: {0}", value)); m_NextIndex = value; } }
+        public ushort NextIndex;
+        //public ushort m_NextIndex;
+        //public ushort NextIndex { get { return m_NextIndex; } set { Debug.Log(string.Format("Next: {0}", value)); m_NextIndex = value; } }
+        [Tooltip("The index of the last active task.")]
+        public ushort LastActiveIndex;
         [Tooltip("The component tag that is active.")]
-        public ComponentType ActiveTagComponentType;
-        //public ComponentType m_ActiveTagComponentType;
-        //public ComponentType ActiveTagComponentType { get { return m_ActiveTagComponentType; } set { Debug.Log(string.Format("Tag: {0}", value)); m_ActiveTagComponentType = value; } }
+        public ComponentType ActiveFlagComponentType;
+        //public ComponentType m_ActiveFlagComponentType;
+        //public ComponentType ActiveFlagComponentType { get { return m_ActiveFlagComponentType; } set { Debug.Log(string.Format("Tag: {0}", value)); m_ActiveFlagComponentType = value; } }
         [Tooltip("Specifies how the branch is interrupted.")]
         public InterruptType InterruptType;
         //public InterruptType m_InterruptType;
@@ -129,14 +188,14 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
     }
 
     /// <summary>
-    /// Tag used to indicate when the branch should be interrupted.
+    /// Flag used to indicate when the branch should be interrupted.
     /// </summary>
-    public struct InterruptTag : IComponentData, IEnableableComponent { }
+    public struct InterruptFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
-    /// Tag used to indicate that the branch has been interrupted.
+    /// Flag used to indicate that the branch has been interrupted.
     /// </summary>
-    public struct InterruptedTag : IComponentData, IEnableableComponent { }
+    public struct InterruptedFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Specifies the reevaluation status of the task.
@@ -166,7 +225,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
         [Tooltip("The original status of the task.")]
         public TaskStatus OriginalStatus;
         [Tooltip("The tag specifiying the task should be reevaluated.")]
-        public ComponentType ReevaluateTagComponentType;
+        public ComponentType ReevaluateFlagComponentType;
         [Tooltip("The current reevaluation status of the task.")]
         public ReevaluateStatus ReevaluateStatus;
     }

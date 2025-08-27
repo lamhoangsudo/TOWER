@@ -11,7 +11,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.UnityObjects
     using System.Collections.Generic;
     using UnityEngine;
 
-    [NodeDescription("Removes the GameObject from the list.")]
+    [Opsive.Shared.Utility.Description("Removes the GameObject from the list.")]
     [Shared.Utility.Category("Lists")]
     public class RemoveGameObjectFromList : TargetGameObjectAction
     {
