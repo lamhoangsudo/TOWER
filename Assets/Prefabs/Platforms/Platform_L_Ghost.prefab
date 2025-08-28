@@ -96,7 +96,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 964a329017694d94aa89d0cce14a23a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnapPointAuthoring
-  snapPointType: 1
+  snapPointType: 2
 --- !u!1 &3604728361288039839
 GameObject:
   m_ObjectHideFlags: 0

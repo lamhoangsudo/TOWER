@@ -51,6 +51,11 @@ public partial struct BuildingManagerSystem : ISystem
                 SystemAPI.SetComponent<MouseWorldPositionTrack>(mousePointEntity, mouseWorldPositionTrack);
             }
         }
+        if(buildingManager.snapPointTypeSearch != buildingBuffer.snapPointTypeSearch)
+        {
+            buildingManager.snapPointTypeSearch = buildingBuffer.snapPointTypeSearch;
+            SystemAPI.SetComponent<BuildingManger>(buildingManagerEntity, buildingManager);
+        }
         LocalTransform localTranformMousePointEntity = SystemAPI.GetComponent<LocalTransform>(mousePointEntity);
         buildPosition = localTranformMousePointEntity.Position;
         RefRW<LocalTransform> localTransformGhostEntity = SystemAPI.GetComponentRW<LocalTransform>(mouseWorldPositionTrack.ghostEntity);

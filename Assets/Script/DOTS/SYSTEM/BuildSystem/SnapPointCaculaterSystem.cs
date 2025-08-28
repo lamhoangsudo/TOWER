@@ -31,6 +31,7 @@ public partial struct SnapPointCaculaterSystem : ISystem
     {
         mousePointEntity = SystemAPI.GetSingletonEntity<MouseWorldPositionTrack>();
         MouseWorldPositionTrack mouseWorldPositionTrack = SystemAPI.GetComponent<MouseWorldPositionTrack>(mousePointEntity);
+        BuildingManger buildingManger = SystemAPI.GetSingleton<BuildingManger>();
         float3 buildPosition = SystemAPI.GetComponent<LocalTransform>(mousePointEntity).Position;
         foreach ((RefRO<LocalTransform> buildingLocalTransform,
             RefRO<Building> building,
@@ -57,7 +58,6 @@ public partial struct SnapPointCaculaterSystem : ISystem
 
             buildingTrackMousePosition.ValueRW.snapDirection = CaculatorSnapDirection(ref state, buildingLocalTransform.ValueRO.Rotation, worldBuildingAndGhostDirection);
             buildingTrackMousePosition.ValueRW.snapGhostDirection = CaculatorSnapDirection(ref state, ghostLocalTranform.ValueRO.Rotation, worldBuildingAndGhostDirection);
-
             if (snapDirection != buildingTrackMousePosition.ValueRW.snapDirection)
             {
                 snapDirection = buildingTrackMousePosition.ValueRW.snapDirection;
@@ -67,8 +67,17 @@ public partial struct SnapPointCaculaterSystem : ISystem
                     {
                         Entity snapPointDirectionBuildingEntity = snapPointsDirectionBuffers[i].SnapPointsDirectionEntity;
                         DynamicBuffer<SnapPointBuffer> snapPointBuildingBuffers = SystemAPI.GetBuffer<SnapPointBuffer>(snapPointDirectionBuildingEntity);
-                        position = snapPointBuildingBuffers[0].snapPointPosition;
-                        forward = snapPointsDirectionBuffers[i].directionVector;
+                        //find snap point with min distance to building
+                        if (snapPointBuildingBuffers[0].snapPointType == buildingManger.snapPointTypeSearch)
+                        {
+                            position = snapPointBuildingBuffers[0].snapPointPosition;
+                            forward = snapPointsDirectionBuffers[i].directionVector;
+                        }
+                        else
+                        {
+                            position = float3.zero;
+                            forward = float3.zero;
+                        }
                         break;
                     }
                 }
@@ -83,6 +92,7 @@ public partial struct SnapPointCaculaterSystem : ISystem
                     {
                         Entity snapPointDirectionGhostBuilding = snapPointsDirectionGhostBuildingBuffers[i].SnapPointsDirectionEntity;
                         DynamicBuffer<SnapPointBuffer> snapPointGhostBuildingBuffers = SystemAPI.GetBuffer<SnapPointBuffer>(snapPointDirectionGhostBuilding);
+                        //find snap point with min distance to building
                         offset = snapPointGhostBuildingBuffers[0].offset;
                         break;
                     }
@@ -112,7 +122,14 @@ public partial struct SnapPointCaculaterSystem : ISystem
             }
 
             ghostLocalTranform.ValueRW.Rotation = buildingTrackMousePosition.ValueRO.targetQuaternion;
-            ghostLocalTranform.ValueRW.Position = position + forward * offset;
+            if (position.Equals(float3.zero) || forward.Equals(float3.zero))
+            {
+                ghostLocalTranform.ValueRW.Position = buildPosition;
+            }
+            else
+            {
+                ghostLocalTranform.ValueRW.Position = position + forward * offset;
+            }
         }
     }
 

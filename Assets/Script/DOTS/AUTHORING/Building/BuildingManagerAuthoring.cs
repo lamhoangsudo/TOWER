@@ -13,6 +13,7 @@ public class BuildingManagerAuthoring : MonoBehaviour
             AddComponent(entity, new BuildingManger()
             {
                 buildingID = authoring.BuildingID,
+                snapPointTypeSearch = Enum.SnapPointType.None,
             });
         }
     }
@@ -20,6 +21,7 @@ public class BuildingManagerAuthoring : MonoBehaviour
 public struct BuildingManger : IComponentData
 {
     public Enum.BuildingID buildingID;
+    public Enum.SnapPointType snapPointTypeSearch;
     public float3 buildPosition;
 }
 

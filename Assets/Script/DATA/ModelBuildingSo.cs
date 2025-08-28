@@ -8,4 +8,5 @@ public class ModelBuildingSo : ScriptableObject
     public Enum.BuildingID buildingID;
     public float snapMaxDistance;
     public float timeBuildMax;
+    public Enum.SnapPointType snapPointTypeSearch;
 }

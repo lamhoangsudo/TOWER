@@ -19,6 +19,7 @@ public class EntitySpawnStorageAuthoring : MonoBehaviour
                     snapMaxDistance = authoring.buildingSOs.list[i].snapMaxDistance,
                     entityModelBuilding = GetEntity(authoring.buildingSOs.list[i].buildingPrefab, TransformUsageFlags.Dynamic),
                     entityGhostBuilding = GetEntity(authoring.buildingSOs.list[i].buildingGhostPrefab, TransformUsageFlags.Dynamic),
+                    snapPointTypeSearch = authoring.buildingSOs.list[i].snapPointTypeSearch,
                 });
             }
         }
@@ -31,6 +32,7 @@ public struct BuildingBuffer : IBufferElementData
     public Enum.BuildingID buildingID;
     public Entity entityModelBuilding;
     public float snapMaxDistance;
+    public Enum.SnapPointType snapPointTypeSearch;
 }
 public struct EntitySpawnStorageTag : IComponentData
 {
