@@ -6,7 +6,7 @@ using UnityEngine;
 public class SnapPointBuffersAuthoring : MonoBehaviour
 {
     private const string TAG = "SnapPoint";
-    public List<SnapPointAuthoring> snapPointAuthorings;
+    private List<SnapPointAuthoring> snapPointAuthorings = new();
     public Enum.SnapPointType defaultSnapPointType;
     public class SnapPointBuffersAuthoringBaker : Baker<SnapPointBuffersAuthoring>
     {
@@ -14,6 +14,14 @@ public class SnapPointBuffersAuthoring : MonoBehaviour
         {
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
             DynamicBuffer<SnapPointBuffer> snapPointBuffers = AddBuffer<SnapPointBuffer>(entity);
+            if (authoring.snapPointAuthorings.Count > 0) authoring.snapPointAuthorings.Clear();
+            for(int i = 0; i < authoring.transform.childCount; i++)
+            {
+                if (authoring.transform.GetChild(i).CompareTag(TAG))
+                {
+                    authoring.snapPointAuthorings.Add(authoring.transform.GetChild(i).GetComponent<SnapPointAuthoring>());
+                }
+            }
             if (authoring.snapPointAuthorings.Count > 0)
             {
                 for (int i = 0; i < authoring.snapPointAuthorings.Count; i++)
