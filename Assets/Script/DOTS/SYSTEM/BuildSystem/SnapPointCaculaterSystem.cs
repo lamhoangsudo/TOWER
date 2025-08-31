@@ -5,6 +5,7 @@ using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
 using Unity.Transforms;
 [UpdateAfter(typeof(BuildingManagerSystem))]
+[UpdateAfter(typeof(SnapPointCheckAvaliableSystem))]
 public partial struct SnapPointCaculaterSystem : ISystem
 {
     private Entity mousePointEntity;
@@ -68,16 +69,9 @@ public partial struct SnapPointCaculaterSystem : ISystem
                         Entity snapPointDirectionBuildingEntity = snapPointsDirectionBuffers[i].SnapPointsDirectionEntity;
                         DynamicBuffer<SnapPointBuffer> snapPointBuildingBuffers = SystemAPI.GetBuffer<SnapPointBuffer>(snapPointDirectionBuildingEntity);
                         //find snap point with min distance to building
-                        if (snapPointBuildingBuffers[0].snapPointType == buildingManger.snapPointTypeSearch)
-                        {
-                            position = snapPointBuildingBuffers[0].snapPointPosition;
-                            forward = snapPointsDirectionBuffers[i].directionVector;
-                        }
-                        else
-                        {
-                            position = float3.zero;
-                            forward = float3.zero;
-                        }
+                        UpdateAllDistanceSnapPointToBuildingGhost(ref state, snapPointBuildingBuffers, buildPosition);
+                        position = GetSuitableSnapPointBuilding(ref state, snapPointBuildingBuffers, buildingManger.snapPointTypeSearch);
+                        forward = snapPointsDirectionBuffers[i].directionVector;
                         break;
                     }
                 }
@@ -251,5 +245,33 @@ public partial struct SnapPointCaculaterSystem : ISystem
         float3 directionfw1 = GetWorldDirection(directionf1, quaternion1);
         float3 directionfw2 = GetWorldDirection(directionf2, quaternion2);
         return FromToRotation(directionfw1, directionfw2);
+    }
+    public float3 GetSuitableSnapPointBuilding(ref SystemState state, DynamicBuffer<SnapPointBuffer> snapPointBuffers, Enum.SnapPointType snapPointTypeSearch)
+    {
+        float3 position = float3.zero;
+        float minDistance = float.MaxValue;
+        for (int i = 0; i < snapPointBuffers.Length; i++)
+        {
+            SnapPointBuffer snapPointBuffer = snapPointBuffers[i];
+            if (snapPointBuffer.snapPointType == snapPointTypeSearch && !snapPointBuffer.isOccupied)
+            {
+                if (snapPointBuffer.distanceSnapPointToBuildingGhost < minDistance)
+                {
+                    minDistance = snapPointBuffer.distanceSnapPointToBuildingGhost;
+                    position = snapPointBuffer.snapPointPosition;
+                }
+            }
+        }
+        return position;
+    }
+    public void UpdateSnapPointdistanceToBuildingGhost(ref SystemState state, DynamicBuffer<SnapPointBuffer> snapPointBuffers, float3 buildPosition)
+    {
+        for (int i = 0; i < snapPointBuffers.Length; i++)
+        {
+            if(snapPointBuffers[i].isOccupied) continue;
+            SnapPointBuffer snapPointBuffer = snapPointBuffers[i];
+            snapPointBuffer.distanceSnapPointToBuildingGhost = math.distance(snapPointBuffer.snapPointPosition, buildPosition);
+            snapPointBuffers[i] = snapPointBuffer;
+        }
     }
 }
