@@ -10,7 +10,7 @@ using System;
 using Opsive.BehaviorDesigner.Runtime.Tasks;
 using Opsive.BehaviorDesigner.Runtime.Tasks.Actions;
 [NodeIcon("b4b59e888607422409f1efa599af34ae", "e1cb9cb566a90fb4489bf31465b99747")]
-public struct WaitEntity : ILogicNode, ITaskComponentData, IAction, IPausableTask, ISavableTask
+public struct WaitEntity : ITreeLogicNode, ITaskComponentData, IAction, IPausableTask, ISavableTask
 {
     [Tooltip("The index of the node.")]
     [SerializeField] ushort m_Index;
@@ -113,7 +113,7 @@ public partial struct WaitEntityTaskSystem : ISystem
     [BurstCompile]
     private void OnCreate(ref SystemState state)
     {
-        query = SystemAPI.QueryBuilder().WithAll<TaskComponent, WaitEntityComponent, WaitEntityTag, RadarRangeRay>().Build();
+        query = SystemAPI.QueryBuilder().WithAll<TaskComponent, WaitEntityComponent, WaitEntityTag, RadarRangeRay, EvaluateFlag>().Build();
         state.RequireForUpdate(query);
     }
     [BurstCompile]

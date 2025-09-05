@@ -9,7 +9,7 @@ using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 [UpdateAfter(typeof(EnableBakeBehaviorTreeSystem))]
-public struct FindAllTargetSystemNode : ILogicNode, ITaskComponentData, IConditional
+public struct FindAllTargetSystemNode : ITreeLogicNode, ITaskComponentData, IConditional
 {
     // Required ILogicNode properties.
     [field: Tooltip("The index of the node.")]
@@ -64,7 +64,7 @@ public partial struct FindAllTargetSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<TaskComponent, FindAllTargetSystemNodeData, RadarRangeRay, LocalTransform, FindAllTargetSystemNodeTask>().Build());
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<TaskComponent, FindAllTargetSystemNodeData, RadarRangeRay, LocalTransform, FindAllTargetSystemNodeTask, EvaluateFlag>().Build());
     }
 
     [BurstCompile]
@@ -86,7 +86,7 @@ public partial struct FindAllTargetSystem : ISystem
                 RefRO<RadarRangeRay>,
                 DynamicBuffer<TargetEntityBuffer>,
                 RefRO<LocalTransform>>()
-                .WithAll<FindAllTargetSystemNodeTask>())
+                .WithAll<FindAllTargetSystemNodeTask, EvaluateFlag>())
         {
             for (int i = 0; i < findTargetSystemNodeDatas.Length; i++)
             {

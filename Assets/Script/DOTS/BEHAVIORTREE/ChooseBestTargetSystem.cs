@@ -5,7 +5,7 @@ using System;
 using Unity.Burst;
 using Unity.Entities;
 using UnityEngine;
-public struct ChooseBestTargetSystemNode : ILogicNode, ITaskComponentData, IConditional
+public struct ChooseBestTargetSystemNode : ITreeLogicNode, ITaskComponentData, IConditional
 {
     // Required ILogicNode properties.
     [field: Tooltip("The index of the node.")]
@@ -60,7 +60,14 @@ public partial struct ChooseBestTargetSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<TaskComponent, ChooseBestTargetNodeData, TargetEntityBuffer, Turret, ChooseBestTargetNodeTask>().Build());
+        state.RequireForUpdate(SystemAPI.QueryBuilder()
+            .WithAll<
+                TaskComponent, 
+                ChooseBestTargetNodeData, 
+                TargetEntityBuffer, 
+                Turret, 
+                ChooseBestTargetNodeTask, 
+                EvaluateFlag>().Build());
     }
 
     [BurstCompile]
@@ -78,7 +85,7 @@ public partial struct ChooseBestTargetSystem : ISystem
                 DynamicBuffer<ChooseBestTargetNodeData>,
                 DynamicBuffer<TargetEntityBuffer>,
                 RefRW<Turret>>()
-                .WithAll<ChooseBestTargetNodeTask>())
+                .WithAll<ChooseBestTargetNodeTask, EvaluateFlag>())
         {
             for (int i = 0; i < chooseBestTargetNodeDatas.Length; i++)
             {

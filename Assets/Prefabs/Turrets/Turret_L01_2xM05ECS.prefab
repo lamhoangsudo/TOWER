@@ -62,7 +62,6 @@ MonoBehaviour:
   elevationLimited: 0
   headingPivot: {fileID: 5795755249984692401}
   elevationPivot: {fileID: 5795755250427119394}
-  target: {fileID: 0}
   useTargetPrediction: 0
   autoFire: 1
   targetAquiredAngle: 0.1
@@ -225,6 +224,7 @@ MonoBehaviour:
       m_UnityObjects: []
       m_Version: 3.4
     m_GroupPropertiesData: []
+    m_SharedVariableGroupsData: []
   m_StartWhenEnabled: 1
   m_PauseWhenDisabled: 0
   m_UpdateMode: 0
