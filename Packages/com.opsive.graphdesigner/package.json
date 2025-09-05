@@ -1,6 +1,6 @@
 {
   "name": "com.opsive.graphdesigner",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "displayName": "Opsive Graph Designer",
   "description": "Underying graph system used by Opsive assets.",
   "documentationUrl": "https://opsive.com/",

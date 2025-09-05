@@ -15,7 +15,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks
     using static Opsive.BehaviorDesigner.Runtime.BehaviorTreeData;
 
     /// <summary>
-    /// The base class for a Mono task.
+    /// The base class for a GameObject task.
     /// </summary>
     public abstract class Task : ISavableTask
     {
@@ -366,15 +366,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks
         {
             Load(saveData, world, entity);
         }
-    }
-
-    /// <summary>
-    /// A blob asset that stores the indicies array.
-    /// </summary>
-    public struct IndiciesBlob
-    {
-        [Tooltip("The indicies of the tasks.")]
-        public BlobArray<ushort> Indicies;
     }
 }
 #endif

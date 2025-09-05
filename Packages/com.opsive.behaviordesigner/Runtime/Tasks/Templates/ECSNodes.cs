@@ -51,6 +51,7 @@ namespace Opsive.BehaviorDesigner.Runtime
             var variableName = ECSNodeUtility.ToCamelCase(name);
             return $@"using Opsive.BehaviorDesigner.Runtime.Components;
 using Opsive.BehaviorDesigner.Runtime.Tasks;
+using Opsive.GraphDesigner.Runtime;
 using Unity.Entities;
 using Unity.Burst;
 using UnityEngine;
@@ -158,6 +159,7 @@ public partial struct {name}TaskSystem : ISystem
             var variableName = ECSNodeUtility.ToCamelCase(name);
             return $@"using Opsive.BehaviorDesigner.Runtime.Components;
 using Opsive.BehaviorDesigner.Runtime.Tasks;
+using Opsive.GraphDesigner.Runtime;
 using Unity.Entities;
 using Unity.Burst;
 using UnityEngine;
@@ -213,7 +215,7 @@ public partial struct {name}TaskSystem : ISystem
     [BurstCompile]
     private void OnUpdate(ref SystemState state)
     {{
-        var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<{name}Component>().WithAll<{name}Tag, EvaluateFlag>().Build();
+        var query = SystemAPI.QueryBuilder().WithAllRW<BranchComponent>().WithAllRW<TaskComponent>().WithAllRW<{name}Component>().WithAll<{name}Flag, EvaluateFlag>().Build();
         state.Dependency = new {name}Job().ScheduleParallel(query, state.Dependency);
     }}
 
@@ -272,6 +274,7 @@ public partial struct {name}TaskSystem : ISystem
             var variableName = ECSNodeUtility.ToCamelCase(name);
             return $@"using Opsive.BehaviorDesigner.Runtime.Components;
 using Opsive.BehaviorDesigner.Runtime.Tasks;
+using Opsive.GraphDesigner.Runtime;
 using Unity.Burst;
 using Unity.Entities;
 using UnityEngine;
@@ -425,6 +428,7 @@ public partial struct {name}ReevaluateTaskSystem : ISystem
             var variableName = ECSNodeUtility.ToCamelCase(name);
             return $@"using Opsive.BehaviorDesigner.Runtime.Components;
 using Opsive.BehaviorDesigner.Runtime.Tasks;
+using Opsive.GraphDesigner.Runtime;
 using Unity.Entities;
 using Unity.Burst;
 using UnityEngine;

@@ -208,7 +208,7 @@ namespace Opsive.BehaviorDesigner.Runtime
 
 #if UNITY_EDITOR
             // Ensure the node data is up to date.
-            if (m_LogicNodeProperties != null && m_Tasks != null && m_LogicNodeProperties.Length < m_Tasks.Length) {
+            if (m_LogicNodeProperties != null && m_Tasks != null && m_LogicNodeProperties.Length <= m_Tasks.Length) {
                 for (int i = 0; i < m_LogicNodeProperties.Length; ++i) {
                     var nodeData = m_LogicNodeProperties[i].Data;
                     nodeData.ParentIndex = m_Tasks[i].ParentIndex;
@@ -358,7 +358,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         public bool Deserialize(IGraphComponent graphComponent, IGraph graph, bool force, bool forceSharedVariables, bool injectSubtrees, bool canDeepCopyVariables = true, SharedVariableOverride[] sharedVariableOverrides = null)
         {
             // No need to deserialize if the data is already deserialized.
-            if ((m_Tasks != null || m_EventTasks != null || m_SharedVariables != null) && !force) {
+            if (((m_Tasks != null && m_Tasks.Length == m_TaskData.Length) || (m_EventTasks != null && m_EventTasks.Length == m_EventTaskData.Length) || (m_SharedVariables != null && m_SharedVariables.Length == m_SharedVariableData.Length)) && !force) {
                 if (Application.isPlaying && m_RuntimeUniqueID == 0) {
                     m_RuntimeUniqueID = m_UniqueID;
                 }
@@ -770,9 +770,9 @@ namespace Opsive.BehaviorDesigner.Runtime
         public bool DeserializeSharedVariables(bool force, SharedVariableOverride[] sharedVariableOverrides = null)
         {
             // No need to deserialize if the data is already deserialized.
-            if (!force && (m_SharedVariables != null
+            if (!force && ((m_SharedVariables != null && m_SharedVariables.Length == m_SharedVariableData.Length)
 #if UNITY_EDITOR
-                || m_SharedVariableGroups != null
+                || (m_SharedVariableGroups != null && m_SharedVariableGroups.Length == m_SharedVariableGroupsData.Length)
 #endif
                 )) {
                 return false;
@@ -1521,7 +1521,6 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <returns>The SharedVariable with the specified name (can be null).</returns>
         public SharedVariable<T> GetVariable<T>(IGraph graph, PropertyName name, SharedVariable.SharingScope scope)
         {
-
             return GetVariable(graph, name, scope) as SharedVariable<T>;
         }
 

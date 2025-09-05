@@ -10,6 +10,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
     using Opsive.BehaviorDesigner.Runtime.Groups;
     using Opsive.BehaviorDesigner.Runtime.Tasks;
     using Opsive.BehaviorDesigner.Runtime.Utility;
+    using Opsive.GraphDesigner.Runtime;
     using Unity.Burst;
     using Unity.Collections;
     using Unity.Entities;
@@ -190,7 +191,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
 
         [Tooltip("Should the group stay active? An inactive tree does not run.")]
         public bool Active { get; private set; }
-        [Tooltip("Should the group be evaluate? This bool indicates if the entire tree should be evaluated instead of the reevaluation" +
+        [Tooltip("Should the group be evaluated? This bool indicates if the entire tree should be evaluated instead of the reevaluation" +
                  "concept for conditional aborts. The tree will be reevaluated if any of the leaf tasks have a status of running.")]
         public bool Evaluate { get; private set; }
 

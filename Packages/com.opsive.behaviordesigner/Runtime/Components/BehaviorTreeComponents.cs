@@ -58,13 +58,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
     }
 
     /// <summary>
-    /// Specifies if the behavior tree is enabled.
-    /// </summary>
-    public struct EnabledFlag : IComponentData, IEnableableComponent
-    {
-    }
-
-    /// <summary>
     /// Specifies when the behavior tree should be updated.
     /// </summary>
     public enum UpdateMode
@@ -146,8 +139,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
         [Tooltip("Based on the EvaluationType, a mask of the tasks that have been evaluated or the number of tasks that have executed. For EvaluationType.Count, EvaluatedTasks[0] is used as the counter.")]
         public FixedList4096Bytes<ulong> EvaluatedTasks;
     }
-
-    public struct EvaluateFlag : IComponentData, IEnableableComponent { }
 
     /// <summary>
     /// Specifies how the branch was interrupted.
@@ -240,7 +231,9 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
         /// </summary>
         /// <param name="world">The world that the entity exists.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
-        void AddBufferElement(World world, Entity entity);
+        /// <param name="gameObject">The GameObject that the entity is attached to.</param>
+        /// <param name="taskOffset">The offset between the connected index and the runtime index.</param>
+        void AddBufferElement(World world, Entity entity, GameObject gameObject, ushort taskOffset);
 
         /// <summary>
         /// Clears the IBufferElementData from the entity.

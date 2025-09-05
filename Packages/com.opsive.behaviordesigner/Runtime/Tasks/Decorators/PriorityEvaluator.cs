@@ -9,6 +9,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     using Opsive.BehaviorDesigner.Runtime.Components;
     using Opsive.BehaviorDesigner.Runtime.Groups;
     using Opsive.BehaviorDesigner.Runtime.Tasks.Composites;
+    using Opsive.GraphDesigner.Runtime;
     using Unity.Entities;
 
     /// <summary>

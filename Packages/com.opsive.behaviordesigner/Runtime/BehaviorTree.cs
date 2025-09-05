@@ -33,7 +33,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         [SerializeField] [Delayed] private int m_Index;
         [Tooltip("The graph data.")]
         [SerializeField] private BehaviorTreeData m_Data = new BehaviorTreeData();
-        [Tooltip("Should the behavior tree start when the component enabled?")]
+        [Tooltip("Should the behavior tree start when the component is enabled?")]
         [SerializeField] private bool m_StartWhenEnabled = true;
         [Tooltip("Should the behavior tree pause when the tree is disabled?")]
         [SerializeField] private bool m_PauseWhenDisabled;
@@ -369,19 +369,6 @@ namespace Opsive.BehaviorDesigner.Runtime
         }
 
         /// <summary>
-        /// Returns the behavior tree component specified by the entity.
-        /// </summary>
-        /// <param name="entity">The entity that should be retrieved.</param>
-        /// <returns>The behavior tree component specified by the ID.</returns>
-        public static BehaviorTree GetBehaviorTree(Entity entity)
-        {
-            if (s_BehaviorTreeByEntity.TryGetValue(entity, out var behaviorTree)) {
-                return behaviorTree;
-            }
-            return null;
-        }
-
-        /// <summary>
         /// Starts the behavior tree.
         /// </summary>
         /// <returns>True if the behavior tree was started.</returns>
@@ -406,7 +393,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <summary>
         /// Starts the behavior tree.
         /// </summary>
-        /// <param name="world">The world that contains tthe entity.</param>
+        /// <param name="world">The world that contains the entity.</param>
         /// <param name="entity">The entity that should contain the behavior tree.</param>
         /// <param name="startBranchType">The type of branch that should be started.</param>
         /// <returns>True if the behavior tree was started.</returns>
@@ -462,7 +449,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <summary>
         /// Initializes the tree within DOTS for all of the event tasks.
         /// </summary>
-        /// <param name="world">The world that contains tthe entity.</param>
+        /// <param name="world">The world that contains the entity.</param>
         /// <param name="entity">The entity that should contain the behavior tree.</param>
         /// <returns>True if the behavior tree was initialized.</returns>
         internal bool InitializeTree(World world, Entity entity)
@@ -514,27 +501,10 @@ namespace Opsive.BehaviorDesigner.Runtime
                 m_Data.DisabledEventNodes = disabledEventNodes;
             }
 
-            for (int j = 0; j < eventNodes.Length; ++j) {
-                InitializeBranch(world, entity, eventNodes[j]);
+            for (int i = 0; i < eventNodes.Length; ++i) {
+                InitializeBranch(world, entity, eventNodes[i]);
             }
             return true;
-        }
-
-        /// <summary>
-        /// Comparer for IEventNode.
-        /// </summary>
-        private class EventNodeComparer : IComparer<IEventNode>
-        {
-            /// <summary>
-            /// Compares the ConnectedIndex of two event nodes.
-            /// </summary>
-            /// <param name="eventNode1">The first event node</param>
-            /// <param name="eventNode2">The second event node.</param>
-            /// <returns>The CompareTo value between the two event nodes.</returns>
-            public int Compare(IEventNode eventNode1, IEventNode eventNode2)
-            {
-                return eventNode1.ConnectedIndex.CompareTo(eventNode2.ConnectedIndex);
-            }
         }
 
         /// <summary>
@@ -577,7 +547,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                 world.EntityManager.SetComponentEnabled<EvaluateFlag>(entity, false);
             }
 
-            // Get the required parent system groups. The systems are always added to the default world.
+            // Get the required parent system groups.
             var traversalTaskSystemGroup = world.GetOrCreateSystemManaged<TraversalTaskSystemGroup>();
             var reevaluateTaskSystemGroup = world.GetOrCreateSystemManaged<ReevaluateTaskSystemGroup>();
             var interruptTaskSystemGroup = world.GetOrCreateSystemManaged<InterruptTaskSystemGroup>();
@@ -585,7 +555,7 @@ namespace Opsive.BehaviorDesigner.Runtime
             var taskComponents = world.EntityManager.GetBuffer<TaskComponent>(entity);
             var taskOffset = (ushort)(eventTask.ConnectedIndex - taskComponents.Length);
             for (int i = eventTask.ConnectedIndex; i < m_Data.LogicNodes.Length; ++i) {
-                // Don't initialize tasks that aren't connected to the start node.
+                // Don't initialize tasks that aren't connected to the event node.
                 if (i > eventTask.ConnectedIndex && m_Data.LogicNodes[i].ParentIndex == ushort.MaxValue) {
                     break;
                 }
@@ -609,7 +579,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                     }
                 }
 
-                // The TaskComponents index will be different from the LogicNode index if the tree has a gap of tasks that are not connected.
+                // The TaskComponent index will be different from the LogicNode index if the tree has a gap of tasks that are not connected.
                 // The RuntimeIndex maps the LogicNode index to the TaskComponent index.
                 var node = m_Data.LogicNodes[i];
                 node.RuntimeIndex = (ushort)(node.Index - taskOffset);
@@ -745,7 +715,7 @@ namespace Opsive.BehaviorDesigner.Runtime
 
             // The event task may perform its own logic.
             if (eventTask is IEventNodeEntityReceiver entityReceiver) {
-                entityReceiver.AddBufferElement(world, entity);
+                entityReceiver.AddBufferElement(world, entity, gameObject, taskOffset);
             }
             if (eventTask is IEventNodeGameObjectReceiver gameObjectReceiver) {
                 gameObjectReceiver.Initialize(this);
@@ -871,7 +841,6 @@ namespace Opsive.BehaviorDesigner.Runtime
                 return false;
             }
 
-            var branchIndex = taskComponents[connectedIndex].BranchIndex;
             var startTask = taskComponents[connectedIndex];
             // The branch can't be started twice or if it is disabled.
             if (startTask.Status == TaskStatus.Queued || startTask.Status == TaskStatus.Running || startTask.Disabled) {
@@ -895,6 +864,7 @@ namespace Opsive.BehaviorDesigner.Runtime
             world.EntityManager.SetComponentEnabled(entity, activeFlag, true);
 
             var branchComponents = world.EntityManager.GetBuffer<BranchComponent>(entity);
+            var branchIndex = taskComponents[connectedIndex].BranchIndex;
             var branchComponent = branchComponents[branchIndex];
             branchComponent.ActiveIndex = branchComponent.NextIndex = connectedIndex;
             branchComponent.LastActiveIndex = ushort.MaxValue;
@@ -911,11 +881,24 @@ namespace Opsive.BehaviorDesigner.Runtime
         }
 
         /// <summary>
+        /// Returns the behavior tree component specified by the entity.
+        /// </summary>
+        /// <param name="entity">The entity that should be retrieved.</param>
+        /// <returns>The behavior tree component specified by the ID.</returns>
+        public static BehaviorTree GetBehaviorTree(Entity entity)
+        {
+            if (s_BehaviorTreeByEntity.TryGetValue(entity, out var behaviorTree)) {
+                return behaviorTree;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Returns the task at the specified index.
         /// </summary>
         /// <param name="index">The index of the task.</param>
         /// <returns>The task at the specified index.</returns>
-        public ILogicNode GetTask(int index)
+        public ITreeLogicNode GetTask(int index)
         {
             Deserialize();
 
@@ -1760,6 +1743,7 @@ namespace Opsive.BehaviorDesigner.Runtime
             m_Data.EventNodeProperties = other.EventNodeProperties;
             m_Data.LogicNodeProperties = other.LogicNodeProperties;
             m_Data.GroupProperties = other.GroupProperties;
+            m_Data.SharedVariableGroups = other.SharedVariableGroups;
 #endif
 
             m_Data.Serialize();

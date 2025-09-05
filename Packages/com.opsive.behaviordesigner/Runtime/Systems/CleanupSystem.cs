@@ -8,6 +8,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
 {
     using Opsive.BehaviorDesigner.Runtime.Components;
     using Opsive.BehaviorDesigner.Runtime.Groups;
+    using Opsive.GraphDesigner.Runtime;
     using Unity.Burst;
     using Unity.Burst.Intrinsics;
     using Unity.Collections;

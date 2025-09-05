@@ -11,7 +11,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks
     using UnityEngine;
 
     /// <summary>
-    /// Base class for the boilerplate ECS task.
+    /// Base class for a boilerplate ECS task.
     /// </summary>
     public abstract class ECSTask<TSystem, TBufferElement> : ITreeLogicNode, IAuthoringTask where TBufferElement : unmanaged, IBufferElementData
     {

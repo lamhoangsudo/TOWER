@@ -7,6 +7,7 @@
 namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
 {
     using Opsive.BehaviorDesigner.Runtime.Components;
+    using Opsive.GraphDesigner.Runtime;
     using Unity.Entities;
     using Unity.Burst;
     using UnityEngine;
