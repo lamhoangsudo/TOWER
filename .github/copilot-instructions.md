@@ -2,7 +2,7 @@
 - Project name: TOWER
 - Unity version: Unity 6000.2.2f1
 - Active game object:
-  - Name: Turret_S01_2xS07_GattlingECS(Clone)
+  - Name: BuildingManager
   - Tag: Untagged
   - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

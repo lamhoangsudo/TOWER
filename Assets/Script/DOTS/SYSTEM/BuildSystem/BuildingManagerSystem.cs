@@ -24,6 +24,17 @@ public partial struct BuildingManagerSystem : ISystem
         storageEntity = SystemAPI.GetSingletonEntity<EntitySpawnStorageTag>();
         MouseWorldPositionTrack mouseWorldPositionTrack = SystemAPI.GetComponent<MouseWorldPositionTrack>(mousePointEntity);
         BuildingManger buildingManager = SystemAPI.GetComponent<BuildingManger>(buildingManagerEntity);
+
+        if (buildingManager.buildingID == Enum.BuildingID.None)
+        {
+            if (mouseWorldPositionTrack.ghostEntity != Entity.Null)
+            {
+                state.EntityManager.DestroyEntity(mouseWorldPositionTrack.ghostEntity);
+                mouseWorldPositionTrack.ghostEntity = Entity.Null;
+                SystemAPI.SetComponent<MouseWorldPositionTrack>(mousePointEntity, mouseWorldPositionTrack);
+            }
+            return;
+        }
         float3 buildPosition = float3.zero;
 
         DynamicBuffer<BuildingBuffer> _BuildingBuffer = SystemAPI.GetBuffer<BuildingBuffer>(storageEntity);
@@ -51,7 +62,7 @@ public partial struct BuildingManagerSystem : ISystem
                 SystemAPI.SetComponent<MouseWorldPositionTrack>(mousePointEntity, mouseWorldPositionTrack);
             }
         }
-        if(buildingManager.snapPointTypeSearch != buildingBuffer.snapPointTypeSearch)
+        if (buildingManager.snapPointTypeSearch != buildingBuffer.snapPointTypeSearch)
         {
             buildingManager.snapPointTypeSearch = buildingBuffer.snapPointTypeSearch;
             SystemAPI.SetComponent<BuildingManger>(buildingManagerEntity, buildingManager);
@@ -59,8 +70,8 @@ public partial struct BuildingManagerSystem : ISystem
         LocalTransform localTranformMousePointEntity = SystemAPI.GetComponent<LocalTransform>(mousePointEntity);
         buildPosition = localTranformMousePointEntity.Position;
         RefRW<LocalTransform> localTransformGhostEntity = SystemAPI.GetComponentRW<LocalTransform>(mouseWorldPositionTrack.ghostEntity);
-        if(!localTransformGhostEntity.ValueRO.Position.Equals(buildPosition)) localTransformGhostEntity.ValueRW.Position = buildPosition;
-        if(localTransformGhostEntity.ValueRO.Scale != 1f) localTransformGhostEntity.ValueRW.Scale = 1f;
+        if (!localTransformGhostEntity.ValueRO.Position.Equals(buildPosition)) localTransformGhostEntity.ValueRW.Position = buildPosition;
+        if (localTransformGhostEntity.ValueRO.Scale != 1f) localTransformGhostEntity.ValueRW.Scale = 1f;
         CollisionWorld collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
         CollisionFilter collisionFilter = new()
         {

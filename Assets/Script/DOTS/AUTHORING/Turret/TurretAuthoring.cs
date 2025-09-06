@@ -23,6 +23,8 @@ public class TurretAuthoring : MonoBehaviour
     public float targetAquiredAngle;
     public bool resetOrientation;
     public Entity turretEntity { get; private set; }
+    [Header("Debug")]
+    public GameObject Target;
     public class TurretAuthoringBaker : Baker<TurretAuthoring>
     {
         public override void Bake(TurretAuthoring authoring)
@@ -51,6 +53,7 @@ public class TurretAuthoring : MonoBehaviour
                 random = new Unity.Mathematics.Random((uint)entity.Index),
                 isElevationRotationTarget = false,
                 isHeadingRotationTarget = false,
+                target = GetEntity(authoring.Target, TransformUsageFlags.Dynamic),
             });
             authoring.turretEntity = entity;
         }
