@@ -179,6 +179,16 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
     }
 
     /// <summary>
+    /// Specifies if the tree can be evaluated.
+    /// </summary>
+    public struct EvaluateFlag : IComponentData, IEnableableComponent { }
+
+    /// <summary>
+    /// Specifies if the tree is enabled.
+    /// </summary>
+    public struct EnabledFlag : IComponentData, IEnableableComponent { }
+
+    /// <summary>
     /// Flag used to indicate when the branch should be interrupted.
     /// </summary>
     public struct InterruptFlag : IComponentData, IEnableableComponent { }
@@ -229,7 +239,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
         /// <summary>
         /// Adds the IBufferElementData to the entity.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
+        /// <param name="world">The world that the entity exists in.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
         /// <param name="gameObject">The GameObject that the entity is attached to.</param>
         /// <param name="taskOffset">The offset between the connected index and the runtime index.</param>
@@ -238,7 +248,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Components
         /// <summary>
         /// Clears the IBufferElementData from the entity.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
+        /// <param name="world">The world that the entity exists in.</param>
         /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
         void ClearBufferElement(World world, Entity entity);
     }

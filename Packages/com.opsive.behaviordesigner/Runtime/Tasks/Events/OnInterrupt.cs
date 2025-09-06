@@ -27,7 +27,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Events
         /// <summary>
         /// Adds the IBufferElementData to the entity.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
+        /// <param name="world">The world that the entity exists in.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
         /// <param name="gameObject">The GameObject that the entity is attached to.</param>
         /// <param name="taskOffset">The offset between the connected index and the runtime index.</param>
@@ -56,7 +56,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Events
         /// <summary>
         /// Clears the IBufferElementData from the entity.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
+        /// <param name="world">The world that the entity exists in.</param>
         /// <param name="entity">The entity that the IBufferElementData should be cleared from.</param>
         public void ClearBufferElement(World world, Entity entity)
         {

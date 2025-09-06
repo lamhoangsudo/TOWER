@@ -64,7 +64,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
         /// <summary>
         /// Adds the IBufferElementData to the entity.
         /// </summary>
-        /// <param name="world">The world that the entity exists.</param>
+        /// <param name="world">The world that the entity exists in.</param>
         /// <param name="entity">The entity that the IBufferElementData should be assigned to.</param>
         /// <param name="gameObject">The GameObject that the entity is attached to.</param>
         /// <returns>The index of the element within the buffer.</returns>
