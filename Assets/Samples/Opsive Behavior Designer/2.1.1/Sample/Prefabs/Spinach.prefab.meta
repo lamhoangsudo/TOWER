@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: db50352c6560ee641add0e45f6da8e6f
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 298743
+  packageName: Behavior Designer Pro - DOTS Powered Behavior Trees
+  packageVersion: 2.1.1p1
+  assetPath: Assets/Samples/Opsive Behavior Designer/2.1.1/Sample/Prefabs/Spinach.prefab
+  uploadId: 786868

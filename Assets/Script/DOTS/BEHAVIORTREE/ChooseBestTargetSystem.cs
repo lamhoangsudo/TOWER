@@ -5,7 +5,7 @@ using System;
 using Unity.Burst;
 using Unity.Entities;
 using UnityEngine;
-public struct ChooseBestTargetSystemNode : ITreeLogicNode, ITaskComponentData, IConditional
+public struct ChooseBestTargetSystemNode : ITreeLogicNode,  IAuthoringTask, IConditional
 {
     // Required ILogicNode properties.
     [field: Tooltip("The index of the node.")]
@@ -18,8 +18,7 @@ public struct ChooseBestTargetSystemNode : ITreeLogicNode, ITaskComponentData, I
     [field: SerializeField]
     public ushort SiblingIndex { get; set; }
     public ushort RuntimeIndex { get; set; }
-
-    public ComponentType Tag => typeof(ChooseBestTargetNodeTask);
+    public ComponentType Flag => typeof(ChooseBestTargetNodeTask);
     public Type SystemType => typeof(ChooseBestTargetSystem);
     public int AddBufferElement(World world, Entity entity, GameObject gameObject)
     {

@@ -4,6 +4,7 @@ using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Ray = UnityEngine.Ray;
 
 public partial class MouseWorldPositionTrackSystem : SystemBase
@@ -25,6 +26,7 @@ public partial class MouseWorldPositionTrackSystem : SystemBase
     protected override void OnUpdate()
     {
         Ray mouseCameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if(EventSystem.current.IsPointerOverGameObject()) return;
         RaycastInput raycastInput = new()
         {
             Start = mouseCameraRay.origin,

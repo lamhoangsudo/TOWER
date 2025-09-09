@@ -10,7 +10,7 @@ using System;
 using Opsive.BehaviorDesigner.Runtime.Tasks;
 using Opsive.BehaviorDesigner.Runtime.Tasks.Actions;
 [NodeIcon("b4b59e888607422409f1efa599af34ae", "e1cb9cb566a90fb4489bf31465b99747")]
-public struct WaitEntity : ITreeLogicNode, ITaskComponentData, IAction, IPausableTask, ISavableTask
+public struct WaitEntity : ITreeLogicNode, IAuthoringTask, IAction, IPausableTask, ISavableTask
 {
     [Tooltip("The index of the node.")]
     [SerializeField] ushort m_Index;
@@ -23,7 +23,7 @@ public struct WaitEntity : ITreeLogicNode, ITaskComponentData, IAction, IPausabl
     public ushort ParentIndex { get => m_ParentIndex; set => m_ParentIndex = value; }
     public ushort SiblingIndex { get => m_SiblingIndex; set => m_SiblingIndex = value; }
     public ushort RuntimeIndex { get; set; }
-    public ComponentType Tag { get => typeof(WaitEntityTag); }
+    public ComponentType Flag { get => typeof(WaitEntityTag); }
     public Type SystemType { get => typeof(WaitEntityTaskSystem); }
     public void ClearBufferElement(World world, Entity entity)
     {

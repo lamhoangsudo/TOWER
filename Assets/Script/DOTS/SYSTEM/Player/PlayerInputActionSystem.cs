@@ -2,6 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.EventSystems;
 [UpdateInGroup(typeof(InitializationSystemGroup), OrderLast = true)]
 public partial class PlayerInputActionSystem : SystemBase
 {
@@ -48,7 +49,7 @@ public partial class PlayerInputActionSystem : SystemBase
                 pitchMin = rotation.pitchMin,
             });
         }
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
         {
             mousePointEntity = SystemAPI.GetSingletonEntity<MouseWorldPositionTrack>();
             MouseWorldPositionTrack mouseWorldPositionTrack = SystemAPI.GetComponent<MouseWorldPositionTrack>(mousePointEntity);

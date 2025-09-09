@@ -9,7 +9,7 @@ using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 [UpdateAfter(typeof(EnableBakeBehaviorTreeSystem))]
-public struct FindAllTargetSystemNode : ITreeLogicNode, ITaskComponentData, IConditional
+public struct FindAllTargetSystemNode : ITreeLogicNode, IAuthoringTask, IConditional
 {
     // Required ILogicNode properties.
     [field: Tooltip("The index of the node.")]
@@ -22,7 +22,7 @@ public struct FindAllTargetSystemNode : ITreeLogicNode, ITaskComponentData, ICon
     [field: SerializeField]
     public ushort SiblingIndex { get; set; }
     public ushort RuntimeIndex { get; set; }
-    public ComponentType Tag => typeof(FindAllTargetSystemNodeTask);
+    public ComponentType Flag => typeof(FindAllTargetSystemNodeTask);
     public Type SystemType => typeof(FindAllTargetSystem);
     public int AddBufferElement(World world, Entity entity, GameObject gameObject)
     {

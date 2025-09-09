@@ -88,6 +88,7 @@ public partial struct BuildingManagerSystem : ISystem
         bool hit = collisionWorld.CalculateDistance(pointDistanceInput, out DistanceHit closestHit);
         if (hit)
         {
+            if (!SystemAPI.HasComponent<BuildingTrackMousePosition>(closestHit.Entity)) return;
             if (!SystemAPI.IsComponentEnabled<BuildingTrackMousePosition>(closestHit.Entity))
             {
                 SystemAPI.SetComponentEnabled<BuildingTrackMousePosition>(closestHit.Entity, true);
