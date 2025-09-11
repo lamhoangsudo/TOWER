@@ -49,8 +49,6 @@ public class EnvironmentLoader: MonoBehaviour
 		var shaderReplacementTable = new (string, string)[]
 		{
 			("HDRP/Lit", "Shader Graphs/Lit URP"),
-			("Shader Graphs/AnimatedLitShader HDRP", "Shader Graphs/AnimatedLitShader URP"),
-			("Shader Graphs/GPUAttachmentLitShader HDRP", "Shader Graphs/GPUAttachmentLitShader URP"),
 			("Hidden/InternalErrorShader", "Shader Graphs/Lit URP")
 		};
 

@@ -13,9 +13,9 @@ public partial class WorldPointViewTrackSystem : SystemBase
     }
     protected override void OnUpdate()
     {
-        LocalTransform localTransform = SystemAPI.GetComponent<LocalTransform>(playerEntity);
-        WorldPointView.Instance.transform.position = localTransform.Position;
-        WorldPointView.Instance.transform.rotation = localTransform.Rotation;
+        //LocalTransform localTransform = SystemAPI.GetComponent<LocalTransform>(playerEntity);
+        //WorldPointView.Instance.transform.position = localTransform.Position;
+        //WorldPointView.Instance.transform.rotation = localTransform.Rotation;
     }
     protected override void OnStopRunning()
     {

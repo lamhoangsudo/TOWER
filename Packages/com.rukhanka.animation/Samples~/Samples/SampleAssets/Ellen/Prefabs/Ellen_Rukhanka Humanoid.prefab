@@ -71,7 +71,7 @@ PrefabInstance:
     - target: {fileID: 9500000, guid: a5674d01884853d4e8f2386a171e14d9, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: 240cdabd5a3ba4d4697153cc3f904ca1, type: 2}
+      objectReference: {fileID: 9100000, guid: 5b54eca3d20815241be0149cf6eb2189, type: 2}
     - target: {fileID: 9500000, guid: a5674d01884853d4e8f2386a171e14d9, type: 3}
       propertyPath: m_ApplyRootMotion
       value: 0
@@ -100,11 +100,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 400536, guid: a5674d01884853d4e8f2386a171e14d9, type: 3}
   m_PrefabInstance: {fileID: 1478343926058295853}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &1478343926057910045 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 400688, guid: a5674d01884853d4e8f2386a171e14d9, type: 3}
-  m_PrefabInstance: {fileID: 1478343926058295853}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1478343926058198379 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100166, guid: a5674d01884853d4e8f2386a171e14d9, type: 3}
@@ -122,7 +117,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fb757bd46edfe349a52b4ea886d67e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rootBone: {fileID: 1478343926057910045}
+  rigConfigSource: 0
+  avatar: {fileID: 0}
+  avatarOptimizationMask: {fileID: 0}
+  applyRootMotion: 0
+  animationCulling: 0
+  boneEntityStrippingMode: 0
+  rootMotionMode: 0
+  boneStrippingMask: {fileID: 0}
+  hasAnimationEvents: 0
+  hasAnimatorControllerEvents: 0
+  animationEngine: 0
 --- !u!1001 &4065717455242580695
 PrefabInstance:
   m_ObjectHideFlags: 0

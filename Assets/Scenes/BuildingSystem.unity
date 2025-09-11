@@ -996,6 +996,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1211903127}
   - component: {fileID: 1211903128}
+  - component: {fileID: 1211903129}
   m_Layer: 0
   m_Name: WorldPointView
   m_TagString: Untagged
@@ -1030,6 +1031,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64973330908261149aca174b7e19fbc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1211903129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1211903126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4812800bd0d5374ea6d89f34e03a72e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInputManager
+  moveSpeed: 5
+  rotationSpeed: 5
+  pitchMin: -90
+  pitchMax: 90
+  pitch: 0
+  yaw: 0
 --- !u!1 &1300792720
 GameObject:
   m_ObjectHideFlags: 0

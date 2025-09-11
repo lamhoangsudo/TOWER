@@ -911,7 +911,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d9d2736d16e38e499707c988338a87e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  urpSkybox: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  urpSkybox: {fileID: 2100000, guid: 2c29d7e6310df3c489a74ee2d9ad6054, type: 2}
 --- !u!1 &1602500293
 GameObject:
   m_ObjectHideFlags: 0
