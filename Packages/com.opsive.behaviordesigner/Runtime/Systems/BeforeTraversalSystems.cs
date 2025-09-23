@@ -124,7 +124,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
                                 continue;
                             }
 
-                            if (reevaluateTaskComponents[j].ReevaluateStatus == ReevaluateStatus.Active &&
+                            if ((reevaluateTaskComponents[j].ReevaluateStatus == ReevaluateStatus.Active || reevaluateTaskComponents[j].ReevaluateStatus == ReevaluateStatus.Dirty) &&
                                 reevaluateTaskComponent.ReevaluateFlagComponentType == reevaluateTaskComponents[j].ReevaluateFlagComponentType) {
                                 keepSystemActive = true;
                                 break;

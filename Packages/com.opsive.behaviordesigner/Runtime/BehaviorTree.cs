@@ -79,11 +79,16 @@ namespace Opsive.BehaviorDesigner.Runtime
                 ClearTree();
                 m_Subtree = value as Subtree;
                 m_SubtreeOverride = false;
-                InheritSubtree(true);
-                InitializeTree();
-                if (enabled) {
+                InheritSubtree(false);
+                if (IsActive() && !IsPaused()) {
                     StartBehavior();
                 }
+#if UNITY_EDITOR
+                // Generate a new ID so the graph reloads.
+                if (Application.isPlaying) {
+                    m_Data.RuntimeUniqueID = Guid.NewGuid().GetHashCode();
+                }
+#endif
             }
         }
 
@@ -93,8 +98,8 @@ namespace Opsive.BehaviorDesigner.Runtime
         public SharedVariable[] SharedVariables { get => m_Data.SharedVariables; set => m_Data.SharedVariables = value; }
         public SharedVariableGroup[] SharedVariableGroups {
 #if UNITY_EDITOR
-            get => Data.SharedVariableGroups;
-            set => Data.SharedVariableGroups = value;
+            get => m_Data.SharedVariableGroups;
+            set => m_Data.SharedVariableGroups = value;
 #else
             get => null;
             set { }
@@ -242,9 +247,12 @@ namespace Opsive.BehaviorDesigner.Runtime
                     m_Data.EventNodes = null;
                     m_Data.LogicNodes = null;
                     m_Data.SubtreeNodesReferences = null;
+                    m_Data.DisabledLogicNodes = null;
+                    m_Data.DisabledEventNodes = null;
 #if UNITY_EDITOR
                     m_Data.EventNodeProperties = null;
                     m_Data.LogicNodeProperties = null;
+                    m_Data.SharedVariableGroups = null;
                     m_Data.GroupProperties = null;
 #endif
                 }
@@ -253,7 +261,7 @@ namespace Opsive.BehaviorDesigner.Runtime
 
             // The local behavior tree variables should be used.
             m_Data.DeserializeSharedVariables(force);
-            if (m_Subtree.DeserializeSharedVariables(force || !Application.isPlaying) && Application.isPlaying && !m_SubtreeOverride && m_Data.SharedVariables != null) {
+            if (m_Subtree.DeserializeSharedVariables(force) && Application.isPlaying && !m_SubtreeOverride && m_Data.SharedVariables != null) {
                 // Set the binding on the subtree before the tasks are loaded. This is necessary because a new SharedVariable instance may need to be created.
                 for (int i = 0; i < m_Data.SharedVariables.Length; ++i) {
                     m_Subtree.Data.OverrideVariableBinding(this, m_Data.SharedVariables[i]);
@@ -266,24 +274,7 @@ namespace Opsive.BehaviorDesigner.Runtime
 
             // Copy the deserialized objects at runtime to ensure each object is unique.
             if (Application.isPlaying && !m_SubtreeOverride) {
-                m_Data.EventNodes = m_Subtree.Data.EventNodes;
-                m_Data.LogicNodes = m_Subtree.Data.LogicNodes;
-                m_Data.SubtreeNodesReferences = m_Subtree.Data.SubtreeNodesReferences;
-                var originalSharedVariables = m_Data.SharedVariables;
-                m_Data.SharedVariables = m_Subtree.Data.SharedVariables;
-                m_Data.VariableByNameMap = m_Subtree.Data.VariableByNameMap;
-                // The original tree variable value should override the subtree variable value.
-                if (originalSharedVariables != null) {
-                    for (int i = 0; i < originalSharedVariables.Length; ++i) {
-                        m_Data.OverrideVariableValue(this, originalSharedVariables[i]);
-                    }
-                }
-#if UNITY_EDITOR
-                m_Data.EventNodeProperties = m_Subtree.Data.EventNodeProperties;
-                m_Data.LogicNodeProperties = m_Subtree.Data.LogicNodeProperties;
-                m_Data.SharedVariableGroups = m_Subtree.Data.SharedVariableGroups;
-                m_Data.GroupProperties = m_Subtree.Data.GroupProperties;
-#endif
+                m_Data.OverrideData(this, m_Subtree.Data, m_Data.SharedVariables);
                 m_GameObject = gameObject;
                 m_SubtreeOverride = true;
             }
@@ -405,7 +396,7 @@ namespace Opsive.BehaviorDesigner.Runtime
 
             if (s_BehaviorTreeByEntity.ContainsKey(entity)) {
                 // The behavior tree may be paused.
-                if (world.EntityManager.HasComponent<EnabledFlag>(entity) && !world.EntityManager.IsComponentEnabled<EnabledFlag>(entity)) {
+                if (IsPaused(world, entity)) {
                     world.EntityManager.SetComponentEnabled<EnabledFlag>(entity, true);
                     if (OnBehaviorTreeStarted != null) {
                         OnBehaviorTreeStarted();
@@ -1085,7 +1076,9 @@ namespace Opsive.BehaviorDesigner.Runtime
             if (world.EntityManager.HasComponent<EnabledFlag>(entity)) {
                 world.EntityManager.SetComponentEnabled<EnabledFlag>(entity, false);
             }
-            world.EntityManager.SetComponentEnabled<EvaluateFlag>(entity, false);
+            if (world.EntityManager.HasComponent<EvaluateFlag>(entity)) {
+                world.EntityManager.SetComponentEnabled<EvaluateFlag>(entity, false);
+            }
 
             if (!s_BehaviorTreeByEntity.ContainsKey(entity)) {
                 return false;
@@ -1199,9 +1192,6 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <param name="entity">The entity that contains the behavior tree.</param>
         private void ClearTree()
         {
-            if (m_Entity == Entity.Null) {
-                return;
-            }
             ClearTree(m_World, m_Entity);
         }
 
@@ -1212,7 +1202,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <param name="entity">The entity that contains the behavior tree.</param>
         private void ClearTree(World world, Entity entity)
         {
-            if (Data.LogicNodes == null) {
+            if (world == null || entity == Entity.Null || Data.LogicNodes == null) {
                 return;
             }
 
@@ -1722,10 +1712,43 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <returns>True if the behavior tree is active.</returns>
         public bool IsActive()
         {
-            if (m_Entity == Entity.Null) {
+            return IsActive(m_Entity);
+        }
+
+        /// <summary>
+        /// Returns true if the behavior tree is active.
+        /// </summary>
+        /// <param name="entity">The entity that contains the behavior tree.</param>
+        /// <returns>True if the behavior tree is active.</returns>
+        public bool IsActive(Entity entity)
+        {
+            if (entity == Entity.Null) {
                 return false;
             }
-            return s_BehaviorTreeByEntity.ContainsKey(m_Entity);
+            return s_BehaviorTreeByEntity.ContainsKey(entity);
+        }
+
+        /// <summary>
+        /// Returns true if the behavior tree is paused.
+        /// </summary>
+        /// <returns>True if the behavior tree is paused.</returns>
+        public bool IsPaused()
+        {
+            return IsPaused(m_World, m_Entity);
+        }
+
+        /// <summary>
+        /// Returns true if the behavior tree is paused.
+        /// </summary>
+        /// <param name="world">The world that the entity exists in.</param>
+        /// <param name="entity">The entity that contains the behavior tree.</param>
+        /// <returns>True if the behavior tree is paused.</returns>
+        public bool IsPaused(World world, Entity entity)
+        {
+            if (!IsActive(entity)) {
+                return false;
+            }
+            return world.EntityManager.HasComponent<EnabledFlag>(entity) && !world.EntityManager.IsComponentEnabled<EnabledFlag>(entity);
         }
 
         /// <summary>
@@ -1738,6 +1761,8 @@ namespace Opsive.BehaviorDesigner.Runtime
             m_Data.EventNodes = other.EventNodes;
             m_Data.LogicNodes = other.LogicNodes as ITreeLogicNode[];
             m_Data.SharedVariables = other.SharedVariables;
+            m_Data.DisabledLogicNodes = other.DisabledLogicNodes;
+            m_Data.DisabledEventNodes = other.DisabledEventNodes;
 
 #if UNITY_EDITOR
             m_Data.EventNodeProperties = other.EventNodeProperties;
@@ -1756,6 +1781,18 @@ namespace Opsive.BehaviorDesigner.Runtime
         public override string ToString()
         {
             return $"{m_GraphName} (Index {m_Index})";
+        }
+
+        /// <summary>
+        /// Returns the hashcode of the graph.
+        /// </summary>
+        /// <returns>The hashcode of the graph.</returns>
+        public override int GetHashCode()
+        {
+            if (m_Subtree != null) {
+                return m_Subtree.GetHashCode();
+            }
+            return base.GetHashCode();
         }
 
         /// <summary>

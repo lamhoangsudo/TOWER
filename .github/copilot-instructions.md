@@ -1,8 +1,4 @@
 <!-- UNITY CODE ASSIST INSTRUCTIONS START -->
 - Project name: TOWER
-- Unity version: Unity 6000.2.2f1
-- Active game object:
-  - Name: WorldPointView
-  - Tag: Untagged
-  - Layer: Default
+- Unity version: Unity 6000.2.5f1
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

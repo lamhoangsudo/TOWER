@@ -64,18 +64,6 @@ partial struct BarrelAnimatorSystem : ISystem
                 case Enum.WeaponFiringPattern.MissileLauncher:
                 case Enum.WeaponFiringPattern.Individual:
                     if (!barrelAnimator.animationPlaying) break;
-                    /*
-                    float elapsed = ElapsedTime - barrelAnimator.lastFireTime;
-                    float progress = math.clamp(elapsed / barrelAnimator.animationDuration, 0f, 1f);
-                    ref BarrelAnimatorCurveBlob blob = ref barrelAnimator.curveBlob.Value;
-                    int sampleCount = blob.sampleCount;
-                    float sampleT = progress * (sampleCount - 1);
-                    int idx0 = (int)math.floor(sampleT);
-                    int idx1 = math.min(idx0 + 1, sampleCount - 1);
-                    float frac = sampleT - idx0;
-                    float slideValue = math.lerp(blob.slideCurve[idx0], blob.slideCurve[idx1], frac);
-                    float rotationValue = math.lerp(blob.rotationCurve[idx0], blob.rotationCurve[idx1], frac);
-                    */
                     CaculatorSlideValueRotationValueProgress(ElapsedTime, barrelAnimator, out float progress, out float slideValue, out float rotationValue);
                     LocalTransform baseTransformWritter = _LocalTransformLookUp[barrelAnimator.barrelBaseEntity];
                     if (barrelAnimator.barrelBaseEntity != Entity.Null)

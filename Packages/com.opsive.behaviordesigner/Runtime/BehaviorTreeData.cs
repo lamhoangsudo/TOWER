@@ -86,6 +86,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         public ushort[] DisabledLogicNodes { get => m_DisabledLogicNodes; set => m_DisabledLogicNodes = value; }
         public ushort[] DisabledEventNodes { get => m_DisabledEventNodes; set => m_DisabledEventNodes = value; }
         internal Dictionary<VariableAssignment, SharedVariable> VariableByNameMap { get => m_VariableByNameMap; set => m_VariableByNameMap = value; }
+        internal int RuntimeUniqueID { set => m_RuntimeUniqueID =  value; }
 
 #if UNITY_EDITOR
         [Tooltip("The serialized logic node properties data.")]
@@ -358,7 +359,10 @@ namespace Opsive.BehaviorDesigner.Runtime
         public bool Deserialize(IGraphComponent graphComponent, IGraph graph, bool force, bool forceSharedVariables, bool injectSubtrees, bool canDeepCopyVariables = true, SharedVariableOverride[] sharedVariableOverrides = null)
         {
             // No need to deserialize if the data is already deserialized.
-            if (((m_Tasks != null && m_TaskData != null && m_Tasks.Length == m_TaskData.Length) || (m_EventTasks != null && m_EventTaskData != null && m_EventTasks.Length == m_EventTaskData.Length) || (m_SharedVariables != null && m_SharedVariableData != null && m_SharedVariables.Length == m_SharedVariableData.Length)) && !force) {
+            if (!force && ((m_Tasks != null && m_TaskData != null && m_Tasks.Length == m_TaskData.Length) || (m_EventTasks != null && m_EventTaskData != null && m_EventTasks.Length == m_EventTaskData.Length))) {
+                // SharedVariables may still need to be deserialized separately.
+                DeserializeSharedVariables(false, sharedVariableOverrides);
+
                 if (Application.isPlaying && m_RuntimeUniqueID == 0) {
                     m_RuntimeUniqueID = m_UniqueID;
                 }
@@ -1580,17 +1584,52 @@ namespace Opsive.BehaviorDesigner.Runtime
         }
 
         /// <summary>
+        /// Replaces the data with the specified BehaviorTreeData.
+        /// </summary>
+        /// <param name="graph">The graph that the current data belongs to.</param>
+        /// <param name="other">The data that should be replaced.</param>
+        /// <param name="originalSharedVariables">The SharedVariables of the current graph.</param>
+        internal void OverrideData(IGraph graph, BehaviorTreeData other, SharedVariable[] originalSharedVariables)
+        {
+            EventNodes = other.EventNodes;
+            LogicNodes = other.LogicNodes;
+            SubtreeNodesReferences = other.SubtreeNodesReferences;
+            SharedVariables = other.SharedVariables;
+            m_SharedVariableData = other.m_SharedVariableData;
+            VariableByNameMap = other.VariableByNameMap;
+            DisabledLogicNodes = other.DisabledLogicNodes;
+            DisabledEventNodes = other.DisabledEventNodes;
+            // The original tree variable value should override the other variable value.
+            if (originalSharedVariables != null) {
+                var dirty = false;
+                for (int i = 0; i < originalSharedVariables.Length; ++i) {
+                    dirty = OverrideVariableValue(graph, originalSharedVariables[i]) || dirty;
+                }
+                if (dirty) {
+                    m_VariableByNameMap = PopulateSharedVariablesMapping(graph, true);
+                }
+            }
+#if UNITY_EDITOR
+            EventNodeProperties = other.EventNodeProperties;
+            LogicNodeProperties = other.LogicNodeProperties;
+            SharedVariableGroups = other.SharedVariableGroups;
+            m_SharedVariableGroupsData = other.m_SharedVariableGroupsData;
+            GroupProperties = other.GroupProperties;
+#endif
+        }
+
+        /// <summary>
         /// Overrides the SharedVariable value. The name must match an exsting variable.
         /// </summary>
         /// <param name="graph">The graph that the data belongs to.</typeparam>
         /// <param name="variable">The reference to the SharedVariable.</param>
-        internal void OverrideVariableValue(IGraph graph, SharedVariable variable)
+        /// <returns>True if the value was overridden.</returns>
+        internal bool OverrideVariableValue(IGraph graph, SharedVariable variable)
         {
             if (string.IsNullOrEmpty(variable.Name)) {
-                return;
+                return false;
             }
 
-            DeserializeSharedVariables(false, null);
             var dirty = false;
             if (m_SharedVariables != null) {
                 for (int i = 0; i < m_SharedVariables.Length; ++i) {
@@ -1605,9 +1644,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                 }
             }
 
-            if (dirty) {
-                m_VariableByNameMap = PopulateSharedVariablesMapping(graph, true);
-            }
+            return dirty;
         }
 
         /// <summary>
