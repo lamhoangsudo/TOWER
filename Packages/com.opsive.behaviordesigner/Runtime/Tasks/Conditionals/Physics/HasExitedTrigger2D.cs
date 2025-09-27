@@ -33,6 +33,16 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals.Physics
         }
 
         /// <summary>
+        /// The task has ended.
+        /// </summary>
+        public override void OnEnd()
+        {
+            base.OnEnd();
+
+            m_ExitedTrigger = false;
+        }
+
+        /// <summary>
         /// The agent has exited a trigger.
         /// </summary>
         /// <param name="other">The trigger that the agent exited.</param>

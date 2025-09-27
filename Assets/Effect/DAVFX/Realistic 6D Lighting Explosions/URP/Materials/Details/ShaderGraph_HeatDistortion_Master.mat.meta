@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e792109efbda21b409d39d983d41594e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 291615
+  packageName: Realistic 6D Lighting Explosions Pack
+  packageVersion: 2.1.0
+  assetPath: Assets/DAVFX/Realistic 6D Lighting Explosions/URP/Materials/Details/ShaderGraph_HeatDistortion_Master.mat
+  uploadId: 775730

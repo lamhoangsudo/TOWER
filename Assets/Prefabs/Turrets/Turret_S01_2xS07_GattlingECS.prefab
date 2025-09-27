@@ -234,11 +234,11 @@ MonoBehaviour:
   elevationLimited: 0
   headingPivot: {fileID: 4582611416663076575}
   elevationPivot: {fileID: 3195746061428380820}
-  target: {fileID: 0}
   useTargetPrediction: 0
   autoFire: 1
   targetAquiredAngle: 0.5
   resetOrientation: 0
+  Target: {fileID: 0}
 --- !u!114 &6232977514682981026
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -409,6 +409,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 388774924886843770}
     m_Modifications:
+    - target: {fileID: 544851320069350814, guid: 99f97af2428276d439d085dad9023d45, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 544851320069350814, guid: 99f97af2428276d439d085dad9023d45, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 544851320069350814, guid: 99f97af2428276d439d085dad9023d45, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1551224629331159227, guid: 99f97af2428276d439d085dad9023d45, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7300555443607577686, guid: 99f97af2428276d439d085dad9023d45, type: 3}
       propertyPath: m_Name
       value: Gun_S07_GatlingECS

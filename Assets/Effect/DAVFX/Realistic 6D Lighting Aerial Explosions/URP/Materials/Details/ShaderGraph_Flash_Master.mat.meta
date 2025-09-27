@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 47095f68d3f72d94db2d5f5c7ae405fb
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 311624
+  packageName: Realistic 6D Lighting Aerial Explosions Pack
+  packageVersion: 1.0.3
+  assetPath: Assets/DAVFX/Realistic 6D Lighting Aerial Explosions/URP/Materials/Details/ShaderGraph_Flash_Master.mat
+  uploadId: 793556

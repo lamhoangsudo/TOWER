@@ -358,7 +358,7 @@ public partial struct {name}TaskSystem : ISystem
                 var {variableName}Component = {variableName}Components[i];
                 var taskComponent = taskComponents[{variableName}Component.Index];
 
-                if (taskComponent.Status == TaskStatus.Queued) {{
+                if (taskComponent.Status == TaskStatus.Queued || taskComponent.Status == TaskStatus.Running) {{ // Conditional aborts can set the status to Running.
                     taskComponent.Status = TaskStatus.Success;
                     taskComponents[{variableName}Component.Index] = taskComponent;
                 }}

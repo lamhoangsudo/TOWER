@@ -33,6 +33,16 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals.Physics
         }
 
         /// <summary>
+        /// The task has ended.
+        /// </summary>
+        public override void OnEnd()
+        {
+            base.OnEnd();
+
+            m_EnteredCollision = false;
+        }
+
+        /// <summary>
         /// The agent has caused a collision.
         /// </summary>
         /// <param name="collision">The collision that caused the event.</param>

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 780de6100da238648b23563f52fc856a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 291615
+  packageName: Realistic 6D Lighting Explosions Pack
+  packageVersion: 2.1.0
+  assetPath: Assets/DAVFX/Realistic 6D Lighting Explosions/URP/Materials/Demo Scene/M_Explosions_Base.mat
+  uploadId: 775730

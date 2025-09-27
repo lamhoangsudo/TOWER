@@ -270,17 +270,9 @@ partial struct BarrelAnimatorSystem : ISystem
     public static EffectWeaponShoot WritterEffectWeaponShootData(BarrelAnimator barrelAnimator, EffectWeaponShoot effectWritter, LocalTransform spawnLocalTransform)
     {
         Unity.Mathematics.Random random = barrelAnimator.random;
-        float startScale = 1f + random.NextFloat(-1f, 1f) * effectWritter.scaleVariance / 2f;
-        float endScale = startScale * random.NextFloat(0.6f, 0.8f);
-        float startLength = 1f + random.NextFloat(-1f, 1f) * effectWritter.lengthVariance / 2f;
-        float endLength = startLength * random.NextFloat(1.75f, 3f);
         float randomZ = random.NextFloat(-180f, 180f);
         float pitch = math.clamp(barrelAnimator.sfxPitch + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
         float volume = math.clamp(barrelAnimator.sfxVolume + random.NextFloat(-1f, 1f) * 0.25f / 2f, 0.2f, 4f);
-        effectWritter.startScale = startScale;
-        effectWritter.endScale = endScale;
-        effectWritter.startLength = startLength;
-        effectWritter.endLength = endLength;
         effectWritter.sfxPitch = pitch;
         effectWritter.sfxVolume = volume;
         effectWritter.elapsedTime = effectWritter.muzzleFlashDuration;

@@ -1,0 +1,28 @@
+fileFormatVersion: 2
+guid: 4a4996349f3f89640b9dde6abe18d76b
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - Turret Road
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 311624
+  packageName: Realistic 6D Lighting Aerial Explosions Pack
+  packageVersion: 1.0.3
+  assetPath: Assets/DAVFX/Realistic 6D Lighting Aerial Explosions/Common/Font/TurretRoad-ExtraLight.otf
+  uploadId: 793556

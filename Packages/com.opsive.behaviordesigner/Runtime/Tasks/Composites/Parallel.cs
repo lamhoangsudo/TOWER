@@ -201,8 +201,8 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
 
                     // If a single child fails then all tasks should be stopped.
                     if (childrenFailure) {
-                        var maxChildIndex = math.min(taskComponent.SiblingIndex, taskComponents.Length);
-                        for (ushort j = (ushort)(taskComponent.Index + 1); j < maxChildIndex; ++j) {
+                        var maxChildIndex = taskComponent.Index + TraversalUtility.GetChildCount(taskComponent.Index, ref taskComponents);
+                        for (ushort j = (ushort)(taskComponent.Index + 1); j <= maxChildIndex; ++j) {
                             childTaskComponent = taskComponents[j];
                             if (childTaskComponent.Status == TaskStatus.Running || childTaskComponent.Status == TaskStatus.Queued) {
                                 childTaskComponent.Status = TaskStatus.Failure;

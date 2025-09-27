@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 6D Lighting Shader Air Explosion 2
+  m_Shader: {fileID: -6465566751694194690, guid: cfffdbbf7311bd0439e4e2234bc4ee15, type: 3}
+  m_Parent: {fileID: -876546973899608171, guid: cfffdbbf7311bd0439e4e2234bc4ee15, type: 3}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _EMISSIVE_HIGHLIGHTS
+  - _ENABLE_EMISSION_MAP
+  - _ENABLE_MOTION_VECTOR
+  - _ENABLE_SIX_POINT_LIGHTING
+  m_InvalidKeywords:
+  - _BOOLEAN
+  - _RENDERTYPE_DIFFUSESIXPOINT
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: 1cb7752bb03b14a4c990016a63bb0a40, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 2800000, guid: 04664a39a9e66f643be5d5d3f612cdd5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Motion_Vector_Texture:
+        m_Texture: {fileID: 2800000, guid: 52169a3e5f66d7743987e3d9912e420a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SixPointNEG:
+        m_Texture: {fileID: 2800000, guid: 077e84963b5849e4aafd84feae46c3b2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SixPointPOS:
+        m_Texture: {fileID: 2800000, guid: 11d88b093d4b3fb4486013b3fa9a4405, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Alpha_Contrast: 1.45
+    - _Customize_Color: 0
+    - _Cutoff: 0.01
+    - _DepthLenght: 0.01
+    - _EMISSIVE_HIGHLIGHTS: 1
+    - _EmissionMultiplier: 14.41
+    - _Emissive_Highlights: 1
+    - _Emissive_Highlights_Amount: 0.025
+    - _Emissive_Highlights_Contrast: 1.213
+    - _Emissive_Highlights_Multiplier: 27.6
+    - _Emissive_Highlights_Softness: 1.5
+    - _Flipbook_Columns: 7
+    - _Flipbook_Rows: 7
+    - _Highlights_Contrast: 2.28
+    - _Hue: 0
+    - _Lightness: 1.15
+    - _Motion_Vector_Influence: 0.00085
+    - _QueueControl: 0
+    - _RENDERTYPE: 2
+    - _ShadowMultiplier: 0.35
+    - _Smoke_Contrast: 1.01
+    m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 1, g: 0.8587724, b: 0.794, a: 0}
+    - _Emissive_Highlights_Color: {r: 1, g: 0.34827587, b: 0.100000024, a: 0}
+    - _Emissive_Highlights_Remap: {r: 0, g: 1, b: 0, a: 0}
+    - _Fire_Color: {r: 11.984313, g: 0.65267706, b: 0, a: 0}
+    - _Highlights_Color: {r: 59.017693, g: 15.173822, b: 1.8539591, a: 0}
+    - _Smoke_Color: {r: 0.87169814, g: 0.87169814, b: 0.87169814, a: 0}
+    - _Smoke_Color_2: {r: 0.5924529, g: 0.5924529, b: 0.5924529, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!114 &5987196093576238232
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 10

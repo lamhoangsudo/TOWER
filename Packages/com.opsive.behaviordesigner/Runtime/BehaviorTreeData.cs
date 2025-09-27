@@ -792,11 +792,11 @@ namespace Opsive.BehaviorDesigner.Runtime
                     }
 
                     if (m_SharedVariables[i] == null) {
-                        m_SharedVariables[i] = new UnknownSharedVariable();
-                        m_SharedVariables[i].Name = m_SharedVariableData[i].ObjectType + UnityEngine.Random.value;
+                        var unknownSharedVariableData = m_SharedVariableData[i];
+                        unknownSharedVariableData.ObjectType = typeof(UnknownSharedVariable).FullName;
+                        m_SharedVariables[i] = unknownSharedVariableData.DeserializeFields(MemberVisibility.Public) as SharedVariable;
 
-                        Debug.LogError($"Error: Unable to deserialize SharedVariable of type {m_SharedVariableData[i].ObjectType}.");
-                        continue;
+                        Debug.LogError($"Error: Unable to deserialize SharedVariable {m_SharedVariables[i].Name} of type {m_SharedVariableData[i].ObjectType}.");
                     }
 
                     // The override variable can set a value specific for the subtree.

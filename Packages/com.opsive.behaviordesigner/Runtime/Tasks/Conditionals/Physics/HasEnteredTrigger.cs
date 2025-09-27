@@ -6,7 +6,6 @@
 /// ---------------------------------------------
 namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals.Physics
 {
-    using Opsive.GraphDesigner.Runtime;
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
@@ -30,6 +29,16 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals.Physics
         public override TaskStatus OnUpdate()
         {
             return m_EnteredTrigger ? TaskStatus.Success : TaskStatus.Failure;
+        }
+
+        /// <summary>
+        /// The task has ended.
+        /// </summary>
+        public override void OnEnd()
+        {
+            base.OnEnd();
+
+            m_EnteredTrigger = false;
         }
 
         /// <summary>
