@@ -123,7 +123,9 @@ partial struct ProjectTileCollisionSystem : ISystem
                         collisionFilter = new()
                         {
                             BelongsTo = ~0u,
-                            CollidesWith = ~0u,
+                            //layer 3 is enemy layer
+                            //layer 7 is ground layer
+                            CollidesWith = 1u << 3,
                             GroupIndex = 0,
                         };
                         raycastInput = new()
@@ -136,6 +138,7 @@ partial struct ProjectTileCollisionSystem : ISystem
                         {
                             if (targetTargetLookup.HasComponent(raycastHit.Entity))
                             {
+                                //explosion
                                 Entity projectileExplosionEntity = ecb.Instantiate(unfilteredChunkIndex, projecTile.projectileExplosion);
                                 ecb.SetComponent<LocalTransform>(unfilteredChunkIndex, projectileExplosionEntity, new LocalTransform
                                 {
@@ -143,6 +146,11 @@ partial struct ProjectTileCollisionSystem : ISystem
                                     Rotation = quaternion.identity,
                                     Scale = 1f,
                                 });
+                                ecb.DestroyEntity(unfilteredChunkIndex, entity);
+                            }
+                            else
+                            {
+                                //ground explosion
                                 ecb.DestroyEntity(unfilteredChunkIndex, entity);
                             }
                         }

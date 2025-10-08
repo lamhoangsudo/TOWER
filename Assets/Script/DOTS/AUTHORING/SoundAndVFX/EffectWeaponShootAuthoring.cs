@@ -6,6 +6,7 @@ using UnityEngine.VFX;
 public class EffectWeaponShootAuthoring : MonoBehaviour
 {
     public Light lightEffect;
+    public VisualEffect visualEffect;
     public float muzzleFlashDuration;
     public float lightIntensity;
     public class EffectWeaponShootAuthoringBaker : Baker<EffectWeaponShootAuthoring>
@@ -17,6 +18,7 @@ public class EffectWeaponShootAuthoring : MonoBehaviour
             {
                 muzzleFlashDuration = authoring.muzzleFlashDuration,
                 lightEffect = GetEntity(authoring.lightEffect, TransformUsageFlags.Dynamic),
+                visualEffect = GetEntity(authoring.visualEffect, TransformUsageFlags.Dynamic),
                 elapsedTime = authoring.muzzleFlashDuration,
                 sfxPitch = 0f,
                 sfxVolume = 0f,
@@ -30,6 +32,7 @@ public class EffectWeaponShootAuthoring : MonoBehaviour
 public struct EffectWeaponShoot : IComponentData
 {
     public Entity lightEffect;
+    public Entity visualEffect;
     public float muzzleFlashDuration;
     public float elapsedTime;
     public float sfxPitch;

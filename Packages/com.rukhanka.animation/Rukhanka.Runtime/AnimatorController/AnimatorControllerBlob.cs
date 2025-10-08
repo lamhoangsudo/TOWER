@@ -89,6 +89,10 @@ public struct LayerBlob
 #endif
 	public int defaultStateIndex;
 	public float initialWeight;
+	public int syncedLayerIndex;
+	//	syncedTiming acts as a bool (v != 0) for layers that have syncedLayerIndex >= 0. Base layer state speed also
+	//	need to be adjusted, so syncedTiming acts as index to synced layer for weight lerp computation
+	public int syncedTiming;
 	public AnimationBlendingMode blendingMode;
 	public BlobArray<StateBlob> states;
 	public Hash128 avatarMaskBlobHash;
@@ -98,6 +102,16 @@ public struct LayerBlob
 
 public struct TransitionBlob
 {
+	//	Just a copy of UnityEditor.Animations.TransitionInterruptionSource
+	//	I cannot use original enum because it is in editor assembly
+	public enum InterruptionSource
+	{
+		None,
+		Source,
+		Destination,
+		SourceThenDestination,
+		DestinationThenSource,
+	}
 #if RUKHANKA_DEBUG_INFO
 	public BlobString name;
 #endif
@@ -109,6 +123,8 @@ public struct TransitionBlob
 	public float offset;
 	public bool hasExitTime;
 	public bool hasFixedDuration;
+	public InterruptionSource interruptionSource;
+	public bool orderedInterruption;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

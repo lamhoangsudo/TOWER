@@ -11,5 +11,5 @@ AssetOrigin:
   productId: 319891
   packageName: Modular Turret System
   packageVersion: 1.0.1
-  assetPath: Assets/ThirdParty/VattalusAssets/ModularTurretSystem/Materials/MuzzleFlashes/MuzzleFlash_01_Orange.mat
-  uploadId: 758770
+  assetPath: Assets/Materials/Effect/MuzzleFlash_01_Orange.mat
+  uploadId: 797336

@@ -16,9 +16,9 @@ public class BlobCache: AssetPostprocessor
 {
     //  Need to have two separate versions because blobs are different depending on RUKHANKA_DEBUG_INFO
 #if RUKHANKA_DEBUG_INFO
-    static readonly int BLOB_VERSION = 4;
+    static readonly int BLOB_VERSION = 6;
 #else
-    static readonly int BLOB_VERSION = 5;
+    static readonly int BLOB_VERSION = 7;
 #endif
     public static string GetBlobCacheDirPath() => $"{Environment.CurrentDirectory.Replace('\\', '/')}/Library/Rukhanka.Animation";
     public static string GetAnimationBlobCacheDirPath() => GetBlobCacheDirPath() + "/AnimationCache";

@@ -79,6 +79,8 @@ public struct Transition
 	public bool muteFlag;
 	public bool canTransitionToSelf;
 	public int targetStateHash;
+	public TransitionBlob.InterruptionSource interruptionSource;
+	public bool orderedInterruption;
 	public UnsafeList<Condition> conditions;
 }
 
@@ -99,6 +101,8 @@ public struct Layer
 	public FixedStringName name;
 	public int defaultStateIndex;
 	public float weight;
+	public int syncedLayerIndex;
+	public bool syncedTiming;
 	public AnimationBlendingMode blendMode;
 	public UnsafeList<Transition> anyStateTransitions;
 	public UnsafeList<State> states;

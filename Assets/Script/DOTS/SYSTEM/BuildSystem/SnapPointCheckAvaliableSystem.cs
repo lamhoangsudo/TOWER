@@ -6,7 +6,7 @@ using Unity.Physics;
 using Unity.Physics.Systems;
 using Unity.Transforms;
 using UnityEngine;
-[UpdateAfter(typeof(SetUpDataNewBuildingSystem))]
+//[UpdateAfter(typeof(SetUpDataNewBuildingSystem))]
 public partial struct SnapPointCheckAvaliableSystem : ISystem
 {
     [BurstCompile]
@@ -19,63 +19,16 @@ public partial struct SnapPointCheckAvaliableSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        //foreach ((DynamicBuffer<SnapPointsDirectionBuffer> snapPointsDirectionBuffers, EnabledRefRW<IsCheckSnapPoint> isCheckSnapPointEnabled, Entity entity) in SystemAPI.Query<DynamicBuffer<SnapPointsDirectionBuffer>, EnabledRefRW<IsCheckSnapPoint>>().WithEntityAccess())
+        //EntityCommandBuffer ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
+        //CollisionWorld collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+        //SnapPointCheckAvaliableJob snapPointCheckAvaliableJob = new()
         //{
-        //    if (isCheckSnapPointEnabled.ValueRO == false) continue;
-        //    for (int i = 0; i < snapPointsDirectionBuffers.Length; i++)
-        //    {
-        //        DynamicBuffer<SnapPointBuffer> snapPointBuffers = SystemAPI.GetBuffer<SnapPointBuffer>(snapPointsDirectionBuffers[i].SnapPointsDirectionEntity);
-        //        for (int j = 0; j < snapPointBuffers.Length; j++)
-        //        {
-        //            SnapPointBuffer snapPointBuffer = snapPointBuffers[j];
-        //            CollisionWorld collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
-        //            RaycastInput raycastInput = new()
-        //            {
-        //                Start = snapPointBuffers[j].snapPointPosition,
-        //                End = snapPointBuffers[j].snapPointPosition + snapPointsDirectionBuffers[i].directionVector * 0.1f,
-        //                Filter = new CollisionFilter
-        //                {
-        //                    BelongsTo = ~0u,
-        //                    CollidesWith = 1u << 8,
-        //                    GroupIndex = 0,
-        //                }
-        //            };
-        //            bool check = false;
-        //            MyCollector.IgnoreEntityCollector ignoreEntityCollector = new(entity, 1.0f, Allocator.Temp);
-        //            if (collisionWorld.CastRay(raycastInput, ref ignoreEntityCollector))
-        //            {
-        //                if (ignoreEntityCollector.Hits.Length > 0)
-        //                {
-        //                    check = true;
-        //                }
-        //            }
-        //            else
-        //            {
-        //                check = false;
-        //            }
-        //            if(snapPointBuffer.isOccupied != check)
-        //            {
-        //                snapPointBuffer.isOccupied = check;
-        //                snapPointBuffers[j] = snapPointBuffer;
-        //            }
-        //        }
-        //    }
-        //    isCheckSnapPointEnabled.ValueRW = false;
-        //}
-        //EntityCommandBuffer ecb = new(Allocator.TempJob);
-        EntityCommandBuffer ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
-        CollisionWorld collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
-        SnapPointCheckAvaliableJob snapPointCheckAvaliableJob = new()
-        {
-            ecb = ecb.AsParallelWriter(),
-            collisionWorld = collisionWorld,
-            snapPointBufferLookUp = SystemAPI.GetBufferLookup<SnapPointBuffer>(isReadOnly: true),
-            snapPointsDirectionBufferLookUp = SystemAPI.GetBufferLookup<SnapPointsDirectionBuffer>(isReadOnly: true),
-        };
-        snapPointCheckAvaliableJob.ScheduleParallel();
-        //jobHandle.Complete();
-        //ecb.Playback(state.EntityManager);
-        //ecb.Dispose();
+        //    ecb = ecb.AsParallelWriter(),
+        //    collisionWorld = collisionWorld,
+        //    snapPointBufferLookUp = SystemAPI.GetBufferLookup<SnapPointBuffer>(isReadOnly: true),
+        //    snapPointsDirectionBufferLookUp = SystemAPI.GetBufferLookup<SnapPointsDirectionBuffer>(isReadOnly: true),
+        //};
+        //snapPointCheckAvaliableJob.ScheduleParallel();
     }
 
     [BurstCompile]

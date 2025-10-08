@@ -260,21 +260,21 @@ namespace Opsive.BehaviorDesigner.Runtime
             }
 
             // The local behavior tree variables should be used.
-            m_Data.DeserializeSharedVariables(force);
-            if (m_Subtree.DeserializeSharedVariables(force) && Application.isPlaying && !m_SubtreeOverride && m_Data.SharedVariables != null) {
+            m_Data.DeserializeSharedVariables(this, force, false);
+            if (m_Subtree.DeserializeSharedVariables(force || (Application.isPlaying && !m_SubtreeOverride)) && Application.isPlaying && !m_SubtreeOverride && m_Data.SharedVariables != null) {
                 // Set the binding on the subtree before the tasks are loaded. This is necessary because a new SharedVariable instance may need to be created.
                 for (int i = 0; i < m_Data.SharedVariables.Length; ++i) {
                     m_Subtree.Data.OverrideVariableBinding(this, m_Data.SharedVariables[i]);
                 }
             }
 
-            if (!m_Subtree.Deserialize(force, false, Application.isPlaying, false)) {
+            if (!m_Subtree.Deserialize(force || (Application.isPlaying && !m_Subtree.Pooled && !m_SubtreeOverride), false, Application.isPlaying, false)) {
                 return false;
             }
 
             // Copy the deserialized objects at runtime to ensure each object is unique.
             if (Application.isPlaying && !m_SubtreeOverride) {
-                m_Data.OverrideData(this, m_Subtree.Data, m_Data.SharedVariables);
+                m_Data.OverrideData(this, m_Subtree.Data, m_Data.SharedVariables, m_Subtree.Pooled);
                 m_GameObject = gameObject;
                 m_SubtreeOverride = true;
             }

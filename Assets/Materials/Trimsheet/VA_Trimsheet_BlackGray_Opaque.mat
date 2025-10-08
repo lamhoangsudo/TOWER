@@ -9,8 +9,6 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: VA_Trimsheet_BlackGray_Opaque
   m_Shader: {fileID: 4800000, guid: 5f3e5ad1686d8d346ba022aed50f1bcf, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _EMISSION
   - _METALLICGLOSSMAP
@@ -22,7 +20,6 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -162,4 +159,3 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
-  m_AllowLocking: 1

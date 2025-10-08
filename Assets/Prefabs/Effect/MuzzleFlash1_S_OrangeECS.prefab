@@ -27,7 +27,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 717953748520622133}
@@ -47,6 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lightEffect: {fileID: 2321277155883260270}
+  visualEffect: {fileID: 7017722048329534381}
   muzzleFlashDuration: 0.01
   lightIntensity: 3
 --- !u!1 &2321277155883260264
@@ -699,6 +700,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Muzzle Flash Directional 4
       objectReference: {fileID: 0}
+    - target: {fileID: 7986100763639925423, guid: 7bc1f4787fdc4224eacbd1d2405dc83c, type: 3}
+      propertyPath: m_PropertySheet.m_Bool.m_Array.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986100763639925423, guid: 7bc1f4787fdc4224eacbd1d2405dc83c, type: 3}
+      propertyPath: m_PropertySheet.m_Bool.m_Array.Array.data[4].m_Name
+      value: Single Burst Mode
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986100763639925423, guid: 7bc1f4787fdc4224eacbd1d2405dc83c, type: 3}
+      propertyPath: m_PropertySheet.m_Bool.m_Array.Array.data[4].m_Value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986100763639925423, guid: 7bc1f4787fdc4224eacbd1d2405dc83c, type: 3}
+      propertyPath: m_PropertySheet.m_Bool.m_Array.Array.data[4].m_Overridden
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -707,5 +724,10 @@ PrefabInstance:
 --- !u!4 &717953748520622133 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 450657316402583863, guid: 7bc1f4787fdc4224eacbd1d2405dc83c, type: 3}
+  m_PrefabInstance: {fileID: 1132551198056907010}
+  m_PrefabAsset: {fileID: 0}
+--- !u!2083052967 &7017722048329534381 stripped
+VisualEffect:
+  m_CorrespondingSourceObject: {fileID: 7986100763639925423, guid: 7bc1f4787fdc4224eacbd1d2405dc83c, type: 3}
   m_PrefabInstance: {fileID: 1132551198056907010}
   m_PrefabAsset: {fileID: 0}

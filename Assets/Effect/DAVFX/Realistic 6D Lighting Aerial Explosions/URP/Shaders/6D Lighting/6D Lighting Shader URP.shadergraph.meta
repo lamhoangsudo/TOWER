@@ -12,7 +12,7 @@ AssetOrigin:
   serializedVersion: 1
   productId: 311624
   packageName: Realistic 6D Lighting Aerial Explosions Pack
-  packageVersion: 1.0.3
-  assetPath: Assets/DAVFX/Realistic 6D Lighting Aerial Explosions/URP/Shaders/6D
+  packageVersion: 1.1
+  assetPath: Assets/Effect/DAVFX/Realistic 6D Lighting Aerial Explosions/URP/Shaders/6D
     Lighting/6D Lighting Shader URP.shadergraph
-  uploadId: 793556
+  uploadId: 799624

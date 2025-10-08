@@ -9,7 +9,7 @@ public partial class WorldPointViewTrackSystem : SystemBase
     }
     protected override void OnStartRunning()
     {
-        playerEntity = SystemAPI.GetSingletonEntity<PlayerTag>();
+        //playerEntity = SystemAPI.GetSingletonEntity<PlayerTag>();
     }
     protected override void OnUpdate()
     {

@@ -28,6 +28,8 @@ internal class AnimatorControllerDataCollector
 		public bool canTransitionToSelf;
 		public string ownStateName;
 		public string name;
+		public TransitionBlob.InterruptionSource interruptionSource;
+		public bool orderedInterruption;
 		public AnimatorCondition[] conditions;
 
 		public TransitionPrototype(AnimatorStateTransition t, string ownStateName)
@@ -45,6 +47,8 @@ internal class AnimatorControllerDataCollector
 			destinationStateMachine = t.destinationStateMachine;
 			this.ownStateName = ownStateName;
 			name = t.name;
+			interruptionSource = (TransitionBlob.InterruptionSource)t.interruptionSource;
+			orderedInterruption = t.orderedInterruption;
 		}
 	}
 	
@@ -135,11 +139,16 @@ internal class AnimatorControllerDataCollector
 		var stateList = new UnsafeList<RTP.State>(128, Allocator.Temp);
 		var anyStateTransitions = new UnsafeList<RTP.Transition>(128, Allocator.Temp);
 		
-		GenerateControllerStateMachineComputationData(acl.stateMachine, ref stateList, ref anyStateTransitions, allParams);
+		//	If current layer syncs with other, use other layer states as baking source
+		var stateMachine = acl.syncedLayerIndex >= 0 ? ac.layers[acl.syncedLayerIndex].stateMachine : acl.stateMachine;
+		GenerateControllerStateMachineComputationData(stateMachine, acl, ref stateList, ref anyStateTransitions, allParams);
+		
+		l.syncedLayerIndex = acl.syncedLayerIndex;
+		l.syncedTiming = acl.syncedLayerAffectsTiming;
 		l.avatarMaskBlobHash = BakingUtils.ComputeAvatarMaskHash(acl.avatarMask, rigDefinition);
 		l.states = stateList;
 
-		var defaultState = acl.stateMachine.defaultState;
+		var defaultState = stateMachine.defaultState;
 		
 		l.defaultStateIndex = defaultState == null ? -1 : stateList.IndexOf(defaultState.GetHashCode());
 		l.anyStateTransitions = anyStateTransitions;
@@ -196,6 +205,8 @@ internal class AnimatorControllerDataCollector
 		rv.soloFlag = t.solo;
 		rv.muteFlag = t.muted;
 		rv.canTransitionToSelf = t.canTransitionToSelf;
+		rv.interruptionSource = t.interruptionSource;
+		rv.orderedInterruption = t.orderedInterruption;
 		
 		if (t.name != "")
 			rv.name = t.name;
@@ -412,6 +423,7 @@ internal class AnimatorControllerDataCollector
 	(
 		AnimatorState state,
 		AnimatorStateMachine stateMachine,
+		AnimatorControllerLayer acl,
 		in UnsafeList<RTP.Parameter> allParams
 	)
 	{
@@ -435,7 +447,11 @@ internal class AnimatorControllerDataCollector
 
 		FilterSoloAndMuteTransitions(ref rv.transitions);
 
-		rv.motion = GenerateMotionComputationData(state.motion);
+		//	Handle controller layer sync feature
+		var overrideMotion = acl.GetOverrideMotion(state);
+		var motion = overrideMotion != null ? overrideMotion : state.motion;
+		
+		rv.motion = GenerateMotionComputationData(motion);
 		if (state.timeParameterActive)
 			rv.timeParameter = state.timeParameter;
 
@@ -510,6 +526,7 @@ internal class AnimatorControllerDataCollector
 	void GenerateControllerStateMachineComputationData
 	(
 		AnimatorStateMachine asm,
+		AnimatorControllerLayer acl,
 		ref UnsafeList<RTP.State> sl,
 		ref UnsafeList<RTP.Transition> anyStateTransitions,
 		in UnsafeList<RTP.Parameter> allParams
@@ -529,14 +546,14 @@ internal class AnimatorControllerDataCollector
 		for (int i = 0; i < asm.states.Length; ++i)
 		{
 			var s = asm.states[i];
-			var generatedState = GenerateControllerStateComputationData(s.state, asm, allParams);
+			var generatedState = GenerateControllerStateComputationData(s.state, asm, acl, allParams);
 			sl.Add(generatedState);
 		}
 
 		for (int j = 0; j < asm.stateMachines.Length; ++j)
 		{
 			var sm = asm.stateMachines[j];
-			GenerateControllerStateMachineComputationData(sm.stateMachine, ref sl, ref anyStateTransitions, allParams);
+			GenerateControllerStateMachineComputationData(sm.stateMachine, acl, ref sl, ref anyStateTransitions, allParams);
 		}
 	}
 }

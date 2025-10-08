@@ -1,5 +1,6 @@
 using System;
 using Unity.Burst;
+using Unity.Burst.CompilerServices;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
@@ -101,7 +102,7 @@ struct FillAnimationsBufferJob: IJobChunk
 			if (l.weight == 0 || l.rtd.srcState.id < 0)
 				continue;
 
-			ref var srcStateBlob = ref lb.states[l.rtd.srcState.id];
+			ref var srcState0Blob = ref lb.states[l.rtd.srcState.id];
 
 			var srcStateWeight = 1.0f;
 			var dstStateWeight = 0.0f;
@@ -112,7 +113,7 @@ struct FillAnimationsBufferJob: IJobChunk
 				srcStateWeight = (1 - dstStateWeight);
 			}
 
-			var srcStateTime = GetDurationTime(ref srcStateBlob, runtimeParams, l.rtd.srcState.normalizedDuration);
+			var srcStateTime = GetDurationTime(ref srcState0Blob, runtimeParams, l.rtd.srcState.normalizedDuration);
 
 			var dstStateAnimCount = 0;
 			if (l.rtd.dstState.id >= 0)
@@ -121,7 +122,24 @@ struct FillAnimationsBufferJob: IJobChunk
 				var dstStateTime = GetDurationTime(ref dstStateBlob, runtimeParams, l.rtd.dstState.normalizedDuration);
 				dstStateAnimCount = AddMotionForEntity(ref animations, ref dstStateBlob.motion, runtimeParams, 1, dstStateTime);
 			}
-			var srcStateAnimCount = AddMotionForEntity(ref animations, ref srcStateBlob.motion, runtimeParams, 1, srcStateTime);
+			
+			var srcStateAnimCount = 0;
+			
+			//	No state snapshots - no transition interruption process
+			//	Default state motion processing
+			if (Hint.Likely(l.rtd.srcStateSnapshots.Length == 0))
+			{
+				ref var srcStateBlob = ref lb.states[l.rtd.srcState.id];
+				srcStateAnimCount += AddMotionForEntity(ref animations, ref srcStateBlob.motion, runtimeParams, 1, srcStateTime);
+			}
+			
+			//	Transition interruption motions from state snapshots
+			for (var k = l.rtd.srcStateSnapshots.length - 1; k >= 0; --k)
+			{
+				var stateData = l.rtd.srcStateSnapshots[k];
+				ref var srcStateBlob = ref lb.states[stateData.id];
+				srcStateAnimCount += AddMotionForEntity(ref animations, ref srcStateBlob.motion, runtimeParams, stateData.weight, stateData.normalizedTime);
+			}
 
 			var animStartPtr = (AnimationToProcessComponent*)animations.GetUnsafePtr() + animationCurIndex;
 			var dstAnimsSpan = new Span<AnimationToProcessComponent>(animStartPtr, dstStateAnimCount);

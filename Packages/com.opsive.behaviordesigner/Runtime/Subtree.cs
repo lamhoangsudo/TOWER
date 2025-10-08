@@ -72,6 +72,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         }
 
         public int UniqueID { get => m_Data.UniqueID; }
+        public bool Pooled { get; set; }
 
         /// <summary>
         /// Serializes the behavior tree.
@@ -134,7 +135,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                 return false;
             }
 
-            return m_Data.DeserializeSharedVariables(force);
+            return m_Data.DeserializeSharedVariables(this, force, false);
         }
 
         /// <summary>

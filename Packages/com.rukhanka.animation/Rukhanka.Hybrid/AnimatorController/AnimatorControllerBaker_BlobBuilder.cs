@@ -48,6 +48,8 @@ public partial class AnimatorControllerBaker
 		tb.offset = t.offset;
 		tb.hasFixedDuration = t.hasFixedDuration;
 		tb.targetStateId = allStates.IndexOf(t.targetStateHash);
+		tb.interruptionSource = t.interruptionSource;
+		tb.orderedInterruption = t.orderedInterruption;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,6 +151,14 @@ public partial class AnimatorControllerBaker
 	static void AddAllLayers(BlobBuilder bb, ref ControllerBlob c, RTP.Controller data)
 	{
 		var bbl = bb.Allocate(ref c.layers, data.layers.Length);
+		
+		//	Clear synced timing value first
+		for (int li = 0; li < data.layers.Length; ++li)
+		{
+			ref var l = ref bbl[li];
+			l.syncedTiming = -1;
+		}
+		
 		for (int li = 0; li < data.layers.Length; ++li)
 		{
 			var src = data.layers[li];
@@ -171,6 +181,15 @@ public partial class AnimatorControllerBaker
 			}
 			
 			l.avatarMaskBlobHash = src.avatarMaskBlobHash;
+			l.syncedLayerIndex = src.syncedLayerIndex;
+			
+			if (src.syncedTiming)
+			{
+				ref var bl = ref bbl[l.syncedLayerIndex];
+				//	Set synced timing index for base layer
+				bl.syncedTiming = li;
+				l.syncedTiming = 1;
+			}
 		}
 	}
 

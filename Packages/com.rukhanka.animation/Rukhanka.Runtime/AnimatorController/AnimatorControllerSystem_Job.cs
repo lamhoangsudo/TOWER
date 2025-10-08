@@ -5,8 +5,10 @@ using Unity.Burst;
 using Unity.Burst.CompilerServices;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEditor.Animations;
 using UnityEngine;
 using Hash128 = Unity.Entities.Hash128;
 
@@ -98,7 +100,7 @@ public struct StateMachineProcessJob: IJobChunk
 			//	Save controller animations blob asset reference in class variable, because passing it inside almost all functions will bloat signatures significantly
 			controllerAnimationsBlob = FillAnimationsFromControllerSystem.GetControllerAnimationsBlob(entity, animatorOverrideAnimationLookup, acc.animations);
 
-			ProcessLayer(ref acc.controller.Value, acc.layerIndex, acpc, ref acc, ref events, triggersToReset);
+			ProcessLayer(ref acc.controller.Value, acc.layerIndex, acpc, aclc, ref events, triggersToReset);
 			if (events.IsCreated)
 			{
 				EmitStateUpdateEvents(ref events, acc, startIndex);
@@ -131,12 +133,12 @@ public struct StateMachineProcessJob: IJobChunk
 			}
 		}
 	}
-
+	
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	RuntimeAnimatorData.StateRuntimeData InitRuntimeStateData(int stateID)
+	RuntimeAnimatorData.StateData InitControllerStateData(int stateID)
 	{
-		var rv = new RuntimeAnimatorData.StateRuntimeData();
+		var rv = new RuntimeAnimatorData.StateData();
 		rv.id = stateID;
 		rv.normalizedDuration = 0;
 		return rv;
@@ -144,7 +146,7 @@ public struct StateMachineProcessJob: IJobChunk
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ExitTransition(ref AnimatorControllerLayerComponent acc, ref DynamicBuffer<AnimatorControllerEventComponent> events)
+	void TryExitTransition(ref AnimatorControllerLayerComponent acc, ref DynamicBuffer<AnimatorControllerEventComponent> events)
 	{
 		if (acc.rtd.activeTransition.id < 0)
 			return;
@@ -154,18 +156,44 @@ public struct StateMachineProcessJob: IJobChunk
 			//	Add state exit event
 			EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateExit, acc.rtd.srcState.id, acc.layerIndex, acc.rtd.srcState.normalizedDuration);
 				
-			acc.rtd.srcState = acc.rtd.dstState;
-			acc.rtd.dstState = RuntimeAnimatorData.StateRuntimeData.MakeDefault();
-			acc.rtd.activeTransition = RuntimeAnimatorData.TransitionRuntimeData.MakeDefault();
+			acc.rtd.srcState.id = acc.rtd.dstState.id;
+			acc.rtd.srcState.normalizedDuration = acc.rtd.dstState.normalizedDuration;
+			acc.rtd.ClearStateSnapshots();
+			acc.rtd.dstState = RuntimeAnimatorData.StateData.MakeDefault();
+			acc.rtd.activeTransition = RuntimeAnimatorData.TransitionData.MakeDefault();
 		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void EnterTransition
+	int GetValidTransitionForCurrentFrame
 	(
-		ref AnimatorControllerLayerComponent acc,
-		ref LayerBlob layer,
+		ref BlobArray<TransitionBlob> transitions,
+		float normalizedStateDuration,
+		float srcStateDurationFrameDelta,
+		NativeArray<AnimatorControllerParameterComponent> runtimeParams,
+		BitFieldN triggersToReset
+	)
+	{
+		var isTransitionFits = false;
+		int i = 0;
+		for (; i < transitions.Length && !isTransitionFits; ++i)
+		{
+			ref var t = ref transitions[i];
+			isTransitionFits =
+				CheckTransitionEnterExitTimeCondition(ref t, normalizedStateDuration, srcStateDurationFrameDelta) &&
+				CheckTransitionEnterConditions(ref t, runtimeParams, triggersToReset);
+		}
+		return isTransitionFits ? i - 1 : -1;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void TryEnterTransition
+	(
+		in DynamicBuffer<AnimatorControllerLayerComponent> aclc,
+		ref ControllerBlob controllerBlob,
+		int layerIndex,
 		NativeArray<AnimatorControllerParameterComponent> runtimeParams,
 		float srcStateDurationFrameDelta,
 		float curStateDuration,
@@ -173,32 +201,32 @@ public struct StateMachineProcessJob: IJobChunk
 		BitFieldN triggersToReset
 	)
 	{
-		if (acc.rtd.activeTransition.id >= 0)
-			return;
-
+		ref var acc = ref aclc.ElementAt(layerIndex);
+		ref var layer = ref controllerBlob.layers[layerIndex];
 		ref var currentState = ref layer.states[acc.rtd.srcState.id];
-
-		for (int i = 0; i < currentState.transitions.Length; ++i)
+			
+		if (acc.rtd.activeTransition.id >= 0)
 		{
-			ref var t = ref currentState.transitions[i];
-			var b = CheckTransitionEnterExitTimeCondition(ref t, acc.rtd.srcState, srcStateDurationFrameDelta) &&
-					CheckTransitionEnterConditions(ref t, runtimeParams, triggersToReset);
-			if (b)
-			{
-				var timeShouldBeInTransition = GetTimeInSecondsShouldBeInTransition(ref t, acc.rtd.srcState, curStateDuration, srcStateDurationFrameDelta);
-				acc.rtd.activeTransition.id	= i;
-				acc.rtd.activeTransition.length = GetTransitionLength(ref t);
-				acc.rtd.activeTransition.normalizedDuration = timeShouldBeInTransition / CalculateTransitionDuration(acc.rtd.activeTransition, curStateDuration);
-				var dstStateDur = CalculateStateDuration(ref layer.states[t.targetStateId], runtimeParams);
-				acc.rtd.dstState = InitRuntimeStateData(t.targetStateId);
-				acc.rtd.dstState.normalizedDuration += timeShouldBeInTransition / dstStateDur + t.offset;
-				
-				//	Add state enter event
-				EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateEnter, acc.rtd.dstState.id, acc.layerIndex, acc.rtd.dstState.normalizedDuration);
-				
-				break;
-			}
+			ref var dstState = ref layer.states[acc.rtd.dstState.id];
+			TryTransitionInterruption(ref layer, ref acc.rtd, srcStateDurationFrameDelta, runtimeParams, triggersToReset);
+			return;
 		}
+
+		var newTransitionIndex = GetValidTransitionForCurrentFrame(ref currentState.transitions, acc.rtd.srcState.normalizedDuration, srcStateDurationFrameDelta, runtimeParams, triggersToReset);
+		if (newTransitionIndex < 0)
+			return;
+		
+		ref var t = ref currentState.transitions[newTransitionIndex];
+		var timeShouldBeInTransition = GetTimeInSecondsShouldBeInTransition(ref t, acc.rtd.srcState.normalizedDuration, curStateDuration, srcStateDurationFrameDelta);
+		acc.rtd.activeTransition.id	= newTransitionIndex;
+		acc.rtd.activeTransition.length = GetTransitionLength(ref t);
+		acc.rtd.activeTransition.normalizedDuration = timeShouldBeInTransition / CalculateTransitionDuration(acc.rtd.activeTransition, curStateDuration);
+		var dstStateDur = CalculateStateDuration(layerIndex, t.targetStateId, ref controllerBlob, aclc.AsNativeArray(), runtimeParams);
+		acc.rtd.dstState = InitControllerStateData(t.targetStateId);
+		acc.rtd.dstState.normalizedDuration += timeShouldBeInTransition / dstStateDur + t.offset;
+		
+		//	Add state enter event
+		EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateEnter, acc.rtd.dstState.id, acc.layerIndex, acc.rtd.dstState.normalizedDuration);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -251,13 +279,14 @@ public struct StateMachineProcessJob: IJobChunk
 		ref ControllerBlob c,
 		int layerIndex,
 		in NativeArray<AnimatorControllerParameterComponent> runtimeParams,
-		ref AnimatorControllerLayerComponent acc,
+		DynamicBuffer<AnimatorControllerLayerComponent> aclc,
 		ref DynamicBuffer<AnimatorControllerEventComponent> events,
 		BitFieldN triggersToReset
 	)
 	{
 		ref var layer = ref c.layers[layerIndex];
-		
+		ref var acc = ref aclc.ElementAt(layerIndex);
+			
 		var currentStateID = acc.rtd.srcState.id;
 		if (currentStateID < 0)
 			currentStateID = layer.defaultStateIndex;
@@ -265,12 +294,11 @@ public struct StateMachineProcessJob: IJobChunk
 		//	Adjust delta time according to the layer animator speed
 		var layerDeltaTime = dt * acc.speed;
 
-		ref var currentState = ref layer.states[currentStateID];
-		var curStateDuration = CalculateStateDuration(ref currentState, runtimeParams);
-
+		var curStateDuration = CalculateStateDuration(layerIndex, currentStateID, ref c, aclc.AsNativeArray(), runtimeParams);
+		
 		if (Hint.Unlikely(acc.rtd.srcState.id < 0))
 		{
-			acc.rtd.srcState = InitRuntimeStateData(layer.defaultStateIndex);
+			acc.rtd.srcState = InitControllerStateData(layer.defaultStateIndex);
 			EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateEnter, acc.rtd.srcState.id, acc.layerIndex, acc.rtd.srcState.normalizedDuration);
 		}
 
@@ -279,7 +307,7 @@ public struct StateMachineProcessJob: IJobChunk
 
 		if (acc.rtd.dstState.id >= 0)
 		{
-			var dstStateDuration = CalculateStateDuration(ref layer.states[acc.rtd.dstState.id], runtimeParams);
+			var dstStateDuration = CalculateStateDuration(layerIndex, acc.rtd.dstState.id, ref c, aclc.AsNativeArray(), runtimeParams);
 			acc.rtd.dstState.normalizedDuration += CalculateStateFrameDeltaSafe(layerDeltaTime,  dstStateDuration);
 		}
 
@@ -289,12 +317,10 @@ public struct StateMachineProcessJob: IJobChunk
 			acc.rtd.activeTransition.normalizedDuration += layerDeltaTime / transitionDuration;
 		}
 
-		ExitTransition(ref acc, ref events);
-		EnterTransition(ref acc, ref layer, runtimeParams, srcStateDurationFrameDelta, curStateDuration, ref events, triggersToReset);
+		TryExitTransition(ref acc, ref events);
+		TryEnterTransition(aclc, ref c, layerIndex, runtimeParams, srcStateDurationFrameDelta, curStateDuration, ref events, triggersToReset);
 		//	Check transition exit conditions one more time in case of Enter->Exit sequence appeared in single frame
-		ExitTransition(ref acc, ref events);
-
-		ProcessTransitionInterruptions();
+		TryExitTransition(ref acc, ref events);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -384,7 +410,7 @@ public struct StateMachineProcessJob: IJobChunk
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	float CalculateTransitionDuration(in RuntimeAnimatorData.TransitionRuntimeData trd, float curStateDuration)
+	float CalculateTransitionDuration(in RuntimeAnimatorData.TransitionData trd, float curStateDuration)
 	{
 		var rv = math.abs(trd.length);
 		if (trd.length < 0)
@@ -396,9 +422,35 @@ public struct StateMachineProcessJob: IJobChunk
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	float CalculateStateDuration(ref StateBlob sb, in NativeArray<AnimatorControllerParameterComponent> runtimeParams)
+	float CalculateStateDuration
+	(
+		int layerIndex,
+		int stateId,
+		ref ControllerBlob controllerBlob,
+		in NativeArray<AnimatorControllerLayerComponent> aclc,
+		in NativeArray<AnimatorControllerParameterComponent> runtimeParams
+	)
 	{
+		ref var layer = ref controllerBlob.layers[layerIndex];
+		ref var sb = ref layer.states[stateId];
 		var motionDuration = CalculateMotionDuration(ref sb.motion, runtimeParams, 1);
+		
+		//	In case of layer sync option is enabled, adjust state duration with respect to "timing" property
+		if (Hint.Unlikely(layer.syncedLayerIndex >= 0))
+		{
+			//	Override controller must be exact copy of current
+			ref var baseState = ref controllerBlob.layers[layer.syncedLayerIndex].states[stateId];
+			var baseMotionDuration = CalculateMotionDuration(ref baseState.motion, runtimeParams, 1);
+			var weightedMotionDuration = math.lerp(baseMotionDuration, motionDuration, aclc[layerIndex].weight);
+			motionDuration = math.select(baseMotionDuration, weightedMotionDuration, layer.syncedTiming > 0);
+		}
+		else if (Hint.Unlikely(layer.syncedTiming >= 0))
+		{
+			ref var syncedState = ref controllerBlob.layers[layer.syncedTiming].states[stateId];
+			var syncedStateDuration = CalculateMotionDuration(ref syncedState.motion, runtimeParams, 1);
+			motionDuration = math.lerp(motionDuration, syncedStateDuration, aclc[layer.syncedTiming].weight);
+		}
+		
 		var speedMultiplier = 1.0f;
 		if (sb.speedMultiplierParameterIndex >= 0)
 		{
@@ -429,28 +481,21 @@ public struct StateMachineProcessJob: IJobChunk
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	float GetTimeInSecondsShouldBeInTransition(ref TransitionBlob tb, RuntimeAnimatorData.StateRuntimeData curStateRTD, float curStateDuration, float frameDT)
+	float GetTimeInSecondsShouldBeInTransition(ref TransitionBlob tb, float normalizedStateDuration, float curStateDuration, float frameDT)
 	{
 		if (!tb.hasExitTime) return 0;
 
 		//	This should be always less then curStateRTD.normalizedDuration
-		var loopAwareExitTime = GetLoopAwareTransitionExitTime(tb.exitTime, curStateRTD.normalizedDuration - frameDT, math.sign(frameDT));
-		var loopDelta = curStateRTD.normalizedDuration - loopAwareExitTime;
+		var loopAwareExitTime = GetLoopAwareTransitionExitTime(tb.exitTime, normalizedStateDuration - frameDT, math.sign(frameDT));
+		var loopDelta = normalizedStateDuration - loopAwareExitTime;
 		var rv = loopDelta * curStateDuration;
 		return rv;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool CheckTransitionEnterExitTimeCondition
-	(
-		ref TransitionBlob tb,
-		RuntimeAnimatorData.StateRuntimeData curStateRuntimeData,
-		float srcStateDurationFrameDelta
-	)
+	bool CheckTransitionEnterExitTimeCondition(ref TransitionBlob tb, float normalizedStateDuration, float srcStateDurationFrameDelta)
 	{
-		var normalizedStateDuration = curStateRuntimeData.normalizedDuration; 
-
 		var noNormalConditions = tb.conditions.Length == 0;
 		if (!tb.hasExitTime) return !noNormalConditions;
 
@@ -585,16 +630,115 @@ public struct StateMachineProcessJob: IJobChunk
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool CheckTransitionExitConditions(RuntimeAnimatorData.TransitionRuntimeData transitionRuntimeData)
+	bool CheckTransitionExitConditions(RuntimeAnimatorData.TransitionData transitionRuntimeData)
 	{
 		return transitionRuntimeData.normalizedDuration >= 1;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ProcessTransitionInterruptions()
+	unsafe void TryTransitionInterruption
+	(
+		ref LayerBlob layerBlob,
+		ref RuntimeAnimatorData rtd,
+		float srcStateDurationFrameDelta,
+		NativeArray<AnimatorControllerParameterComponent> runtimeParams,
+		BitFieldN triggersToReset
+	)
 	{
-		// Not implemented yet
+		ref var srcStateTransitions = ref layerBlob.states[rtd.srcState.id].transitions;
+		var transitionIndex = rtd.activeTransition.id;
+		//	We are in transition right now. Perform transition interruption logic
+		ref var activeTransition = ref srcStateTransitions[transitionIndex];
+		//	Can't interrupt, return
+		if (Hint.Likely(activeTransition.interruptionSource == TransitionBlob.InterruptionSource.None))
+			return;
+		
+		//	Make copy of triggers to reset flags because I don't know if there are valid interruption transitions yet
+		var triggersToResetMem = stackalloc uint[triggersToReset.SizeInInts()];
+		var triggersClone = triggersToReset.Clone(triggersToResetMem);
+		
+		var transitionIndexCandidateSrc = -1;
+		var transitionIndexCandidateDst = -1;
+		var canBeInterrupted = false;
+		
+		if
+		(
+			activeTransition.interruptionSource == TransitionBlob.InterruptionSource.Source ||
+			activeTransition.interruptionSource == TransitionBlob.InterruptionSource.SourceThenDestination ||
+			activeTransition.interruptionSource == TransitionBlob.InterruptionSource.DestinationThenSource
+		)
+		{
+			transitionIndexCandidateSrc = GetValidTransitionForCurrentFrame(ref srcStateTransitions, rtd.srcState.normalizedDuration, srcStateDurationFrameDelta, runtimeParams, triggersClone);
+			canBeInterrupted |=
+				transitionIndexCandidateSrc >= 0 &&
+				(activeTransition.orderedInterruption ? transitionIndexCandidateSrc < transitionIndex : transitionIndexCandidateSrc != transitionIndex);
+		}
+		
+		ref var dstStateTransitions = ref layerBlob.states[rtd.dstState.id].transitions;
+		if
+		(
+			activeTransition.interruptionSource == TransitionBlob.InterruptionSource.Destination ||
+			activeTransition.interruptionSource == TransitionBlob.InterruptionSource.SourceThenDestination ||
+			activeTransition.interruptionSource == TransitionBlob.InterruptionSource.DestinationThenSource
+		)
+		{
+			transitionIndexCandidateDst = GetValidTransitionForCurrentFrame(ref dstStateTransitions, rtd.dstState.normalizedDuration, srcStateDurationFrameDelta, runtimeParams, triggersClone);
+			canBeInterrupted |= transitionIndexCandidateDst >= 0;
+		}
+		
+		if (!canBeInterrupted)
+			return;
+		
+		//	There is valid interruption
+		//	Select interrupting transition
+		var interruptingTransitionID = -1;
+		TransitionBlob* transitionBlobsPtr = null;
+		switch (activeTransition.interruptionSource)
+		{
+		case TransitionBlob.InterruptionSource.Source:
+			interruptingTransitionID = transitionIndexCandidateSrc;
+			transitionBlobsPtr = (TransitionBlob*)srcStateTransitions.GetUnsafePtr();
+			break;
+		case TransitionBlob.InterruptionSource.Destination:
+			interruptingTransitionID = transitionIndexCandidateDst;
+			transitionBlobsPtr = (TransitionBlob*)dstStateTransitions.GetUnsafePtr();
+			break;
+		case TransitionBlob.InterruptionSource.SourceThenDestination:
+			interruptingTransitionID = math.select(transitionIndexCandidateDst, transitionIndexCandidateSrc, transitionIndexCandidateSrc >= 0);
+			transitionBlobsPtr = transitionIndexCandidateSrc >= 0 ? (TransitionBlob*)srcStateTransitions.GetUnsafePtr() : (TransitionBlob*)dstStateTransitions.GetUnsafePtr();
+			break;
+		case TransitionBlob.InterruptionSource.DestinationThenSource:
+			interruptingTransitionID = math.select(transitionIndexCandidateSrc, transitionIndexCandidateDst, transitionIndexCandidateDst >= 0);
+			transitionBlobsPtr = transitionIndexCandidateDst >= 0 ? (TransitionBlob*)dstStateTransitions.GetUnsafePtr() : (TransitionBlob*)srcStateTransitions.GetUnsafePtr();
+			break;
+		default:
+			//	This should not happen
+			BurstAssert.IsTrue(false, "Transition interruption invalid code path");
+			return;
+		}
+		ref var newTransition = ref transitionBlobsPtr[interruptingTransitionID];
+		
+		//	Copy triggers back to original bitset
+		triggersToReset.CopyFrom(triggersClone);
+		
+		//	If state snapshot array is empty, then push both destination state and source state
+		//	If there are some state snapshots in array, the these snapshots are our "source state" already, so we need to add only destination state
+		if (rtd.srcStateSnapshots.IsEmpty)
+			rtd.PushStateSnapshot(rtd.srcState.id, 1, rtd.srcState.normalizedDuration);
+		rtd.PushStateSnapshot(rtd.dstState.id, rtd.activeTransition.normalizedDuration, rtd.dstState.normalizedDuration);	
+		
+		rtd.srcState.normalizedDuration = 0;
+		//	If interrupting transition belongs to next state, configure srcState accordingly
+		if (transitionBlobsPtr == dstStateTransitions.GetUnsafePtr())
+			rtd.srcState.id = rtd.dstState.id;
+				
+		rtd.activeTransition.id = interruptingTransitionID;
+		rtd.activeTransition.length = GetTransitionLength(ref newTransition);
+		rtd.activeTransition.normalizedDuration = 0;
+		
+		rtd.dstState = InitControllerStateData(newTransition.targetStateId);
+		rtd.dstState.normalizedDuration = newTransition.offset;
 	}
 	
 /////////////////////////////////////////////////////////////////////////////////////////////////////

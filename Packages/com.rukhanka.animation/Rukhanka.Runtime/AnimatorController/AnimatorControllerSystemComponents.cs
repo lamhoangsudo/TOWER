@@ -1,58 +1,12 @@
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Mathematics;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace Rukhanka
-{ 
-
-public struct RuntimeAnimatorData
 {
-	public struct StateRuntimeData
-	{
-		public int id;
-		public float normalizedDuration;
-
-		public static StateRuntimeData MakeDefault()
-		{
-			var rv = new StateRuntimeData();
-			rv.id = -1;
-			rv.normalizedDuration = 0;
-			return rv;
-		}
-	}
-	
-	public struct TransitionRuntimeData
-	{
-		public int id;
-		public float normalizedDuration;
-		public float length;
-
-		public static TransitionRuntimeData MakeDefault()
-		{
-			var rv = new TransitionRuntimeData();
-			rv.id = -1;
-			rv.normalizedDuration = 0;
-			rv.length = 0;
-			return rv;
-		}
-	}
-
-	public StateRuntimeData srcState;
-	public StateRuntimeData dstState;
-	public TransitionRuntimeData activeTransition;
-
-	public static RuntimeAnimatorData MakeDefault()
-	{
-		var rv = new RuntimeAnimatorData();
-		rv.srcState = StateRuntimeData.MakeDefault();
-		rv.dstState = StateRuntimeData.MakeDefault();
-		rv.activeTransition = TransitionRuntimeData.MakeDefault();
-		return rv;
-	}
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 public struct AnimatorControllerLayerComponent: IBufferElementData, IEnableableComponent
 {

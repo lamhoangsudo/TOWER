@@ -304,7 +304,7 @@ public static partial class ScriptedAnimator
         float normalizedTransitionTime = 0
     )
     {
-        var rt = new RuntimeAnimatorData.TransitionRuntimeData()
+        var rt = new RuntimeAnimatorData.TransitionData()
         {
             id = 0xffffff,
             length = -normalizedTransitionDuration,

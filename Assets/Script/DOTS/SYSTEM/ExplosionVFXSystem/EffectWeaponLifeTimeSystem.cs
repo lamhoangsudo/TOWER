@@ -47,6 +47,8 @@ public partial struct EffectWeaponLifeTimeSystem : ISystem
                     Light light = state.EntityManager.GetComponentObject<Light>(effectWeaponShoot.ValueRO.lightEffect);
                     light.intensity = Mathf.Lerp(effectWeaponShoot.ValueRO.lightIntensity, 0f, effectWeaponShoot.ValueRO.elapsedTime / effectWeaponShoot.ValueRO.muzzleFlashDuration);
                 }
+                VisualEffect vfx = state.EntityManager.GetComponentObject<VisualEffect>(effectWeaponShoot.ValueRO.visualEffect);
+                vfx.Play();
             }
         }
     }

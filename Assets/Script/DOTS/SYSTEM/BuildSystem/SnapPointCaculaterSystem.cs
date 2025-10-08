@@ -4,8 +4,8 @@ using Unity.Entities;
 using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
 using Unity.Transforms;
-[UpdateAfter(typeof(BuildingManagerSystem))]
-[UpdateAfter(typeof(SnapPointCheckAvaliableSystem))]
+//[UpdateAfter(typeof(BuildingManagerSystem))]
+//[UpdateAfter(typeof(SnapPointCheckAvaliableSystem))]
 public partial struct SnapPointCaculaterSystem : ISystem
 {
     private Entity mousePointEntity;
@@ -18,113 +18,113 @@ public partial struct SnapPointCaculaterSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        faceNormals = new(6, Allocator.Persistent);
-        faceNormals[0] = math.up();
-        faceNormals[1] = math.down();
-        faceNormals[2] = math.left();
-        faceNormals[3] = math.right();
-        faceNormals[4] = math.forward();
-        faceNormals[5] = math.back();
+        //faceNormals = new(6, Allocator.Persistent);
+        //faceNormals[0] = math.up();
+        //faceNormals[1] = math.down();
+        //faceNormals[2] = math.left();
+        //faceNormals[3] = math.right();
+        //faceNormals[4] = math.forward();
+        //faceNormals[5] = math.back();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        mousePointEntity = SystemAPI.GetSingletonEntity<MouseWorldPositionTrack>();
-        MouseWorldPositionTrack mouseWorldPositionTrack = SystemAPI.GetComponent<MouseWorldPositionTrack>(mousePointEntity);
-        BuildingManger buildingManger = SystemAPI.GetSingleton<BuildingManger>();
-        float3 buildPosition = SystemAPI.GetComponent<LocalTransform>(mousePointEntity).Position;
-        foreach ((RefRO<LocalTransform> buildingLocalTransform,
-            RefRO<Building> building,
-            EnabledRefRW<BuildingTrackMousePosition> buildingTrackMousePositionEnabled,
-            RefRW<BuildingTrackMousePosition> buildingTrackMousePosition,
-            DynamicBuffer<SnapPointsDirectionBuffer> snapPointsDirectionBuffers)
-            in
-            SystemAPI.Query<RefRO<LocalTransform>,
-            RefRO<Building>,
-            EnabledRefRW<BuildingTrackMousePosition>,
-            RefRW<BuildingTrackMousePosition>,
-            DynamicBuffer<SnapPointsDirectionBuffer>>())
-        {
-            if (math.distance(buildingLocalTransform.ValueRO.Position, buildPosition) > building.ValueRO.snapMaxDistance || mouseWorldPositionTrack.ghostEntity == Entity.Null)
-            {
-                if (buildingTrackMousePositionEnabled.ValueRO) buildingTrackMousePositionEnabled.ValueRW = false;
-                snapDirection = Enum.Direction.none;
-                snapGhostDirection = Enum.Direction.none;
-                continue;
-            }
-            buildingTrackMousePosition.ValueRW.buildPosition = buildPosition;
-            float3 worldBuildingAndGhostDirection = math.normalizesafe(buildingTrackMousePosition.ValueRO.buildPosition - buildingLocalTransform.ValueRO.Position);
-            RefRW<LocalTransform> ghostLocalTranform = SystemAPI.GetComponentRW<LocalTransform>(mouseWorldPositionTrack.ghostEntity);
+        //mousePointEntity = SystemAPI.GetSingletonEntity<BuildPositionTag>();
+        //BuildPositionTag mouseWorldPositionTrack = SystemAPI.GetComponent<BuildPositionTag>(mousePointEntity);
+        //BuildingManger buildingManger = SystemAPI.GetSingleton<BuildingManger>();
+        //float3 buildPosition = SystemAPI.GetComponent<LocalTransform>(mousePointEntity).Position;
+        //foreach ((RefRO<LocalTransform> buildingLocalTransform,
+        //    RefRO<Building> building,
+        //    EnabledRefRW<BuildingTrackMousePosition> buildingTrackMousePositionEnabled,
+        //    RefRW<BuildingTrackMousePosition> buildingTrackMousePosition,
+        //    DynamicBuffer<SnapPointsDirectionBuffer> snapPointsDirectionBuffers)
+        //    in
+        //    SystemAPI.Query<RefRO<LocalTransform>,
+        //    RefRO<Building>,
+        //    EnabledRefRW<BuildingTrackMousePosition>,
+        //    RefRW<BuildingTrackMousePosition>,
+        //    DynamicBuffer<SnapPointsDirectionBuffer>>())
+        //{
+        //    if (math.distance(buildingLocalTransform.ValueRO.Position, buildPosition) > building.ValueRO.snapMaxDistance || mouseWorldPositionTrack.ghostEntity == Entity.Null)
+        //    {
+        //        if (buildingTrackMousePositionEnabled.ValueRO) buildingTrackMousePositionEnabled.ValueRW = false;
+        //        snapDirection = Enum.Direction.none;
+        //        snapGhostDirection = Enum.Direction.none;
+        //        continue;
+        //    }
+        //    buildingTrackMousePosition.ValueRW.buildPosition = buildPosition;
+        //    float3 worldBuildingAndGhostDirection = math.normalizesafe(buildingTrackMousePosition.ValueRO.buildPosition - buildingLocalTransform.ValueRO.Position);
+        //    RefRW<LocalTransform> ghostLocalTranform = SystemAPI.GetComponentRW<LocalTransform>(mouseWorldPositionTrack.ghostEntity);
 
-            buildingTrackMousePosition.ValueRW.snapDirection = CaculatorSnapDirection(ref state, buildingLocalTransform.ValueRO.Rotation, worldBuildingAndGhostDirection);
-            buildingTrackMousePosition.ValueRW.snapGhostDirection = CaculatorSnapDirection(ref state, ghostLocalTranform.ValueRO.Rotation, worldBuildingAndGhostDirection);
-            if (snapDirection != buildingTrackMousePosition.ValueRW.snapDirection)
-            {
-                snapDirection = buildingTrackMousePosition.ValueRW.snapDirection;
-                for (int i = 0; i < snapPointsDirectionBuffers.Length; i++)
-                {
-                    if (snapPointsDirectionBuffers[i].direction == snapDirection)
-                    {
-                        Entity snapPointDirectionBuildingEntity = snapPointsDirectionBuffers[i].SnapPointsDirectionEntity;
-                        DynamicBuffer<SnapPointBuffer> snapPointBuildingBuffers = SystemAPI.GetBuffer<SnapPointBuffer>(snapPointDirectionBuildingEntity);
-                        //find snap point with min distance to building
-                        UpdateAllDistanceSnapPointToBuildingGhost(ref state, snapPointBuildingBuffers, buildPosition);
-                        position = GetSuitableSnapPointBuilding(ref state, snapPointBuildingBuffers, buildingManger.snapPointTypeSearch);
-                        forward = snapPointsDirectionBuffers[i].directionVector;
-                        break;
-                    }
-                }
-            }
-            if (snapGhostDirection != buildingTrackMousePosition.ValueRW.snapGhostDirection && snapDirection != Enum.Direction.none)
-            {
-                DynamicBuffer<SnapPointsDirectionBuffer> snapPointsDirectionGhostBuildingBuffers = SystemAPI.GetBuffer<SnapPointsDirectionBuffer>(mouseWorldPositionTrack.ghostEntity);
-                snapGhostDirection = buildingTrackMousePosition.ValueRW.snapGhostDirection;
-                for (int i = 0; i < snapPointsDirectionGhostBuildingBuffers.Length; i++)
-                {
-                    if (snapPointsDirectionGhostBuildingBuffers[i].direction == snapGhostDirection)
-                    {
-                        Entity snapPointDirectionGhostBuilding = snapPointsDirectionGhostBuildingBuffers[i].SnapPointsDirectionEntity;
-                        DynamicBuffer<SnapPointBuffer> snapPointGhostBuildingBuffers = SystemAPI.GetBuffer<SnapPointBuffer>(snapPointDirectionGhostBuilding);
-                        //find snap point with min distance to building
-                        offset = snapPointGhostBuildingBuffers[0].offset;
-                        break;
-                    }
-                }
-            }
-            quaternion targetQuaternion = quaternion.identity;
-            if (buildingTrackMousePosition.ValueRO.snapGhostDirection == Enum.Direction.up || buildingTrackMousePosition.ValueRO.snapGhostDirection == Enum.Direction.down)
-            {
-                targetQuaternion = buildingLocalTransform.ValueRO.Rotation;
-            }
-            else if (buildingTrackMousePosition.ValueRO.snapGhostDirection != Enum.Direction.none)
-            {
-                targetQuaternion = math.mul(
-                    CacuLatorTargetQuanternion(
-                        ref state,
-                        buildingTrackMousePosition.ValueRO.snapGhostDirection,
-                        ghostLocalTranform.ValueRO.Rotation,
-                        buildingTrackMousePosition.ValueRO.snapDirection,
-                        buildingLocalTransform.ValueRO.Rotation
-                        ),
-                    ghostLocalTranform.ValueRO.Rotation);
-            }
+        //    buildingTrackMousePosition.ValueRW.snapDirection = CaculatorSnapDirection(ref state, buildingLocalTransform.ValueRO.Rotation, worldBuildingAndGhostDirection);
+        //    buildingTrackMousePosition.ValueRW.snapGhostDirection = CaculatorSnapDirection(ref state, ghostLocalTranform.ValueRO.Rotation, worldBuildingAndGhostDirection);
+        //    if (snapDirection != buildingTrackMousePosition.ValueRW.snapDirection)
+        //    {
+        //        snapDirection = buildingTrackMousePosition.ValueRW.snapDirection;
+        //        for (int i = 0; i < snapPointsDirectionBuffers.Length; i++)
+        //        {
+        //            if (snapPointsDirectionBuffers[i].direction == snapDirection)
+        //            {
+        //                Entity snapPointDirectionBuildingEntity = snapPointsDirectionBuffers[i].SnapPointsDirectionEntity;
+        //                DynamicBuffer<SnapPointBuffer> snapPointBuildingBuffers = SystemAPI.GetBuffer<SnapPointBuffer>(snapPointDirectionBuildingEntity);
+        //                //find snap point with min distance to building
+        //                UpdateAllDistanceSnapPointToBuildingGhost(ref state, snapPointBuildingBuffers, buildPosition);
+        //                position = GetSuitableSnapPointBuilding(ref state, snapPointBuildingBuffers, buildingManger.snapPointTypeSearch);
+        //                forward = snapPointsDirectionBuffers[i].directionVector;
+        //                break;
+        //            }
+        //        }
+        //    }
+        //    if (snapGhostDirection != buildingTrackMousePosition.ValueRW.snapGhostDirection && snapDirection != Enum.Direction.none)
+        //    {
+        //        DynamicBuffer<SnapPointsDirectionBuffer> snapPointsDirectionGhostBuildingBuffers = SystemAPI.GetBuffer<SnapPointsDirectionBuffer>(mouseWorldPositionTrack.ghostEntity);
+        //        snapGhostDirection = buildingTrackMousePosition.ValueRW.snapGhostDirection;
+        //        for (int i = 0; i < snapPointsDirectionGhostBuildingBuffers.Length; i++)
+        //        {
+        //            if (snapPointsDirectionGhostBuildingBuffers[i].direction == snapGhostDirection)
+        //            {
+        //                Entity snapPointDirectionGhostBuilding = snapPointsDirectionGhostBuildingBuffers[i].SnapPointsDirectionEntity;
+        //                DynamicBuffer<SnapPointBuffer> snapPointGhostBuildingBuffers = SystemAPI.GetBuffer<SnapPointBuffer>(snapPointDirectionGhostBuilding);
+        //                //find snap point with min distance to building
+        //                offset = snapPointGhostBuildingBuffers[0].offset;
+        //                break;
+        //            }
+        //        }
+        //    }
+        //    quaternion targetQuaternion = quaternion.identity;
+        //    if (buildingTrackMousePosition.ValueRO.snapGhostDirection == Enum.Direction.up || buildingTrackMousePosition.ValueRO.snapGhostDirection == Enum.Direction.down)
+        //    {
+        //        targetQuaternion = buildingLocalTransform.ValueRO.Rotation;
+        //    }
+        //    else if (buildingTrackMousePosition.ValueRO.snapGhostDirection != Enum.Direction.none)
+        //    {
+        //        targetQuaternion = math.mul(
+        //            CacuLatorTargetQuanternion(
+        //                ref state,
+        //                buildingTrackMousePosition.ValueRO.snapGhostDirection,
+        //                ghostLocalTranform.ValueRO.Rotation,
+        //                buildingTrackMousePosition.ValueRO.snapDirection,
+        //                buildingLocalTransform.ValueRO.Rotation
+        //                ),
+        //            ghostLocalTranform.ValueRO.Rotation);
+        //    }
 
-            if (!buildingTrackMousePosition.ValueRO.targetQuaternion.Equals(targetQuaternion))
-            {
-                buildingTrackMousePosition.ValueRW.targetQuaternion = targetQuaternion;
-            }
+        //    if (!buildingTrackMousePosition.ValueRO.targetQuaternion.Equals(targetQuaternion))
+        //    {
+        //        buildingTrackMousePosition.ValueRW.targetQuaternion = targetQuaternion;
+        //    }
 
-            ghostLocalTranform.ValueRW.Rotation = buildingTrackMousePosition.ValueRO.targetQuaternion;
-            if (position.Equals(float3.zero) || forward.Equals(float3.zero))
-            {
-                ghostLocalTranform.ValueRW.Position = buildPosition;
-            }
-            else
-            {
-                ghostLocalTranform.ValueRW.Position = position + forward * offset;
-            }
-        }
+        //    ghostLocalTranform.ValueRW.Rotation = buildingTrackMousePosition.ValueRO.targetQuaternion;
+        //    if (position.Equals(float3.zero) || forward.Equals(float3.zero))
+        //    {
+        //        ghostLocalTranform.ValueRW.Position = buildPosition;
+        //    }
+        //    else
+        //    {
+        //        ghostLocalTranform.ValueRW.Position = position + forward * offset;
+        //    }
+        //}
     }
 
     [BurstCompile]
