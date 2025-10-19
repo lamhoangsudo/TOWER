@@ -788,9 +788,9 @@ namespace Opsive.BehaviorDesigner.Runtime
             // No need to deserialize if the data is already deserialized.
             if (!force && (m_SharedVariables != null
 #if UNITY_EDITOR
-                || m_SharedVariableGroups != null)
+                || m_SharedVariableGroups != null
 #endif
-                ) {
+                )) {
                 return false;
             }
 
@@ -1622,7 +1622,7 @@ namespace Opsive.BehaviorDesigner.Runtime
             SubtreeNodesReferences = other.SubtreeNodesReferences;
             m_SharedVariables = other.SharedVariables;
             m_SharedVariableData = other.m_SharedVariableData;
-            m_VariableByNameMap = other.VariableByNameMap;
+            m_VariableByNameMap = PopulateSharedVariablesMapping(graph, false);
             m_DisabledLogicNodes = other.DisabledLogicNodes;
             m_DisabledEventNodes = other.DisabledEventNodes;
             // The other tree may be pooled. Update the variable references to point to the local graph variables.

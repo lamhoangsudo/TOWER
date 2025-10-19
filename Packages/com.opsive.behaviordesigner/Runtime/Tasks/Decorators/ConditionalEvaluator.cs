@@ -41,8 +41,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
         /// <param name="runtimeIndex">The runtime index of the node.</param>
         internal override void Initialize(BehaviorTree behaviorTree, ushort runtimeIndex)
         {
-            base.Initialize(behaviorTree, runtimeIndex);
-
             if (m_Task != null) {
                 m_Task.Initialize(behaviorTree, runtimeIndex);
 
@@ -50,6 +48,8 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
                     ComponentUtility.AddInterruptComponents(behaviorTree.World.EntityManager, behaviorTree.Entity);
                 }
             }
+
+            base.Initialize(behaviorTree, runtimeIndex);
         }
 
         /// <summary>

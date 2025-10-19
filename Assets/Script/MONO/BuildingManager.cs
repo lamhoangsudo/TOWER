@@ -6,79 +6,77 @@ using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using static Enum;
+using static Enum.BuidingState;
 
 public class BuildingManager : MonoBehaviour
 {
-    private bool isBuildingMode = false;
-    private EntityManager entityManager;
+    public static BuildingManager Instance;
+
+    [SerializeField] private CinemachineCamera cinemachineCamera;
+    [SerializeField] private Transform pointVisual;
+    [SerializeField] private GhostBuildingManager ghostVisual;
+
     private EntityQuery entityQuery;
-    private ModelBuildingSo currentModelBuilding;
-    [SerializeField] private float buildDistance;
-    [SerializeField] private ListModelBuildingSo listModelBuilding;
-    [SerializeField] private Enum.BuildingID currentBuildingID = Enum.BuildingID.None;
-    [SerializeField] private Transform transformDebug;
-    private Transform playerTranform;
-    private CinemachineCamera cinemachineCamera;
-    private GridBuildingManager gridBuildingManager;
+    private EntityManager entityManager;
+    private float buildDistance;
+    private bool isBuildingMode = false;
+
+    public BuidingState buidingState { get; private set; } = none;
+    public Transform targetTranform { get; private set; }
+    public Vector3 buildPosition { get; private set; }
+
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+    }
     private void Start()
     {
-        cinemachineCamera = GetComponent<CinemachineCamera>();
-        playerTranform = cinemachineCamera.Target.TrackingTarget;
-        entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+        targetTranform = cinemachineCamera.Target.TrackingTarget;
     }
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.B))
+        if (Input.GetKeyDown(KeyCode.B))
         {
-            SetBuildingMode();
-        }
-        if(isBuildingMode)
-        {
-            // Implement building logic here
-            UnityEngine.Ray mouseCameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-            GetPlayerPositionAndBuildingPosition(mouseCameraRay);
-            if(Input.GetKeyDown(KeyCode.C))
+            isBuildingMode = !isBuildingMode;
+            if (isBuildingMode)
             {
-                int currentIndex = UnityEngine.Random.Range(0, listModelBuilding.list.Count);
-                currentModelBuilding = listModelBuilding.list[currentIndex];
-                currentBuildingID = currentModelBuilding.buildingID;
-            }
-            if (Input.GetMouseButtonDown(0))
+                buidingState = freestyle;
+            } 
+            else
             {
-                entityQuery = entityManager.CreateEntityQuery(typeof(PhysicsWorldSingleton));
-                entityQuery = new EntityQueryBuilder(Allocator.Temp).WithAll<GridBuildingManager, LocalTransform>().Build(entityManager);
-                LocalTransform localTransform = entityManager.GetComponentData<LocalTransform>(entityQuery.GetSingletonEntity());
-                float3 rayhitGridPositionDirection = gridBuildingManager.buildingPosition - localTransform.Position;
-                float3 buildingPositionGrid = WorldPositionToGridPosition(rayhitGridPositionDirection, gridBuildingManager.cellSize);
-                Debug.Log("Place Building at Grid Position at position" + buildingPositionGrid.ToString());
-                // Example: Raycast to find ground position and place building
+                buidingState = none;
             }
         }
+        if (!isBuildingMode) return;
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            buidingState = gridstyle;
+        }
+        if(Input.GetKeyDown(KeyCode.F))
+        {
+            buidingState = freestyle;
+        }
+        SetBuildingMode();
     }
     private void SetBuildingMode()
     {
-        isBuildingMode = !isBuildingMode;
-        entityQuery = entityManager.CreateEntityQuery(typeof(GridBuildingManager));
-        gridBuildingManager = entityQuery.GetSingleton<GridBuildingManager>();
-        gridBuildingManager.isBuildingMode = isBuildingMode;
-        entityManager.SetComponentData(entityQuery.GetSingletonEntity(), gridBuildingManager);
-        Debug.Log("Building Mode: " + (isBuildingMode ? "Enabled" : "Disabled"));
+        UnityEngine.Ray mouseCameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+        buildPosition = TrackBuildPosition(mouseCameraRay);
+        pointVisual.transform.position = buildPosition;
+        switch (buidingState)
+        {
+            case none:
+                break;
+            case freestyle:
+                ghostVisual.transform.position = buildPosition;
+                break;
+            case gridstyle:
+                ghostVisual.transform.position = GridManager.Instance.GetVectorGridPosition(GridManager.Instance.GetGridPosition(buildPosition));
+                break;
+        }
     }
-    private void GetPlayerPositionAndBuildingPosition(UnityEngine.Ray mouseCameraRay)
-    {
-        if (EventSystem.current.IsPointerOverGameObject()) return;
-        entityQuery = entityManager.CreateEntityQuery(typeof(PhysicsWorldSingleton));
-        float3 buildPostion = TrackBuildPosition(mouseCameraRay);
-        transformDebug.position = buildPostion;
-        float3 playerPosition = playerTranform.position;
-        entityQuery = new EntityQueryBuilder(Allocator.Temp).WithAll<GridBuildingManager>().Build(entityManager);
-        gridBuildingManager = entityQuery.GetSingleton<GridBuildingManager>();
-        gridBuildingManager.playerPosition = playerPosition;
-        gridBuildingManager.buildingPosition = buildPostion;
-        entityManager.SetComponentData(entityQuery.GetSingletonEntity(), gridBuildingManager);
-
-    }
-    private float3 TrackBuildPosition(UnityEngine.Ray mouseCameraRay)
+    private Vector3 TrackBuildPosition(UnityEngine.Ray mouseCameraRay)
     {
         RaycastInput raycastInput = new()
         {
@@ -91,6 +89,8 @@ public class BuildingManager : MonoBehaviour
                 GroupIndex = 0,
             }
         };
+        entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+        entityQuery = entityManager.CreateEntityQuery(typeof(PhysicsWorldSingleton));
         PhysicsWorldSingleton physicsWorldSingleton = entityQuery.GetSingleton<PhysicsWorldSingleton>();
         CollisionWorld collisionWorld = physicsWorldSingleton.CollisionWorld;
         if (collisionWorld.CastRay(raycastInput, out Unity.Physics.RaycastHit closestHit))
@@ -99,12 +99,7 @@ public class BuildingManager : MonoBehaviour
         }
         else
         {
-            return transform.position + mouseCameraRay.direction * buildDistance;
+            return cinemachineCamera.transform.position + mouseCameraRay.direction * buildDistance;
         }
-    }
-    private float3 WorldPositionToGridPosition(float3 worldPosition, float cellSize)
-    {
-        GridBuildingSystem.GridPosition gridPosition = GridBuildingSystem.GetGridPosition(worldPosition, cellSize);
-        return new float3(gridPosition.x, 0, gridPosition.z);
     }
 }

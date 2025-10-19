@@ -5,6 +5,8 @@ public class CameraOrbitController : MonoBehaviour
 {
     [Range(1, 500)]
     [SerializeField] private float rotateSpeed;
+    [Range(1, 5)]
+    [SerializeField] private float zoomedSpeed;
     private CinemachineOrbitalFollow orbitalFollow;
     private float yaw;
     private float pitch;
@@ -27,6 +29,11 @@ public class CameraOrbitController : MonoBehaviour
             pitch = Mathf.Clamp(pitch, orbitalFollow.VerticalAxis.Range.x, orbitalFollow.VerticalAxis.Range.y);
             orbitalFollow.HorizontalAxis.Value = yaw;
             orbitalFollow.VerticalAxis.Value = pitch;
+            if(Mathf.Abs(Input.mouseScrollDelta.y) > 0.01f)
+            {
+                orbitalFollow.RadialAxis.Value += Input.mouseScrollDelta.y * zoomedSpeed * Time.deltaTime;
+                orbitalFollow.RadialAxis.Value = Mathf.Clamp(orbitalFollow.RadialAxis.Value, orbitalFollow.RadialAxis.Range.x, orbitalFollow.RadialAxis.Range.y);
+            }
         }
         if(Input.GetMouseButtonUp(1))
         {

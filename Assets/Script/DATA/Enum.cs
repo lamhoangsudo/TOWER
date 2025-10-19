@@ -54,4 +54,16 @@ public static class Enum
         forward,
         backward,
     }
+    public enum PointBuidStatus
+    {
+        none = 0,
+        validPointBuid = 1,
+        unvalidPointBuid = 2,
+    }
+    public enum BuidingState
+    {
+        none = 0,
+        freestyle = 1,
+        gridstyle = 2,
+    }
 }

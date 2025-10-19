@@ -10,7 +10,7 @@ namespace Opsive.BehaviorDesigner.Editor.Managers
     /// </summary>
     public static class AssetInfo
     {
-        public static string Version { get => "2.1.4"; }
+        public static string Version { get => "2.1.5"; }
 
         public static string Name {  get => "Behavior Designer Pro"; }
 
