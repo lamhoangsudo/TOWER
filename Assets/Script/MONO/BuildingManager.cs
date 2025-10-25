@@ -1,28 +1,27 @@
 using Unity.Cinemachine;
-using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Physics;
-using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using static Enum;
-using static Enum.BuidingState;
+using static Enum.PlacementMode;
+using static Enum.BuildingMode;
 
 public class BuildingManager : MonoBehaviour
 {
     public static BuildingManager Instance;
 
     [SerializeField] private CinemachineCamera cinemachineCamera;
-    [SerializeField] private Transform pointVisual;
-    [SerializeField] private GhostBuildingManager ghostVisual;
+    [SerializeField] private GhostBuildingManager ghostManager;
 
     private EntityQuery entityQuery;
     private EntityManager entityManager;
     private float buildDistance;
     private bool isBuildingMode = false;
 
-    public BuidingState buidingState { get; private set; } = none;
+    public IBuildingMode buildingMode { get; private set; }
+    public PlacementMode placementMode { get; private set; } = PlacementMode.none;
+    public BuildingMode buildingModeType { get; private set; } = BuildingMode.none;
+
     public Transform targetTranform { get; private set; }
     public Vector3 buildPosition { get; private set; }
 
@@ -41,42 +40,72 @@ public class BuildingManager : MonoBehaviour
             isBuildingMode = !isBuildingMode;
             if (isBuildingMode)
             {
-                buidingState = freestyle;
-            } 
+                placementMode = freestyle;
+                buildingModeType = single_free;
+            }
             else
             {
-                buidingState = none;
+                placementMode = PlacementMode.none;
+                buildingModeType = BuildingMode.none;
             }
         }
         if (!isBuildingMode) return;
         if (Input.GetKeyDown(KeyCode.G))
         {
-            buidingState = gridstyle;
+            placementMode = gridstyle;
+            buildingModeType = single_grid;
         }
-        if(Input.GetKeyDown(KeyCode.F))
+        if (Input.GetKeyDown(KeyCode.F))
         {
-            buidingState = freestyle;
+            placementMode = freestyle;
+            buildingModeType = single_free;
         }
-        SetBuildingMode();
+        if(placementMode == freestyle)
+        {
+            if(Input.GetKey(KeyCode.LeftShift))
+            {
+                buildingModeType = area_free;
+            }
+            else
+            {
+                buildingModeType = single_free;
+            }
+        }
+        else if(placementMode == gridstyle)
+        {
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                buildingModeType = area_grid;
+            }
+            else
+            {
+                buildingModeType = single_grid;
+            }
+        }
+        SetPlacementMode();
+        SetBuildMode();
+        SetPointBuildingVisual(buildPosition);
     }
-    private void SetBuildingMode()
+    private void SetPlacementMode()
     {
-        UnityEngine.Ray mouseCameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-        buildPosition = TrackBuildPosition(mouseCameraRay);
-        pointVisual.transform.position = buildPosition;
-        switch (buidingState)
+        switch (placementMode)
         {
-            case none:
+            case PlacementMode.none:
                 break;
             case freestyle:
-                ghostVisual.transform.position = buildPosition;
                 break;
             case gridstyle:
-                ghostVisual.transform.position = GridManager.Instance.GetVectorGridPosition(GridManager.Instance.GetGridPosition(buildPosition));
+                break;
+            default:
+                placementMode = PlacementMode.none;
                 break;
         }
     }
-    private Vector3 TrackBuildPosition(UnityEngine.Ray mouseCameraRay)
+    private void SetPointBuildingVisual(Vector3 buildPosition)
+    {
+        ghostManager.SetPosition(buildPosition);
+    }
+    public Vector3 TrackBuildPosition(UnityEngine.Ray mouseCameraRay)
     {
         RaycastInput raycastInput = new()
         {
@@ -100,6 +129,54 @@ public class BuildingManager : MonoBehaviour
         else
         {
             return cinemachineCamera.transform.position + mouseCameraRay.direction * buildDistance;
+        }
+    }
+    private void SetBuildMode()
+    {
+        switch (buildingModeType)
+        {
+            case BuildingMode.none:
+                break;
+            case single_grid:
+                if(TryGetComponent<SingleGridBuildingMode>(out SingleGridBuildingMode singleGridBuildingMode))
+                {
+                    buildingMode = singleGridBuildingMode;
+                    buildingMode.OnUpdate();
+                    buildPosition = singleGridBuildingMode.buildPositionGrid;
+                    buildPosition = GridManager.Instance.GetVectorGridPosition(buildPosition);
+                }
+                break;
+            case area_grid:
+                if(TryGetComponent<AreaGridBuildingMode>(out AreaGridBuildingMode areaGridBuildingMode))
+                {
+                    buildingMode = areaGridBuildingMode;
+                    buildingMode.OnStart();
+                    buildingMode.OnUpdate();
+                    buildingMode.OnEnd();
+                    buildPosition = areaGridBuildingMode.endGridPosition;
+                    buildPosition = GridManager.Instance.GetVectorGridPosition(buildPosition);
+                }
+                break;
+            case line:
+                break;
+            case single_free:
+                if(TryGetComponent<SingleFreeBuildingMode>(out SingleFreeBuildingMode singleFreeBuildingMode))
+                {
+                    buildingMode = singleFreeBuildingMode;
+                    buildingMode.OnUpdate();
+                    buildPosition = singleFreeBuildingMode.buildPosition;
+                }
+                break;
+            //TODO: Remove Area Free Building Mode 
+            case area_free:
+                if(TryGetComponent<AreaFreeBuildingMode>(out AreaFreeBuildingMode areaFreeBuildingMode))
+                {
+                    buildingMode = areaFreeBuildingMode;
+                    buildingMode.OnStart();
+                    buildingMode.OnUpdate();
+                    buildingMode.OnEnd();
+                }
+                break;
         }
     }
 }

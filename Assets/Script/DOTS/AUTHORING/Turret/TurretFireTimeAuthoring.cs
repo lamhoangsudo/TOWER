@@ -1,5 +1,4 @@
 using Unity.Entities;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class TurretFireTimeAuthoring : MonoBehaviour
@@ -22,7 +21,7 @@ public class TurretFireTimeAuthoring : MonoBehaviour
                 cooldownMax = authoring.cooldownMax,
                 indexWeapons = 0,
             });
-            if (authoring.weaponAuthorings.Length > 0 && !authoring.weaponAuthorings.IsUnityNull())
+            if (authoring.weaponAuthorings.Length > 0 && authoring.weaponAuthorings != null)
             {
                 DynamicBuffer<WeaponBuffer> weaponBuffers = AddBuffer<WeaponBuffer>(entity);
                 foreach (WeaponAuthoring weaponAuthoring in authoring.weaponAuthorings)

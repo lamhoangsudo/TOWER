@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 using static Enum;
-using static Enum.BuidingState;
+using static Enum.PlacementMode;
+using static Enum.BuildingMode;
+
 
 public class GridManager : MonoBehaviour
 {
@@ -14,9 +15,13 @@ public class GridManager : MonoBehaviour
     [SerializeField] private Vector3 gridOrigin;
     [SerializeField] private SingleGridVisual gridVisual;
     [SerializeField] private Transform gridContain;
+    [Range(1f, 100f)]
+    [SerializeField] private float lerpSpeed = 5f;
     private Dictionary<Vector3, SingleGridVisual> nodes = new();
     private Vector3 gridPosition;
     private float diameter;
+    private IBuildingMode buildingMode;
+    private BuildingMode buildingModeEnum;
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -28,25 +33,14 @@ public class GridManager : MonoBehaviour
     }
     private void Update()
     {
-        if (BuildingManager.Instance.buidingState == gridstyle)
+        if (BuildingManager.Instance.placementMode == gridstyle)
         {
             ShowGrid();
             gridOrigin = GetVectorGridPosition(GetGridPosition(BuildingManager.Instance.targetTranform.position));
-            transform.position = gridOrigin;
-            Vector3 gridPosition = GetGridPosition(BuildingManager.Instance.buildPosition);
-            foreach (var node in nodes)
-            {
-                if(node.Key == gridPosition)
-                {
-                    if(node.Value.pointStatus != Enum.PointBuidStatus.validPointBuid)
-                    node.Value.pointStatus = Enum.PointBuidStatus.validPointBuid;
-                }
-                else
-                {
-                    if(node.Value.pointStatus != Enum.PointBuidStatus.none)
-                    node.Value.pointStatus = Enum.PointBuidStatus.none;
-                }
-            }
+            transform.position = Vector3.Lerp(transform.position, gridOrigin, lerpSpeed * Time.deltaTime);
+            buildingMode = BuildingManager.Instance.buildingMode;
+            buildingModeEnum = BuildingManager.Instance.buildingModeType;
+            SetUpNodeData();
         }
         else
         {
@@ -100,5 +94,43 @@ public class GridManager : MonoBehaviour
         }
         return Vector3.zero;
     }
-
+    public void SetUpNodeData()
+    {
+        switch(buildingModeEnum)
+        {
+            case single_grid:
+                SingleGridBuildingMode singleGridBuildingMode = buildingMode as SingleGridBuildingMode;
+                Vector3 gridPosition = singleGridBuildingMode.buildPositionGrid;
+                foreach (var node in nodes)
+                {
+                    if (node.Key == gridPosition)
+                    {
+                        if (node.Value.pointStatus != Enum.PointBuidStatus.validPointBuid)
+                            node.Value.pointStatus = Enum.PointBuidStatus.validPointBuid;
+                    }
+                    else
+                    {
+                        if (node.Value.pointStatus != Enum.PointBuidStatus.none)
+                            node.Value.pointStatus = Enum.PointBuidStatus.none;
+                    }
+                }
+                break;
+            case area_grid:
+                AreaGridBuildingMode areaGridBuildingMode = buildingMode as AreaGridBuildingMode;
+                foreach (var node in nodes)
+                {
+                    if (areaGridBuildingMode.gridPosition.Contains(node.Key))
+                    {
+                        if (node.Value.pointStatus != Enum.PointBuidStatus.validPointBuid)
+                            node.Value.pointStatus = Enum.PointBuidStatus.validPointBuid;
+                    }
+                    else
+                    {
+                        if (node.Value.pointStatus != Enum.PointBuidStatus.none)
+                            node.Value.pointStatus = Enum.PointBuidStatus.none;
+                    }
+                }
+                break;
+        }
+    }
 }

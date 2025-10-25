@@ -60,10 +60,19 @@ public static class Enum
         validPointBuid = 1,
         unvalidPointBuid = 2,
     }
-    public enum BuidingState
+    public enum PlacementMode
     {
         none = 0,
         freestyle = 1,
         gridstyle = 2,
+    }
+    public enum BuildingMode
+    {
+        none = 0,
+        single_grid = 1,
+        area_grid = 2,
+        line = 3,
+        single_free = 4,
+        area_free = 5,
     }
 }

@@ -2,7 +2,6 @@ using FMOD.Studio;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
-using Unity.VisualScripting;
 using UnityEngine;
 [UpdateAfter(typeof(BarrelAnimatorSystem))]
 partial struct PlaySoundFireEffectSystem : ISystem
