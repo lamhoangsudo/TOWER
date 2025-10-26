@@ -558,11 +558,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 395700047351237163, guid: 8d966adeac90d9d44abb668a9a52e002, type: 3}
       propertyPath: m_LocalScale.x
-      value: 5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 395700047351237163, guid: 8d966adeac90d9d44abb668a9a52e002, type: 3}
       propertyPath: m_LocalScale.z
-      value: 5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 395700047351237163, guid: 8d966adeac90d9d44abb668a9a52e002, type: 3}
       propertyPath: m_LocalPosition.x
@@ -879,6 +879,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cinemachineCamera: {fileID: 1139693370}
   ghostManager: {fileID: 1967414422}
+  buildingSize: {x: 1, y: 2}
 --- !u!114 &658867849
 MonoBehaviour:
   m_ObjectHideFlags: 0

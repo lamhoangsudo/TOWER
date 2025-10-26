@@ -43,6 +43,7 @@ public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
 
     private void GetAreaGridBuild()
     {
+        Vector2Int size = BuildingManager.Instance.GetBuildingSize();
         float offsetx = endGridPosition.x - startGridPosition.x;
         float offsetz = endGridPosition.z - startGridPosition.z;
         for (int i = 0; i <= Mathf.Abs(offsetx); i++)

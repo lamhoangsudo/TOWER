@@ -133,4 +133,25 @@ public class GridManager : MonoBehaviour
                 break;
         }
     }
+    public Vector3 GetAdjustedPositionWithSizeBuilding(Vector2Int buildingSize)
+    {
+        if (((buildingSize.x & 1) == 1 && (buildingSize.y & 1) == 1))
+        {
+            return Vector3.zero;
+        }
+        float offsetX = buildingSize.x - 1;
+        float offsetZ = buildingSize.y - 1;
+        Vector3 adjustedGridPosition = new()
+        {
+            x = offsetX * cellSize,
+            y = 0,
+            z = offsetZ * cellSize,
+        };
+        return adjustedGridPosition;
+    }
+    public List<Vector3> GetAllGridPosition(List<Vector3> vectors, Vector2 buildingSize, Vector3 gridPosition)
+    {
+        if(vectors.Count != 0) vectors.Clear();
+        return vectors;
+    }
 }

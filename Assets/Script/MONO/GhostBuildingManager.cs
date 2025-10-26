@@ -9,7 +9,10 @@ public class GhostBuildingManager : MonoBehaviour
     [SerializeField] private GameObject pointVisual;
     [Range(1f, 100f)]
     [SerializeField] private float lerpSpeed = 5f;
-    private Vector3 buildPosition;
+    private Vector3 ghostPosition;
+    private Vector3 pointPosition;
+    // debug
+    private Vector2 buildScale;
     private void Start()
     {
         Hide();
@@ -19,8 +22,9 @@ public class GhostBuildingManager : MonoBehaviour
         if(BuildingManager.Instance.placementMode != none)
         {
             if (!ghostVisual.activeSelf) Show();
-            ghostVisual.transform.position = Vector3.Lerp(ghostVisual.transform.position, buildPosition, lerpSpeed * Time.deltaTime);
-            pointVisual.transform.position = Vector3.Lerp(pointVisual.transform.position, buildPosition, lerpSpeed * Time.deltaTime);
+            ghostVisual.transform.position = Vector3.Lerp(ghostVisual.transform.position, ghostPosition, lerpSpeed * Time.deltaTime);
+            ghostVisual.transform.localScale = new Vector3(buildScale.x * 5f, ghostVisual.transform.localScale.y, buildScale.y * 5f);
+            pointVisual.transform.position = Vector3.Lerp(pointVisual.transform.position, pointPosition, lerpSpeed  * 5f * Time.deltaTime);
         }
         else
         {
@@ -37,8 +41,10 @@ public class GhostBuildingManager : MonoBehaviour
         ghostVisual.SetActive(true);
         pointVisual.SetActive(true);
     }
-    public void SetPosition(Vector3 position)
+    public void SetPositionAndScale(Vector3 ghostPosition, Vector2 scale, Vector3 pointPosition)
     {
-        if(buildPosition != position) buildPosition = position;
+        if(this.ghostPosition != ghostPosition) this.ghostPosition = ghostPosition;
+        if(buildScale != scale) buildScale = scale;
+        if(this.pointPosition != pointPosition) this.pointPosition = pointPosition;
     }
 }

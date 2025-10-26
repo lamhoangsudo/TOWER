@@ -12,6 +12,7 @@ public class BuildingManager : MonoBehaviour
 
     [SerializeField] private CinemachineCamera cinemachineCamera;
     [SerializeField] private GhostBuildingManager ghostManager;
+    [SerializeField] private Vector2Int buildingSize = new Vector2Int(1, 1);
 
     private EntityQuery entityQuery;
     private EntityManager entityManager;
@@ -24,6 +25,7 @@ public class BuildingManager : MonoBehaviour
 
     public Transform targetTranform { get; private set; }
     public Vector3 buildPosition { get; private set; }
+    private Vector3 pointPosition;
 
     private void Awake()
     {
@@ -84,7 +86,7 @@ public class BuildingManager : MonoBehaviour
         }
         SetPlacementMode();
         SetBuildMode();
-        SetPointBuildingVisual(buildPosition);
+        SetPointBuildingVisual(buildPosition, buildingSize, pointPosition);
     }
     private void SetPlacementMode()
     {
@@ -101,9 +103,9 @@ public class BuildingManager : MonoBehaviour
                 break;
         }
     }
-    private void SetPointBuildingVisual(Vector3 buildPosition)
+    private void SetPointBuildingVisual(Vector3 buildPosition, Vector2 scale, Vector3 pointPosition)
     {
-        ghostManager.SetPosition(buildPosition);
+        ghostManager.SetPositionAndScale(buildPosition, scale, pointPosition);
     }
     public Vector3 TrackBuildPosition(UnityEngine.Ray mouseCameraRay)
     {
@@ -143,7 +145,8 @@ public class BuildingManager : MonoBehaviour
                     buildingMode = singleGridBuildingMode;
                     buildingMode.OnUpdate();
                     buildPosition = singleGridBuildingMode.buildPositionGrid;
-                    buildPosition = GridManager.Instance.GetVectorGridPosition(buildPosition);
+                    pointPosition = GridManager.Instance.GetVectorGridPosition(buildPosition);
+                    buildPosition = pointPosition + GridManager.Instance.GetAdjustedPositionWithSizeBuilding(buildingSize);
                 }
                 break;
             case area_grid:
@@ -154,7 +157,8 @@ public class BuildingManager : MonoBehaviour
                     buildingMode.OnUpdate();
                     buildingMode.OnEnd();
                     buildPosition = areaGridBuildingMode.endGridPosition;
-                    buildPosition = GridManager.Instance.GetVectorGridPosition(buildPosition);
+                    pointPosition = GridManager.Instance.GetVectorGridPosition(buildPosition);
+                    buildPosition = pointPosition + GridManager.Instance.GetAdjustedPositionWithSizeBuilding(buildingSize);
                 }
                 break;
             case line:
@@ -165,6 +169,7 @@ public class BuildingManager : MonoBehaviour
                     buildingMode = singleFreeBuildingMode;
                     buildingMode.OnUpdate();
                     buildPosition = singleFreeBuildingMode.buildPosition;
+                    pointPosition = buildPosition;
                 }
                 break;
             //TODO: Remove Area Free Building Mode 
@@ -178,5 +183,9 @@ public class BuildingManager : MonoBehaviour
                 }
                 break;
         }
+    }
+    public Vector2Int GetBuildingSize()
+    {
+        return buildingSize;
     }
 }
