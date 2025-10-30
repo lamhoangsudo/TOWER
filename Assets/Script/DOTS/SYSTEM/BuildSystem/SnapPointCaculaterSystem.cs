@@ -33,7 +33,7 @@ public partial struct SnapPointCaculaterSystem : ISystem
         //mousePointEntity = SystemAPI.GetSingletonEntity<BuildPositionTag>();
         //BuildPositionTag mouseWorldPositionTrack = SystemAPI.GetComponent<BuildPositionTag>(mousePointEntity);
         //BuildingManger buildingManger = SystemAPI.GetSingleton<BuildingManger>();
-        //float3 gridPosition = SystemAPI.GetComponent<LocalTransform>(mousePointEntity).Position;
+        //float3 gridPositions = SystemAPI.GetComponent<LocalTransform>(mousePointEntity).Position;
         //foreach ((RefRO<LocalTransform> buildingLocalTransform,
         //    RefRO<Building> building,
         //    EnabledRefRW<BuildingTrackMousePosition> buildingTrackMousePositionEnabled,
@@ -46,15 +46,15 @@ public partial struct SnapPointCaculaterSystem : ISystem
         //    RefRW<BuildingTrackMousePosition>,
         //    DynamicBuffer<SnapPointsDirectionBuffer>>())
         //{
-        //    if (math.distance(buildingLocalTransform.ValueRO.Position, gridPosition) > building.ValueRO.snapMaxDistance || mouseWorldPositionTrack.ghostEntity == Entity.Null)
+        //    if (math.distance(buildingLocalTransform.ValueRO.Position, gridPositions) > building.ValueRO.snapMaxDistance || mouseWorldPositionTrack.ghostEntity == Entity.Null)
         //    {
         //        if (buildingTrackMousePositionEnabled.ValueRO) buildingTrackMousePositionEnabled.ValueRW = false;
         //        snapDirection = Enum.Direction.none;
         //        snapGhostDirection = Enum.Direction.none;
         //        continue;
         //    }
-        //    buildingTrackMousePosition.ValueRW.gridPosition = gridPosition;
-        //    float3 worldBuildingAndGhostDirection = math.normalizesafe(buildingTrackMousePosition.ValueRO.gridPosition - buildingLocalTransform.ValueRO.Position);
+        //    buildingTrackMousePosition.ValueRW.gridPositions = gridPositions;
+        //    float3 worldBuildingAndGhostDirection = math.normalizesafe(buildingTrackMousePosition.ValueRO.gridPositions - buildingLocalTransform.ValueRO.Position);
         //    RefRW<LocalTransform> ghostLocalTranform = SystemAPI.GetComponentRW<LocalTransform>(mouseWorldPositionTrack.ghostEntity);
 
         //    buildingTrackMousePosition.ValueRW.snapDirection = CaculatorSnapDirection(ref state, buildingLocalTransform.ValueRO.Rotation, worldBuildingAndGhostDirection);
@@ -69,7 +69,7 @@ public partial struct SnapPointCaculaterSystem : ISystem
         //                Entity snapPointDirectionBuildingEntity = snapPointsDirectionBuffers[i].SnapPointsDirectionEntity;
         //                DynamicBuffer<SnapPointBuffer> snapPointBuildingBuffers = SystemAPI.GetBuffer<SnapPointBuffer>(snapPointDirectionBuildingEntity);
         //                //find snap point with min distance to building
-        //                UpdateAllDistanceSnapPointToBuildingGhost(ref state, snapPointBuildingBuffers, gridPosition);
+        //                UpdateAllDistanceSnapPointToBuildingGhost(ref state, snapPointBuildingBuffers, gridPositions);
         //                position = GetSuitableSnapPointBuilding(ref state, snapPointBuildingBuffers, buildingManger.snapPointTypeSearch);
         //                forward = snapPointsDirectionBuffers[i].directionVector;
         //                break;
@@ -118,7 +118,7 @@ public partial struct SnapPointCaculaterSystem : ISystem
         //    ghostLocalTranform.ValueRW.Rotation = buildingTrackMousePosition.ValueRO.targetQuaternion;
         //    if (position.Equals(float3.zero) || forward.Equals(float3.zero))
         //    {
-        //        ghostLocalTranform.ValueRW.Position = gridPosition;
+        //        ghostLocalTranform.ValueRW.Position = gridPositions;
         //    }
         //    else
         //    {
@@ -139,7 +139,7 @@ public partial struct SnapPointCaculaterSystem : ISystem
         //{
         //    SnapPointBuffer snapPointBuffer = snapPointBuffers[i];
         //    LocalToWorld localToWorld = SystemAPI.GetComponent<LocalToWorld>(snapPointBuffer.snapPointEntity);
-        //    snapPointBuffer.distanceSnapPointToBuildingGhost = math.distance(localToWorld.Position, gridPosition);
+        //    snapPointBuffer.distanceSnapPointToBuildingGhost = math.distance(localToWorld.Position, gridPositions);
         //    __newsnapPointBuffers__[i] = snapPointBuffer;
         //}
     }

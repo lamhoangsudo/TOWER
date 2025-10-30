@@ -21,7 +21,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks
     /// </summary>
     [HideInFilterWindow]
     [NodeIcon("e0a8f1df788b6274a9a24003859dfa7e")]
-    public abstract class StackedTask : Task, ITreeLogicNode, IStackedNode
+    public abstract class StackedTask : Task, ITreeLogicNode, IContainerNode
     {
         [Tooltip("The index of the node.")]
         [SerializeField] ushort m_Index;

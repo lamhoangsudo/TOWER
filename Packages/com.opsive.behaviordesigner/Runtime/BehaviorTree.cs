@@ -267,6 +267,19 @@ namespace Opsive.BehaviorDesigner.Runtime
                     m_Subtree.Data.OverrideVariableBinding(this, m_Data.SharedVariables[i]);
                 }
             }
+            // Subtrees will not have access to GameObject or Scene variables. Copy the reference from the parent tree in order to allow the subtree to correctly load all of the SharedVariables.
+            if (Application.isPlaying && !m_SubtreeOverride && m_Data.VariableByNameMap != null) {
+                foreach (var variableMap in m_Data.VariableByNameMap) {
+                    var sharedVariable = variableMap.Value;
+                    if (sharedVariable.Scope == SharedVariable.SharingScope.GameObject || sharedVariable.Scope == SharedVariable.SharingScope.Scene) {
+                        var variableAssignment = new BehaviorTreeData.VariableAssignment(sharedVariable.Name, sharedVariable.Scope);
+                        if (m_Subtree.Data.VariableByNameMap.ContainsKey(variableAssignment)) {
+                            continue;
+                        }
+                        m_Subtree.Data.VariableByNameMap.Add(variableAssignment, sharedVariable);
+                    }
+                }
+            }
 
             if (!m_Subtree.Deserialize(force || (Application.isPlaying && !m_Subtree.Pooled && !m_SubtreeOverride), false, Application.isPlaying, false)) {
                 return false;
@@ -918,12 +931,12 @@ namespace Opsive.BehaviorDesigner.Runtime
                 if (m_Data.LogicNodes[i] is T task) {
                     return task;
                 }
-                if (m_Data.LogicNodes[i] is IStackedNode stackedNode) {
-                    if (stackedNode.Nodes == null) {
+                if (m_Data.LogicNodes[i] is IContainerNode containerNode) {
+                    if (containerNode.Nodes == null) {
                         continue;
                     }
-                    for (int j = 0; j < stackedNode.Nodes.Length; ++j) {
-                        if (stackedNode.Nodes[j] is T stackedTask) {
+                    for (int j = 0; j < containerNode.Nodes.Length; ++j) {
+                        if (containerNode.Nodes[j] is T stackedTask) {
                             return stackedTask;
                         }
                     }
@@ -959,12 +972,12 @@ namespace Opsive.BehaviorDesigner.Runtime
                         return count;
                     }
                 }
-                if (m_Data.LogicNodes[i] is IStackedNode stackedNode) {
-                    if (stackedNode.Nodes == null) {
+                if (m_Data.LogicNodes[i] is IContainerNode containerNode) {
+                    if (containerNode.Nodes == null) {
                         continue;
                     }
-                    for (int j = 0; j < stackedNode.Nodes.Length; ++j) {
-                        if (stackedNode.Nodes[j] is T stackedTask) {
+                    for (int j = 0; j < containerNode.Nodes.Length; ++j) {
+                        if (containerNode.Nodes[j] is T stackedTask) {
                             foundTasks[count] = stackedTask;
                             count++;
                             if (count == foundTasks.Length) {

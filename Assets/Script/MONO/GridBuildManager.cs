@@ -100,10 +100,10 @@ public class GridManager : MonoBehaviour
         {
             case single_grid:
                 SingleGridBuildingMode singleGridBuildingMode = buildingMode as SingleGridBuildingMode;
-                Vector3 gridPosition = singleGridBuildingMode.buildPositionGrid;
+                List<Vector3> listGridBuildingSizeContain = singleGridBuildingMode.listGridBuildingSizeContain;
                 foreach (var node in nodes)
                 {
-                    if (node.Key == gridPosition)
+                    if (listGridBuildingSizeContain.Contains(node.Key))
                     {
                         if (node.Value.pointStatus != Enum.PointBuidStatus.validPointBuid)
                             node.Value.pointStatus = Enum.PointBuidStatus.validPointBuid;
@@ -119,7 +119,7 @@ public class GridManager : MonoBehaviour
                 AreaGridBuildingMode areaGridBuildingMode = buildingMode as AreaGridBuildingMode;
                 foreach (var node in nodes)
                 {
-                    if (areaGridBuildingMode.gridPosition.Contains(node.Key))
+                    if (areaGridBuildingMode.gridPositions.Contains(node.Key))
                     {
                         if (node.Value.pointStatus != Enum.PointBuidStatus.validPointBuid)
                             node.Value.pointStatus = Enum.PointBuidStatus.validPointBuid;
@@ -149,9 +149,24 @@ public class GridManager : MonoBehaviour
         };
         return adjustedGridPosition;
     }
-    public List<Vector3> GetAllGridPosition(List<Vector3> vectors, Vector2 buildingSize, Vector3 gridPosition)
+    public List<Vector3> GetAllGridPosition(List<Vector3> vectors, Vector2 buildingSize, Vector3 gridOrginPosition)
     {
         if(vectors.Count != 0) vectors.Clear();
+        for(int x = 0; x < buildingSize.x; x++)
+        {
+            for(int z = 0; z < buildingSize.y; z++)
+            {
+                Vector3 gridPosition = gridOrginPosition + new Vector3(x, 0, z);
+                if(CheckValidGridPosition(gridPosition))
+                {
+                    vectors.Add(gridPosition);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
         return vectors;
     }
 }

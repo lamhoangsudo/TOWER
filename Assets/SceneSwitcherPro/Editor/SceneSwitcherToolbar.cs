@@ -29,21 +29,24 @@ public static class SceneSwitcherToolbar
         RefreshSceneList();
         SelectCurrentScene();
 
+        // Listen for when EditorBuildSettings changes (build scenes updated)
+        EditorBuildSettings.sceneListChanged += RefreshSceneList;
 
-        Debug.Log(
-            "<b><color=green>Thank you for using Scene Switcher Pro</color></b>\n" +
-            "If you find this tool helpful, please consider leaving a review on the Asset Store."
-        );
+        // Listen for project asset changes (added/removed .unity files)
+        EditorApplication.projectChanged += RefreshSceneList;
 
-        // Hook into scene change events
         EditorSceneManager.activeSceneChangedInEditMode += (prev, current) => UpdateSceneSelection();
         EditorApplication.playModeStateChanged += OnPlayModeChanged;
 
         EditorApplication.delayCall += AddToolbarUI;
     }
 
+
     static void AddToolbarUI()
     {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
         var toolbarType = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
         if (toolbarType == null) return;
 
@@ -74,6 +77,9 @@ public static class SceneSwitcherToolbar
 
     static void OnGUI()
     {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
         CheckAndRefreshScenes();
 
         if (selectedIndex >= sceneNames.Length)
@@ -115,44 +121,76 @@ public static class SceneSwitcherToolbar
 
     static void RefreshSceneList()
     {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
         if (fetchAllScenes)
         {
+            // Fetch all scenes from the Assets folder
             sceneNames = Directory.GetFiles("Assets", "*.unity", SearchOption.AllDirectories)
                 .Select(path => Path.GetFileNameWithoutExtension(path))
                 .ToArray();
         }
         else
         {
-            sceneNames = EditorBuildSettings.scenes
-                .Where(scene => scene.enabled)
+            // Only include scenes that exist and are enabled in Build Settings
+            var validScenes = EditorBuildSettings.scenes
+                .Where(scene => scene.enabled && File.Exists(scene.path))
                 .Select(scene => Path.GetFileNameWithoutExtension(scene.path))
                 .ToArray();
+
+            // Detect deleted scenes still listed in Build Settings
+            var missingScenes = EditorBuildSettings.scenes
+                .Where(s => s.enabled && !File.Exists(s.path))
+                .Select(s => Path.GetFileNameWithoutExtension(s.path))
+                .ToArray();
+
+            if (missingScenes.Length > 0)
+            {
+                Debug.LogWarning(
+                    $"<color=orange>Scene Switcher:</color> Ignored {missingScenes.Length} missing scene(s) still listed in Build Settings:\n" +
+                    string.Join(", ", missingScenes)
+                );
+            }
+
+            sceneNames = validScenes;
         }
+
+        SelectCurrentScene();
+
+        // Refresh toolbar UI
+        if (toolbarUI != null)
+            toolbarUI.MarkDirtyRepaint();
     }
+
 
     static void CheckAndRefreshScenes()
     {
-        string[] currentScenes;
-        if (fetchAllScenes)
-        {
-            currentScenes = Directory.GetFiles("Assets", "*.unity", SearchOption.AllDirectories)
-                .Select(path => Path.GetFileNameWithoutExtension(path))
-                .ToArray();
-        }
-        else
-        {
-            currentScenes = EditorBuildSettings.scenes
+        // Avoid refreshing if playing or switching play mode
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
+        // Compute a hash of all scene names to detect change efficiently
+        string[] currentScenes = fetchAllScenes
+            ? Directory.GetFiles("Assets", "*.unity", SearchOption.AllDirectories)
+                .Select(Path.GetFileNameWithoutExtension)
+                .ToArray()
+            : EditorBuildSettings.scenes
                 .Where(scene => scene.enabled)
                 .Select(scene => Path.GetFileNameWithoutExtension(scene.path))
                 .ToArray();
-        }
 
-        if (!currentScenes.SequenceEqual(sceneNames))
+        // Generate a simple checksum (string join)
+        string currentHash = string.Join(",", currentScenes);
+        string lastHash = string.Join(",", sceneNames);
+
+        if (currentHash != lastHash)
         {
             sceneNames = currentScenes;
             SelectCurrentScene();
         }
     }
+
 
     static void SelectCurrentScene()
     {
@@ -193,7 +231,7 @@ public static class SceneSwitcherToolbar
 
     static void LoadScene(string sceneName)
     {
-        string scenePath;
+        string scenePath = null;
 
         if (fetchAllScenes)
         {
@@ -202,22 +240,29 @@ public static class SceneSwitcherToolbar
         }
         else
         {
-            scenePath = EditorBuildSettings.scenes
-                .FirstOrDefault(scene => scene.enabled && scene.path.Contains(sceneName))?.path;
+            var buildScene = EditorBuildSettings.scenes
+                .FirstOrDefault(scene => scene.enabled && Path.GetFileNameWithoutExtension(scene.path) == sceneName);
+
+            if (buildScene.path != null && File.Exists(buildScene.path))
+                scenePath = buildScene.path;
         }
 
-        if (!string.IsNullOrEmpty(scenePath))
+        // Check if scene actually exists before loading
+        if (string.IsNullOrEmpty(scenePath) || !File.Exists(scenePath))
         {
-            if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-            {
-                EditorSceneManager.OpenScene(scenePath);
-            }
+            Debug.LogWarning(
+                $"<color=orange>Scene Switcher:</color> Scene \"{sceneName}\" could not be found or has been deleted.\n" +
+                $"Please remove it from Build Settings or re-add the file."
+            );
+            return;
         }
-        else
+
+        if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
         {
-            Debug.LogError("Scene not found: " + sceneName);
+            EditorSceneManager.OpenScene(scenePath);
         }
     }
+
 
     static void OnPlayModeChanged(PlayModeStateChange state)
     {

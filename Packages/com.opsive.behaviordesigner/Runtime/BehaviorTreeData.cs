@@ -201,6 +201,10 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// </summary>
         public void Serialize()
         {
+            if (Application.isPlaying) {
+                return;
+            }
+
             m_TaskData = Serialization.Serialize<ITreeLogicNode>(m_Tasks, ValidateSerializedObject);
             m_EventTaskData = Serialization.Serialize<IEventNode>(m_EventTasks, ValidateSerializedObject);
             SerializeSharedVariables();
@@ -315,6 +319,10 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// </summary>
         public void SerializeSharedVariables()
         {
+            if (Application.isPlaying) {
+                return;
+            }
+
             m_SharedVariableData = Serialization.Serialize<SharedVariable>(m_SharedVariables);
 #if UNITY_EDITOR
             m_SharedVariableGroupsData = Serialization.Serialize<SharedVariableGroup>(m_SharedVariableGroups);
@@ -638,7 +646,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                             }
                             offset += m_SubtreeNodesReference[j].NodeCount - 1;
                         }
-                        if (offset != 0) {
+                        if (offset > 0) {
                             m_EventTasks[i].ConnectedIndex += (ushort)offset;
                         }
                     }
@@ -786,7 +794,7 @@ namespace Opsive.BehaviorDesigner.Runtime
         public bool DeserializeSharedVariables(IGraph graph, bool force, bool canDeepCopy, SharedVariableOverride[] sharedVariableOverrides = null)
         {
             // No need to deserialize if the data is already deserialized.
-            if (!force && (m_SharedVariables != null
+            if (!force && (m_SharedVariables != null || m_VariableByNameMap != null
 #if UNITY_EDITOR
                 || m_SharedVariableGroups != null
 #endif
@@ -1461,6 +1469,17 @@ namespace Opsive.BehaviorDesigner.Runtime
 #if UNITY_EDITOR
                     m_LogicNodeProperties[j] = m_LogicNodeProperties[j + nodeCount - 1];
 #endif
+                }
+
+                // Restore the original sibling index value for parent nodes.
+                parentIndex = m_Tasks[m_SubtreeNodesReference[i].NodeIndex + nodeOffset].ParentIndex;
+                while (parentIndex != ushort.MaxValue) {
+                    var parentTask = m_Tasks[parentIndex];
+                    if (parentTask.SiblingIndex != ushort.MaxValue) {
+                        parentTask.SiblingIndex -= (ushort)(nodeCount - 1);
+                        m_Tasks[parentIndex] = parentTask;
+                    }
+                    parentIndex = parentTask.ParentIndex;
                 }
 
                 // Restore the original ConnectedIndex value.

@@ -604,6 +604,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2377978975009995230, guid: 8d966adeac90d9d44abb668a9a52e002, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
     - target: {fileID: 4212266870874909952, guid: 8d966adeac90d9d44abb668a9a52e002, type: 3}
       propertyPath: m_Name
       value: GhostVisual
@@ -879,7 +883,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cinemachineCamera: {fileID: 1139693370}
   ghostManager: {fileID: 1967414422}
-  buildingSize: {x: 1, y: 2}
+  buildingSize: {x: 2, y: 2}
 --- !u!114 &658867849
 MonoBehaviour:
   m_ObjectHideFlags: 0

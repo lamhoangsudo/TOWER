@@ -62,7 +62,11 @@ public class BuildingManager : MonoBehaviour
             placementMode = freestyle;
             buildingModeType = single_free;
         }
-        if(placementMode == freestyle)
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+
+        }
+        if (placementMode == freestyle)
         {
             if(Input.GetKey(KeyCode.LeftShift))
             {
@@ -75,6 +79,7 @@ public class BuildingManager : MonoBehaviour
         }
         else if(placementMode == gridstyle)
         {
+            
             if (Input.GetKey(KeyCode.LeftShift))
             {
                 buildingModeType = area_grid;
@@ -144,7 +149,7 @@ public class BuildingManager : MonoBehaviour
                 {
                     buildingMode = singleGridBuildingMode;
                     buildingMode.OnUpdate();
-                    buildPosition = singleGridBuildingMode.buildPositionGrid;
+                    buildPosition = singleGridBuildingMode.buildPositionGridOrigin;
                     pointPosition = GridManager.Instance.GetVectorGridPosition(buildPosition);
                     buildPosition = pointPosition + GridManager.Instance.GetAdjustedPositionWithSizeBuilding(buildingSize);
                 }
@@ -156,7 +161,7 @@ public class BuildingManager : MonoBehaviour
                     buildingMode.OnStart();
                     buildingMode.OnUpdate();
                     buildingMode.OnEnd();
-                    buildPosition = areaGridBuildingMode.endGridPosition;
+                    buildPosition = areaGridBuildingMode.endGridOriginPosition;
                     pointPosition = GridManager.Instance.GetVectorGridPosition(buildPosition);
                     buildPosition = pointPosition + GridManager.Instance.GetAdjustedPositionWithSizeBuilding(buildingSize);
                 }

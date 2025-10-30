@@ -10,7 +10,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
     using Opsive.BehaviorDesigner.Runtime.Groups;
     using Opsive.BehaviorDesigner.Runtime.Tasks;
     using Opsive.BehaviorDesigner.Runtime.Utility;
-    using Opsive.GraphDesigner.Runtime;
     using Unity.Burst;
     using Unity.Collections;
     using Unity.Entities;
