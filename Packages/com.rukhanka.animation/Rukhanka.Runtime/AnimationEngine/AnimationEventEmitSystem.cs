@@ -17,17 +17,10 @@ public partial struct AnimationEventEmitSystem: ISystem
 
 	JobHandle EmitAnimationEvents(ref SystemState ss, JobHandle dependsOn)
 	{
-		var debugLog = false;
 		var dt = SystemAPI.Time.DeltaTime;
-		
-	#if RUKHANKA_DEBUG_INFO
-		if (SystemAPI.TryGetSingleton<DebugConfigurationComponent>(out var dc))
-			debugLog = dc.logAnimationEvents;
-	#endif
 		
 		var emitAnimationEventsJob = new EmitAnimationEventsJob()
 		{
-			doDebugLogging = debugLog,
 			deltaTime = dt
 		};
 		var jh = emitAnimationEventsJob.ScheduleParallel(dependsOn);

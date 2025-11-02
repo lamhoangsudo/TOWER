@@ -6,9 +6,16 @@ using FixedStringName = Unity.Collections.FixedString512Bytes;
 
 namespace Rukhanka
 {
-public readonly partial struct AnimatorStateQueryAspect: IAspect
+public readonly struct AnimatorStateQueryAspect
 {
 	readonly DynamicBuffer<AnimatorControllerLayerComponent> layersArr;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	public AnimatorStateQueryAspect(DynamicBuffer<AnimatorControllerLayerComponent> layers)
+	{
+		layersArr = layers;
+	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

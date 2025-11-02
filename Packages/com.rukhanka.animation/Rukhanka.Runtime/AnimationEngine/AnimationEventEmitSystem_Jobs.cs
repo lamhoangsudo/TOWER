@@ -17,7 +17,6 @@ public partial struct AnimationEventEmitSystem
 [BurstCompile]
 partial struct EmitAnimationEventsJob : IJobEntity
 {
-	public bool doDebugLogging;
 	public float deltaTime;
 	
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,11 +130,6 @@ partial struct EmitAnimationEventsJob : IJobEntity
 			{	
 				var evt = new AnimationEventComponent(ref ae);
 				outEvents.Add(evt);
-				
-			#if RUKHANKA_DEBUG_INFO
-				if (doDebugLogging)
-					Debug.Log($"Emit event for entity {e}. Name: {ae.name.ToFixedString()}, Hash: {ae.nameHash}, F: {ae.floatParam}, I: {ae.intParam}, S: {ae.stringParam.ToFixedString()}");
-			#endif
 			}
 		}
 	}

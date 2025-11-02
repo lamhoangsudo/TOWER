@@ -41,6 +41,12 @@ public partial class RukhankaSystemsBootstrap: SystemBase
 		var cs = World.CreateSystem<AnimationCullingSystem>();
 		var ikGroup = World.GetOrCreateSystemManaged<RukhankaAnimationInjectionSystemGroup>();
 		var actxus = World.GetOrCreateSystemManaged<AnimationCullingContextUpdateSystem>();
+	#if UNITY_EDITOR
+		var wbmrsg = World.GetOrCreateSystemManaged<WaybackMachineRecordSystemGroup>();
+		var wbmrs = World.GetOrCreateSystem<WaybackMachineRecordSystem>();
+		var wbmps = World.GetOrCreateSystem<WaybackMachinePlaybackSystem>();
+		wbmrsg.AddSystemToUpdateList(wbmrs);
+	#endif
 		
 		//	Add client animator controller systems
 		if (isClient)
@@ -51,6 +57,10 @@ public partial class RukhankaSystemsBootstrap: SystemBase
 			sysGroup.AddSystemToUpdateList(actxus);
 			sysGroup.AddSystemToUpdateList(cs);
 			sysGroup.AddSystemToUpdateList(aees);
+		#if UNITY_EDITOR
+			sysGroup.AddSystemToUpdateList(wbmrsg);
+			sysGroup.AddSystemToUpdateList(wbmps);
+		#endif
 			sysGroup.AddSystemToUpdateList(aps);
 			sysGroup.AddSystemToUpdateList(ikGroup);
 			sysGroup.AddSystemToUpdateList(aas);

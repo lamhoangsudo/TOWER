@@ -63,10 +63,6 @@ public partial struct AnimatorControllerSystem<T>: ISystem where T: AnimatorCont
 			controllerEventsBufferLookup = controllerEventsBufferLookup,
 			animationDatabase = animDBSingleton.animations,
 			animatorOverrideAnimationLookup = animatorOverrideAnimationsLookup,
-		#if RUKHANKA_DEBUG_INFO
-			doAnimatorProcessLogging = dc.logAnimatorControllerProcesses,
-			doAnimatorEventsLogging = dc.logAnimatorControllerEvents,
-		#endif
 		};
 
 		ss.Dependency = stateMachineProcessJob.ScheduleParallel(animatorControllerQuery, ss.Dependency);

@@ -5,6 +5,8 @@ using UnityEngine;
 using static Enum;
 using static Enum.PlacementMode;
 using static Enum.BuildingMode;
+using static Enum.BuildRotationDirection;
+using UnityEditor.Searcher;
 
 public class BuildingManager : MonoBehaviour
 {
@@ -13,6 +15,8 @@ public class BuildingManager : MonoBehaviour
     [SerializeField] private CinemachineCamera cinemachineCamera;
     [SerializeField] private GhostBuildingManager ghostManager;
     [SerializeField] private Vector2Int buildingSize = new Vector2Int(1, 1);
+    [SerializeField] private BuildRotationDirection buildRotationDirection = up;
+    [SerializeField] private BuildRotationDirection currentBuildRotationDirection = up;
 
     private EntityQuery entityQuery;
     private EntityManager entityManager;
@@ -26,6 +30,7 @@ public class BuildingManager : MonoBehaviour
     public Transform targetTranform { get; private set; }
     public Vector3 buildPosition { get; private set; }
     private Vector3 pointPosition;
+    public bool isCanBuildable { get; private set; } = true;
 
     private void Awake()
     {
@@ -64,11 +69,15 @@ public class BuildingManager : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.R))
         {
-
+            // TODO: Rotate Building Size
+            if (placementMode == gridstyle)
+            {
+                SetBuildRotationDirection(buildRotationDirection);
+            }
         }
         if (placementMode == freestyle)
         {
-            if(Input.GetKey(KeyCode.LeftShift))
+            if (Input.GetKey(KeyCode.LeftShift))
             {
                 buildingModeType = area_free;
             }
@@ -77,9 +86,9 @@ public class BuildingManager : MonoBehaviour
                 buildingModeType = single_free;
             }
         }
-        else if(placementMode == gridstyle)
+        else if (placementMode == gridstyle)
         {
-            
+
             if (Input.GetKey(KeyCode.LeftShift))
             {
                 buildingModeType = area_grid;
@@ -110,7 +119,8 @@ public class BuildingManager : MonoBehaviour
     }
     private void SetPointBuildingVisual(Vector3 buildPosition, Vector2 scale, Vector3 pointPosition)
     {
-        ghostManager.SetPositionAndScale(buildPosition, scale, pointPosition);
+        buildPosition -= CaculcateBuildindOffSetPositionWithRotation();
+        ghostManager.SetPositionAndScale(buildPosition, scale, pointPosition, isCanBuildable);
     }
     public Vector3 TrackBuildPosition(UnityEngine.Ray mouseCameraRay)
     {
@@ -145,46 +155,53 @@ public class BuildingManager : MonoBehaviour
             case BuildingMode.none:
                 break;
             case single_grid:
-                if(TryGetComponent<SingleGridBuildingMode>(out SingleGridBuildingMode singleGridBuildingMode))
+                if (TryGetComponent<SingleGridBuildingMode>(out SingleGridBuildingMode singleGridBuildingMode))
                 {
                     buildingMode = singleGridBuildingMode;
                     buildingMode.OnUpdate();
-                    buildPosition = singleGridBuildingMode.buildPositionGridOrigin;
-                    pointPosition = GridManager.Instance.GetVectorGridPosition(buildPosition);
-                    buildPosition = pointPosition + GridManager.Instance.GetAdjustedPositionWithSizeBuilding(buildingSize);
+                    if (!singleGridBuildingMode.allGridContainIsValid || !singleGridBuildingMode.checkValidGrid)
+                    {
+                        isCanBuildable = false;
+                    }
+                    else
+                    {
+                        isCanBuildable = true;
+                    }
+                    if (isCanBuildable)
+                    {
+                        buildPosition = singleGridBuildingMode.buildPositionGridOrigin;
+                        pointPosition = GridManager.Instance.GetVectorGridPosition(buildPosition);
+                        buildPosition = pointPosition + GridManager.Instance.GetAdjustedPositionWithSizeBuilding(buildingSize);
+                        buildRotationDirection = currentBuildRotationDirection;
+                    }
                 }
                 break;
             case area_grid:
-                if(TryGetComponent<AreaGridBuildingMode>(out AreaGridBuildingMode areaGridBuildingMode))
+                if (TryGetComponent<AreaGridBuildingMode>(out AreaGridBuildingMode areaGridBuildingMode))
                 {
                     buildingMode = areaGridBuildingMode;
                     buildingMode.OnStart();
                     buildingMode.OnUpdate();
                     buildingMode.OnEnd();
-                    buildPosition = areaGridBuildingMode.endGridOriginPosition;
-                    pointPosition = GridManager.Instance.GetVectorGridPosition(buildPosition);
-                    buildPosition = pointPosition + GridManager.Instance.GetAdjustedPositionWithSizeBuilding(buildingSize);
+                    isCanBuildable = areaGridBuildingMode.allGridContainIsValid;
+                    if (isCanBuildable)
+                    {
+                        buildPosition = areaGridBuildingMode.endGridOriginPosition;
+                        pointPosition = GridManager.Instance.GetVectorGridPosition(buildPosition);
+                        buildPosition = pointPosition + GridManager.Instance.GetAdjustedPositionWithSizeBuilding(buildingSize);
+                        buildRotationDirection = currentBuildRotationDirection;
+                    }
                 }
                 break;
             case line:
                 break;
             case single_free:
-                if(TryGetComponent<SingleFreeBuildingMode>(out SingleFreeBuildingMode singleFreeBuildingMode))
+                if (TryGetComponent<SingleFreeBuildingMode>(out SingleFreeBuildingMode singleFreeBuildingMode))
                 {
                     buildingMode = singleFreeBuildingMode;
                     buildingMode.OnUpdate();
                     buildPosition = singleFreeBuildingMode.buildPosition;
                     pointPosition = buildPosition;
-                }
-                break;
-            //TODO: Remove Area Free Building Mode 
-            case area_free:
-                if(TryGetComponent<AreaFreeBuildingMode>(out AreaFreeBuildingMode areaFreeBuildingMode))
-                {
-                    buildingMode = areaFreeBuildingMode;
-                    buildingMode.OnStart();
-                    buildingMode.OnUpdate();
-                    buildingMode.OnEnd();
                 }
                 break;
         }
@@ -193,4 +210,73 @@ public class BuildingManager : MonoBehaviour
     {
         return buildingSize;
     }
+    public BuildRotationDirection GetCurrentBuildRotationDirection()
+    {
+        return currentBuildRotationDirection;
+    }
+    public float GetBuildRotationDirectionValue()
+    {
+        return (float)buildRotationDirection;
+    }
+    public void SetBuildRotationDirection(BuildRotationDirection buildRotationDirection)
+    {
+        switch (buildRotationDirection)
+        {
+            case BuildRotationDirection.up:
+                currentBuildRotationDirection = BuildRotationDirection.right;
+                break;
+            case BuildRotationDirection.right:
+                currentBuildRotationDirection = BuildRotationDirection.down;
+                break;
+            case BuildRotationDirection.down:
+                currentBuildRotationDirection = BuildRotationDirection.left;
+                break;
+            case BuildRotationDirection.left:
+                currentBuildRotationDirection = BuildRotationDirection.up;
+                break;
+        }
+    }
+    public void SetBuildRotationDirectionReverse(BuildRotationDirection buildRotationDirection)
+    {
+        switch (buildRotationDirection)
+        {
+            case BuildRotationDirection.up:
+                this.buildRotationDirection = BuildRotationDirection.left;
+                break;
+            case BuildRotationDirection.right:
+                this.buildRotationDirection = BuildRotationDirection.up;
+                break;
+            case BuildRotationDirection.down:
+                this.buildRotationDirection = BuildRotationDirection.right;
+                break;
+            case BuildRotationDirection.left:
+                this.buildRotationDirection = BuildRotationDirection.down;
+                break;
+        }
+    }
+    public Vector3 CaculcateBuildindOffSetPositionWithRotation()
+    {
+        float cell = GridManager.Instance.GetCellSize();
+        float diameter = GridManager.Instance.GetDiameter();
+        Vector3 offset = Vector3.zero;
+        switch (buildRotationDirection)
+        {
+            case up:
+                break;
+
+            case down:
+                offset = new Vector3((buildingSize.x - 1) * diameter, 0, (buildingSize.y - 1) * diameter);
+                break;
+
+            case left:
+                offset = new Vector3((buildingSize.y + buildingSize.x - 2) * cell, 0, (buildingSize.y - buildingSize.x) * cell);
+                break;
+
+            case right:
+                offset = new Vector3((buildingSize.x - buildingSize.y) * cell, 0, (buildingSize.x + buildingSize.y - 2) * cell);
+                break;
+        }
+        return offset;
+    }
+
 }

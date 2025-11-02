@@ -13,6 +13,6 @@ AssetOrigin:
   serializedVersion: 1
   productId: 298480
   packageName: Rukhanka Animation System 2
-  packageVersion: 2.4.0
+  packageVersion: 2.5.0
   assetPath: Packages/com.rukhanka.animation/Rukhanka.Runtime/Culling/AnimationCullingContextUpdateSystem.cs
-  uploadId: 799778
+  uploadId: 813204

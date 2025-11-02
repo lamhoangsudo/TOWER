@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-/*public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
+public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
 {
     private Vector3 startPosition;
     private Vector3 endPosition;
@@ -13,6 +13,10 @@ using UnityEngine;
     private int multiplierx;
     private int multiplierz;
     private Vector2Int size;
+    private Vector3 currentBuildPositionGrid;
+    //Debug
+    public bool allGridContainIsValid;
+    public bool checkValidGrid;
     public void OnEnd()
     {
         if (Input.GetMouseButtonUp(0))
@@ -32,10 +36,19 @@ using UnityEngine;
         }
         if (!(Input.GetMouseButton(0) && isDragging))
         {
-            startPosition = BuildingManager.Instance.TrackBuildPosition(Camera.main.ScreenPointToRay(Input.mousePosition));
-            startGridOriginPosition = GridManager.Instance.GetGridPosition(startPosition);
-            endGridOriginPosition = startGridOriginPosition;
-            listGridBuildingSizeContain = GridManager.Instance.GetAllGridPosition(listGridBuildingSizeContain, BuildingManager.Instance.GetBuildingSize(), startGridOriginPosition);
+            startPosition = BuildingManager.Instance.TrackBuildPosition(Camera.main.ScreenPointToRay(Input.mousePosition));            currentBuildPositionGrid = GridManager.Instance.GetGridPosition(startPosition, out checkValidGrid);
+            if (currentBuildPositionGrid != startGridOriginPosition && checkValidGrid)
+            {
+                startGridOriginPosition = currentBuildPositionGrid;
+                endGridOriginPosition = startGridOriginPosition;
+                listGridBuildingSizeContain = GridManager.Instance.GetAllGridPosition(
+                    listGridBuildingSizeContain,
+                    BuildingManager.Instance.GetBuildingSize(),
+                    startGridOriginPosition,
+                    BuildingManager.Instance.GetCurrentBuildRotationDirection(),
+                    out allGridContainIsValid
+                    );
+            }
         }
     }
 
@@ -45,18 +58,23 @@ using UnityEngine;
         {
             if (gridPositions.Count != 0) gridPositions.Clear();
             endPosition = BuildingManager.Instance.TrackBuildPosition(Camera.main.ScreenPointToRay(Input.mousePosition));
-            //Vector3 endGridPos = GridManager.Instance.GetGridPosition(endPosition);
-            //Vector3 check = endGridPos - endGridOriginPosition;
-            if(size != BuildingManager.Instance.GetBuildingSize()) size = BuildingManager.Instance.GetBuildingSize();
-            *//*if (check.x % size.x != 0 || check.z % size.y != 0)
+            currentBuildPositionGrid = GridManager.Instance.GetGridPosition(endPosition, out checkValidGrid);
+            Vector3 endGridPos = Vector3.zero;
+            if (currentBuildPositionGrid != endGridOriginPosition && checkValidGrid)
             {
-                return;
-            }*//*
-            //else
-            //{
-            endGridOriginPosition = GridManager.Instance.GetGridPosition(endPosition);
-            GetAreaGridBuild();
-            //}
+                endGridPos = currentBuildPositionGrid;
+                Vector3 check = endGridPos - endGridOriginPosition;
+                if (size != BuildingManager.Instance.GetBuildingSize()) size = BuildingManager.Instance.GetBuildingSize();
+                if (check.x % size.x != 0 || check.z % size.y != 0)
+                {
+                    return;
+                }
+                //else
+                //{
+                endGridOriginPosition = GridManager.Instance.GetGridPosition(endPosition, out checkValidGrid);
+                GetAreaGridBuild();
+                //}
+            }
         }
     }
 
@@ -78,7 +96,7 @@ using UnityEngine;
                         break;
                     }
                 }
-                if(checkAllGridAdd)
+                if (checkAllGridAdd)
                 {
                     foreach (Vector3 gridPos in listGridBuildingSizeContain)
                     {
@@ -89,8 +107,8 @@ using UnityEngine;
             }
         }
     }
-}*/
-public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
+}
+/*public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
 {
     private Vector3 startPosition;
     private Vector3 endPosition;
@@ -194,5 +212,5 @@ public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
             }
         }
     }
-}
+}*/
 

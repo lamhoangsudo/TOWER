@@ -883,7 +883,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cinemachineCamera: {fileID: 1139693370}
   ghostManager: {fileID: 1967414422}
-  buildingSize: {x: 2, y: 2}
+  buildingSize: {x: 2, y: 4}
+  buildRotationDirection: 0
+  currentBuildRotationDirection: 0
 --- !u!114 &658867849
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -896,6 +898,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3ed70185f1b35b4087e4a7562321759, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  allGridContainIsValid: 0
+  checkValidGrid: 0
 --- !u!114 &658867850
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -920,6 +924,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 163074537f2043046987a4532d927a46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  allGridContainIsValid: 0
+  checkValidGrid: 0
 --- !u!114 &658867852
 MonoBehaviour:
   m_ObjectHideFlags: 0

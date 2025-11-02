@@ -5,11 +5,18 @@ using FixedStringName = Unity.Collections.FixedString512Bytes;
 
 namespace Rukhanka
 {
-public readonly partial struct AnimatorParametersAspect: IAspect
+public struct AnimatorParametersAspect
 {
-	[Optional]
-	readonly RefRO<AnimatorControllerParameterIndexTableComponent> indexTable;
-	readonly DynamicBuffer<AnimatorControllerParameterComponent> parametersArr;
+	public AnimatorControllerParameterIndexTableComponent indexTable;
+	public DynamicBuffer<AnimatorControllerParameterComponent> parametersArr;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	public AnimatorParametersAspect(DynamicBuffer<AnimatorControllerParameterComponent> parametersArr, AnimatorControllerParameterIndexTableComponent indexTable)
+	{
+		this.parametersArr = parametersArr;
+		this.indexTable = indexTable;
+	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -28,8 +35,8 @@ public readonly partial struct AnimatorParametersAspect: IAspect
 	public ParameterValue GetParameterValue(FastAnimatorParameter fp)
 	{
 		ParameterValue rv;
-		if (indexTable.IsValid)
-			fp.GetRuntimeParameterData(indexTable.ValueRO.value, parametersArr, out rv);
+		if (indexTable.value.IsCreated)
+			fp.GetRuntimeParameterData(indexTable.value, parametersArr, out rv);
 		else
 			fp.GetRuntimeParameterData(parametersArr, out rv);
 		return rv;
@@ -65,8 +72,8 @@ public readonly partial struct AnimatorParametersAspect: IAspect
 
 	public void SetParameterValue(FastAnimatorParameter fp, ParameterValue value)
 	{
-		if (indexTable.IsValid)
-			fp.SetRuntimeParameterData(indexTable.ValueRO.value, parametersArr, value);
+		if (indexTable.value.IsCreated)
+			fp.SetRuntimeParameterData(indexTable.value, parametersArr, value);
 		else
 			fp.SetRuntimeParameterData(parametersArr, value);
 	}
@@ -136,8 +143,8 @@ public readonly partial struct AnimatorParametersAspect: IAspect
 
 	public int GetParameterIndex(FastAnimatorParameter fp)
 	{
-		var index = indexTable.IsValid ?
-			fp.GetRuntimeParameterIndex(indexTable.ValueRO.value, parametersArr) :
+		var index = indexTable.value.IsCreated ?
+			fp.GetRuntimeParameterIndex(indexTable.value, parametersArr) :
 			fp.GetRuntimeParameterIndex(parametersArr);
 
 		return index;

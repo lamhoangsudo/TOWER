@@ -53,7 +53,8 @@ class UILabelSetter_AnimatorStateQuery: MonoBehaviour
 		if (animatedEntites.Length > 0)
 		{
 			var e = animatedEntites[0];
-			var a = em.GetAspect<AnimatorStateQueryAspect>(e);
+			var aclc = em.GetBuffer<AnimatorControllerLayerComponent>(e);
+			var a = new AnimatorStateQueryAspect(aclc);
 			
 			var stateInfo = a.GetLayerCurrentStateInfo(0);
 			var transitionInfo = a.GetLayerCurrentTransitionInfo(0);

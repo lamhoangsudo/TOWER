@@ -75,4 +75,11 @@ public static class Enum
         single_free = 4,
         area_free = 5,
     }
+    public enum BuildRotationDirection
+    {
+        up = 0,
+        right = 90,
+        down = -180,
+        left = -90,
+    }
 }

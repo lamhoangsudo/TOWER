@@ -8,7 +8,6 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEditor.Animations;
 using UnityEngine;
 using Hash128 = Unity.Entities.Hash128;
 
@@ -36,11 +35,6 @@ public struct StateMachineProcessJob: IJobChunk
 	[ReadOnly]
 	public ComponentLookup<AnimatorOverrideAnimations> animatorOverrideAnimationLookup;
 
-#if RUKHANKA_DEBUG_INFO
-	public bool doAnimatorProcessLogging;
-	public bool doAnimatorEventsLogging;
-#endif
-	
 	BlobAssetReference<ControllerAnimationsBlob> controllerAnimationsBlob;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,10 +58,6 @@ public struct StateMachineProcessJob: IJobChunk
 				controllerEventsBuffer = controllerEventsBufferLookup[e];
 
 			ExecuteSingle(layers, parameters, ref controllerEventsBuffer, e);
-			
-		#if RUKHANKA_DEBUG_INFO
-			DoEventsDebugLogging(e, controllerEventsBuffer);
-		#endif
 		}
 	}
 
@@ -106,10 +96,6 @@ public struct StateMachineProcessJob: IJobChunk
 				EmitStateUpdateEvents(ref events, acc, startIndex);
 				startIndex = events.Length;
 			}
-			
-		#if RUKHANKA_DEBUG_INFO
-			DoProcessDebugLogging(controllerDataPreSnapshot, acc, frameIndex);
-		#endif
 		}
 		
 		//	Reset affected triggers
@@ -154,7 +140,7 @@ public struct StateMachineProcessJob: IJobChunk
 		if (CheckTransitionExitConditions(acc.rtd.activeTransition))
 		{
 			//	Add state exit event
-			EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateExit, acc.rtd.srcState.id, acc.layerIndex, acc.rtd.srcState.normalizedDuration);
+			EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateExit, acc, acc.rtd.srcState.id, acc.rtd.srcState.normalizedDuration);
 				
 			acc.rtd.srcState.id = acc.rtd.dstState.id;
 			acc.rtd.srcState.normalizedDuration = acc.rtd.dstState.normalizedDuration;
@@ -226,12 +212,19 @@ public struct StateMachineProcessJob: IJobChunk
 		acc.rtd.dstState.normalizedDuration += timeShouldBeInTransition / dstStateDur + t.offset;
 		
 		//	Add state enter event
-		EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateEnter, acc.rtd.dstState.id, acc.layerIndex, acc.rtd.dstState.normalizedDuration);
+		EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateEnter, acc, acc.rtd.dstState.id, acc.rtd.dstState.normalizedDuration);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void EmitEvent(ref DynamicBuffer<AnimatorControllerEventComponent> events, AnimatorControllerEventComponent.EventType eventType, int stateID, int layerId, float stateDuration)
+	void EmitEvent
+	(
+		ref DynamicBuffer<AnimatorControllerEventComponent> events,
+		AnimatorControllerEventComponent.EventType eventType,
+		AnimatorControllerLayerComponent aclc,
+		int stateId,
+		float stateDuration
+	)
 	{
 		if (!events.IsCreated)
 			return;
@@ -239,10 +232,14 @@ public struct StateMachineProcessJob: IJobChunk
 		var evt = new AnimatorControllerEventComponent()
 		{
 			eventType = eventType,
-			stateId = stateID,
-			layerId = layerId,
-			timeInState = stateDuration
+			stateId = stateId,
+			layerId = aclc.layerIndex,
+			timeInState = stateDuration,
 		};
+		
+	#if RUKHANKA_DEBUG_INFO
+		aclc.controller.Value.layers[aclc.layerIndex].states[stateId].name.CopyToWithTruncate(ref evt.stateName);
+	#endif
 
 		events.Add(evt);
 		
@@ -267,9 +264,9 @@ public struct StateMachineProcessJob: IJobChunk
 		}
 		
 		if (acc.rtd.srcState.id >= 0 && !srcStateEnterExit)
-			EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateUpdate, acc.rtd.srcState.id, acc.layerIndex, acc.rtd.srcState.normalizedDuration);
+			EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateUpdate, acc, acc.rtd.srcState.id, acc.rtd.srcState.normalizedDuration);
 		if (acc.rtd.dstState.id >= 0 && !dstStateEnterExit)
-			EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateUpdate, acc.rtd.dstState.id, acc.layerIndex, acc.rtd.dstState.normalizedDuration);
+			EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateUpdate, acc, acc.rtd.dstState.id, acc.rtd.dstState.normalizedDuration);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -299,7 +296,7 @@ public struct StateMachineProcessJob: IJobChunk
 		if (Hint.Unlikely(acc.rtd.srcState.id < 0))
 		{
 			acc.rtd.srcState = InitControllerStateData(layer.defaultStateIndex);
-			EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateEnter, acc.rtd.srcState.id, acc.layerIndex, acc.rtd.srcState.normalizedDuration);
+			EmitEvent(ref events, AnimatorControllerEventComponent.EventType.StateEnter, acc, acc.rtd.srcState.id, acc.rtd.srcState.normalizedDuration);
 		}
 
 		var srcStateDurationFrameDelta = CalculateStateFrameDeltaSafe(layerDeltaTime, curStateDuration);
@@ -739,63 +736,6 @@ public struct StateMachineProcessJob: IJobChunk
 		
 		rtd.dstState = InitControllerStateData(newTransition.targetStateId);
 		rtd.dstState.normalizedDuration = newTransition.offset;
-	}
-	
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	void DoEventsDebugLogging(Entity e, in DynamicBuffer<AnimatorControllerEventComponent> events)
-	{
-	#if RUKHANKA_DEBUG_INFO
-		if (!doAnimatorEventsLogging || !events.IsCreated)
-			return;
-
-		foreach (var evt in events)
-		{
-			Debug.Log($"Emit animator controller event for {e}. Type: {evt.eventType}, StateId: {evt.stateId}, LayerId: {evt.layerId}, Time: {evt.timeInState}");
-		}
-	#endif
-	}
-	
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	void DoProcessDebugLogging(AnimatorControllerLayerComponent prevData, AnimatorControllerLayerComponent curData, int frameIndex)
-	{
-	#if RUKHANKA_DEBUG_INFO
-		if (!doAnimatorProcessLogging) return;
-
-		ref var c = ref curData.controller.Value;
-		ref var layer = ref c.layers[curData.layerIndex];
-		ref var currentState = ref layer.states[curData.rtd.srcState.id];
-
-		var layerName = layer.name.ToFixedString();
-		var controllerName = c.name.ToFixedString();
-		var curStateName = currentState.name.ToFixedString();
-
-		Debug.Log($"[{frameIndex}:{controllerName}:{layerName}] In state: '{curStateName}' with normalized duration: {curData.rtd.srcState.normalizedDuration}");
-
-		//	Exit transition event
-		if (prevData.rtd.activeTransition.id >= 0 && curData.rtd.activeTransition.id != prevData.rtd.activeTransition.id)
-		{
-			ref var t = ref layer.states[prevData.rtd.srcState.id].transitions[prevData.rtd.activeTransition.id];
-			Debug.Log($"[{frameIndex}:{controllerName}:{layerName}] Exiting transition: '{t.name.ToFixedString()}'");
-		}
-
-		//	Enter transition event
-		if (curData.rtd.activeTransition.id >= 0)
-		{
-			ref var t = ref layer.states[curData.rtd.srcState.id].transitions[curData.rtd.activeTransition.id];
-			if (curData.rtd.activeTransition.id != prevData.rtd.activeTransition.id)
-			{
-				Debug.Log($"[{frameIndex}:{controllerName}:{layerName}] Entering transition: '{t.name.ToFixedString()}' with time: {curData.rtd.activeTransition.normalizedDuration}");
-			}
-			else
-			{
-				Debug.Log($"[{frameIndex}:{controllerName}:{layerName}] In transition: '{t.name.ToFixedString()}' with time: {curData.rtd.activeTransition.normalizedDuration}");
-			}
-			ref var dstState = ref layer.states[curData.rtd.dstState.id];
-			Debug.Log($"[{frameIndex}:{controllerName}:{layerName}] Target state: '{dstState.name.ToFixedString()}' with time: {curData.rtd.dstState.normalizedDuration}");
-		}
-	#endif
 	}
 }
 }

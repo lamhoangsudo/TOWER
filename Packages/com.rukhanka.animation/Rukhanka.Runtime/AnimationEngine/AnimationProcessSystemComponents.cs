@@ -1,4 +1,5 @@
 using Rukhanka.Toolbox;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 #if RUKHANKA_WITH_NETCODE
@@ -113,8 +114,20 @@ public struct AnimationEventComponent: IBufferElementData, IEnableableComponent
 		floatParam = aeb.floatParam;
 		intParam = aeb.intParam;
 		stringParamHash = aeb.stringParamHash;
+	#if RUKHANKA_DEBUG_INFO
+		name = "";
+		if (aeb.name.Length > 0)
+			aeb.name.CopyToWithTruncate(ref name);
+		stringParam = "";
+		if (aeb.stringParam.Length > 0)
+			aeb.stringParam.CopyToWithTruncate(ref stringParam);
+	#endif
 	}
 	
+#if RUKHANKA_DEBUG_INFO
+	public FixedString32Bytes name;
+	public FixedString32Bytes stringParam;
+#endif
 	public uint nameHash;
 	public float floatParam;
 	public int intParam;

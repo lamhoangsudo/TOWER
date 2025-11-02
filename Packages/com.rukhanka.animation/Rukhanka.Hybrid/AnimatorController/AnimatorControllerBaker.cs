@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Rukhanka.Toolbox;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
@@ -167,7 +168,7 @@ public partial class AnimatorControllerBaker: Baker<Animator>
 			};
 
 		#if RUKHANKA_DEBUG_INFO
-			pm.name.CopyTo(ref acpc.name);
+			pm.name.CopyToWithTruncate(ref acpc.name);
 		#endif
 
 			paramArray.Add(acpc);
@@ -175,14 +176,11 @@ public partial class AnimatorControllerBaker: Baker<Animator>
 		
 		//	Add perfect hash table used to fast runtime parameter value lookup
 		var parametersPerfectHashTableBlob = CreateParametersPerfectHashTableBlob(cb);
-		if (parametersPerfectHashTableBlob.IsCreated)
+		var pht = new AnimatorControllerParameterIndexTableComponent()
 		{
-			var pht = new AnimatorControllerParameterIndexTableComponent()
-			{
-				value = parametersPerfectHashTableBlob
-			};
-			AddComponent(e, pht);
-		}
+			value = parametersPerfectHashTableBlob
+		};
+		AddComponent(e, pht);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

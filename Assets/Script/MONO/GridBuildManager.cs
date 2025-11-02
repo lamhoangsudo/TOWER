@@ -3,6 +3,7 @@ using UnityEngine;
 using static Enum;
 using static Enum.PlacementMode;
 using static Enum.BuildingMode;
+using static Enum.BuildRotationDirection;
 
 
 public class GridManager : MonoBehaviour
@@ -36,10 +37,11 @@ public class GridManager : MonoBehaviour
         if (BuildingManager.Instance.placementMode == gridstyle)
         {
             ShowGrid();
-            gridOrigin = GetVectorGridPosition(GetGridPosition(BuildingManager.Instance.targetTranform.position));
+            gridOrigin = GetVectorGridPosition(GetGridPosition(BuildingManager.Instance.targetTranform.position, out _));
             transform.position = Vector3.Lerp(transform.position, gridOrigin, lerpSpeed * Time.deltaTime);
             buildingMode = BuildingManager.Instance.buildingMode;
             buildingModeEnum = BuildingManager.Instance.buildingModeType;
+            if (!BuildingManager.Instance.isCanBuildable) return;
             SetUpNodeData();
         }
         else
@@ -69,7 +71,7 @@ public class GridManager : MonoBehaviour
     }
     public bool CheckValidGridPosition(Vector3 gridPosition)
     {
-        if(Mathf.Abs(gridPosition.x) < gridSize && Mathf.Abs(gridPosition.z) < gridSize)
+        if (Mathf.Abs(gridPosition.x) < gridSize && Mathf.Abs(gridPosition.z) < gridSize)
         {
             return true;
         }
@@ -80,7 +82,7 @@ public class GridManager : MonoBehaviour
         Vector3 position = new Vector3(diameter * gridPosition.x, 0, diameter * gridPosition.z) + gridOrigin;
         return position;
     }
-    public Vector3 GetGridPosition(Vector3 position)
+    public Vector3 GetGridPosition(Vector3 position, out bool checkValidGrid)
     {
         position -= gridOrigin;
         float offsetx = Mathf.Sign(position.x) * cellSize;
@@ -90,13 +92,15 @@ public class GridManager : MonoBehaviour
         Vector3 gridPosition = new Vector3 { x = x, y = 0, z = z, };
         if (CheckValidGridPosition(gridPosition))
         {
+            checkValidGrid = true;
             return gridPosition;
         }
+        checkValidGrid = false;
         return Vector3.zero;
     }
     public void SetUpNodeData()
     {
-        switch(buildingModeEnum)
+        switch (buildingModeEnum)
         {
             case single_grid:
                 SingleGridBuildingMode singleGridBuildingMode = buildingMode as SingleGridBuildingMode;
@@ -149,24 +153,89 @@ public class GridManager : MonoBehaviour
         };
         return adjustedGridPosition;
     }
-    public List<Vector3> GetAllGridPosition(List<Vector3> vectors, Vector2 buildingSize, Vector3 gridOrginPosition)
+    public List<Vector3> GetAllGridPosition(List<Vector3> vectors, Vector2 buildingSize, Vector3 gridOrginPosition, BuildRotationDirection buildRotationDirection, out bool allGridContainIsValid)
     {
-        if(vectors.Count != 0) vectors.Clear();
-        for(int x = 0; x < buildingSize.x; x++)
+        if (vectors.Count != 0) vectors.Clear();
+        allGridContainIsValid = true;
+        switch (buildRotationDirection)
         {
-            for(int z = 0; z < buildingSize.y; z++)
-            {
-                Vector3 gridPosition = gridOrginPosition + new Vector3(x, 0, z);
-                if(CheckValidGridPosition(gridPosition))
+            case up:
+                for (int x = 0; x < buildingSize.x; x++)
                 {
-                    vectors.Add(gridPosition);
+                    for (int z = 0; z < buildingSize.y; z++)
+                    {
+                        Vector3 gridPosition = gridOrginPosition + new Vector3(x, 0, z);
+                        if (CheckValidGridPosition(gridPosition))
+                        {
+                            vectors.Add(gridPosition);
+                        }
+                        else
+                        {
+                            allGridContainIsValid = false;
+                        }
+                    }
                 }
-                else
+                break;
+            case down:
+                for (int x = 0; x < buildingSize.x; x++)
                 {
-                    break;
+                    for (int z = 0; z < buildingSize.y; z++)
+                    {
+                        Vector3 gridPosition = gridOrginPosition + new Vector3(-x, 0, -z);
+                        if (CheckValidGridPosition(gridPosition))
+                        {
+                            vectors.Add(gridPosition);
+                        }
+                        else
+                        {
+                            allGridContainIsValid = false;
+                        }
+                    }
                 }
-            }
+                break;
+            case left:
+                for (int x = 0; x < buildingSize.x; x++)
+                {
+                    for (int z = 0; z < buildingSize.y; z++)
+                    {
+                        Vector3 gridPosition = gridOrginPosition + new Vector3(-z, 0, x);
+                        if (CheckValidGridPosition(gridPosition))
+                        {
+                            vectors.Add(gridPosition);
+                        }
+                        else
+                        {
+                            allGridContainIsValid = false;
+                        }
+                    }
+                }
+                break;
+            case right:
+                for (int x = 0; x < buildingSize.x; x++)
+                {
+                    for (int z = 0; z < buildingSize.y; z++)
+                    {
+                        Vector3 gridPosition = gridOrginPosition + new Vector3(z, 0, -x);
+                        if (CheckValidGridPosition(gridPosition))
+                        {
+                            vectors.Add(gridPosition);
+                        }
+                        else
+                        {
+                            allGridContainIsValid = false;
+                        }
+                    }
+                }
+                break;
         }
         return vectors;
+    }
+    public float GetCellSize()
+    {
+        return cellSize;
+    }
+    public float GetDiameter()
+    {
+        return diameter;
     }
 }

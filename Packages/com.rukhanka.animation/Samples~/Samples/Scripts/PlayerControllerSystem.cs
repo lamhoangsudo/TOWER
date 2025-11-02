@@ -57,8 +57,10 @@ public partial class PlayerControllerSystem: SystemBase
 		public FastAnimatorParameter boolParam1P;
 		public FastAnimatorParameter triggerParam1P;
 
-		void Execute(AnimatorParametersAspect paramAspect)
+		void Execute(AnimatorControllerParameterIndexTableComponent indexTable, DynamicBuffer<AnimatorControllerParameterComponent> parametersArr)
 		{
+			var paramAspect = new AnimatorParametersAspect(parametersArr, indexTable);
+			
 			if (paramAspect.HasParameter(floatParam1P))
 				paramAspect.SetParameterValue(floatParam1P, inputData.floatParam1);
 			if (paramAspect.HasParameter(floatParam2P))
@@ -150,7 +152,7 @@ public partial class PlayerControllerSystem: SystemBase
 		for (int i = 0; i < managedAnimators.Length; ++i)
 		{
 			var a = managedAnimators[i];
-			if (a.runtimeAnimatorController == null)
+			if (a.runtimeAnimatorController == null || !a.isInitialized)
 				continue;
 
 			if (Array.FindIndex(a.parameters, x => x.name == boolParam1Name) >= 0)

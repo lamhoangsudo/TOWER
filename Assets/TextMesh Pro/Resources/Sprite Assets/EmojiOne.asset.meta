@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: c41005c129ba4d66911b75229fd70b45
 timeCreated: 1480316912
-licenseType: Pro
+licenseType: Store
 NativeFormatImporter:
   userData: 
   assetBundleName: 
@@ -10,6 +10,6 @@ AssetOrigin:
   serializedVersion: 1
   productId: 298480
   packageName: Rukhanka Animation System 2
-  packageVersion: 2.4.0
+  packageVersion: 2.5.0
   assetPath: Assets/TextMesh Pro/Resources/Sprite Assets/EmojiOne.asset
-  uploadId: 799778
+  uploadId: 813204

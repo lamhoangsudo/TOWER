@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 6e59c59b81ab47f9b6ec5781fa725d2c
 timeCreated: 1484171296
-licenseType: Pro
+licenseType: Store
 TextScriptImporter:
   userData: 
   assetBundleName: 
@@ -10,6 +10,6 @@ AssetOrigin:
   serializedVersion: 1
   productId: 298480
   packageName: Rukhanka Animation System 2
-  packageVersion: 2.4.0
+  packageVersion: 2.5.0
   assetPath: Assets/TextMesh Pro/Fonts/LiberationSans - OFL.txt
-  uploadId: 799778
+  uploadId: 813204

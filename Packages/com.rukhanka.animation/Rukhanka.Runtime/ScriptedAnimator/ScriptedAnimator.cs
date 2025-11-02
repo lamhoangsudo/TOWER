@@ -147,13 +147,23 @@ public static partial class ScriptedAnimator
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    public struct BlendTree2DMotionElement
+    {
+        //  Element 2D coordinates
+        public float2 pos;
+        //  Motion index of given element
+        public int motionIndex;
+    }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     /// <summary>
     /// Instruct Rukhanka to play given blend tree at specified point of the time. You must call this function every
     /// frame with progressively advancing normalized time value
     /// </summary>
     /// <param name="atps">Animation to process component buffer used to fill animations to. Use buffer from animated entity.</param>
     /// <param name="blendTreeClips">Array of all animation clips that make up the blend tree.</param>
-    /// <param name="blendTreePositions">2D blend tree coordinate positions of input clips. Size must match blendTreeClips length.</param>
+    /// <param name="blendTreePositions">2D blend tree coordinate positions of input clips.</param>
     /// <param name="blendTreeParameterValue">2D blend coordinate position of current blend tree state.</param>
     /// <param name="normalizedTime">Normalized time (0 - beginning of the state, 1 - end of the state) of state to play.</param>
     /// <param name="blendTreeType">Blend tree type.</param>
@@ -163,7 +173,7 @@ public static partial class ScriptedAnimator
     (
         ref DynamicBuffer<AnimationToProcessComponent> atps,
         in NativeArray<BlobAssetReference<AnimationClipBlob>> blendTreeClips,
-        in NativeArray<float2> blendTreePositions,
+        in NativeArray<BlendTree2DMotionElement> blendTreePositions,
         float2 blendTreeParameterValue,
         float normalizedTime,
         MotionBlob.Type blendTreeType,
@@ -173,7 +183,7 @@ public static partial class ScriptedAnimator
     {
         BurstAssert.IsTrue(blendTreeClips.Length == blendTreePositions.Length, "Blend tree clips and positions array lengths must match.");
         
-        var bttSpan = new ReadOnlySpan<float2>(blendTreePositions.GetUnsafeReadOnlyPtr(), blendTreePositions.Length);
+        var bttSpan = new ReadOnlySpan<BlendTree2DMotionElement>(blendTreePositions.GetUnsafeReadOnlyPtr(), blendTreePositions.Length);
         
         var motions = blendTreeType switch
         {

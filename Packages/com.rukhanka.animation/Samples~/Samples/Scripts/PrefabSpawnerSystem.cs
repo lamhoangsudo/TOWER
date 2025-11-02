@@ -80,13 +80,13 @@ public partial struct PrefabSpawnerSystem: ISystem
 				if (ss.EntityManager.HasComponent<GPUAnimationEngineTag>(entity))
 					ss.EntityManager.SetComponentEnabled<GPUAnimationEngineTag>(entity, scc.gpuAnimator);
 
-				if (HasComponent<AnimatorControllerParameterIndexTableComponent>(entity))
-				{
-					var apa = SystemAPI.GetAspect<AnimatorParametersAspect>(entity);
-					var randomSpeedVal = (random.NextFloat() * 2 - 1) * 0.5f + 1;
-					if (apa.HasParameter(animSpeed))
-						apa.SetParameterValue(animSpeed, randomSpeedVal);
-				}
+				var acpitc = GetComponent<AnimatorControllerParameterIndexTableComponent>(entity);
+				var acpc = GetBuffer<AnimatorControllerParameterComponent>(entity);
+				var apa = new AnimatorParametersAspect(acpc, acpitc);
+				
+				var randomSpeedVal = (random.NextFloat() * 2 - 1) * 0.5f + 1;
+				if (apa.HasParameter(animSpeed))
+					apa.SetParameterValue(animSpeed, randomSpeedVal);
 				ecb.RemoveComponent<SpawnCommandComponent>(e);
 			}
 

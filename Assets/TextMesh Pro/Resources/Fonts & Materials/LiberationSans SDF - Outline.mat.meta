@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 79459efec17a4d00a321bdcc27bbc385
 timeCreated: 1484172856
-licenseType: Pro
+licenseType: Store
 NativeFormatImporter:
   userData: 
   assetBundleName: 
@@ -10,7 +10,7 @@ AssetOrigin:
   serializedVersion: 1
   productId: 298480
   packageName: Rukhanka Animation System 2
-  packageVersion: 2.4.0
+  packageVersion: 2.5.0
   assetPath: Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF -
     Outline.mat
-  uploadId: 799778
+  uploadId: 813204

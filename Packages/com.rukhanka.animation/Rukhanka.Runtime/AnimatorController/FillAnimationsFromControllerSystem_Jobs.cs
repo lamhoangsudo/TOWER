@@ -120,7 +120,7 @@ struct FillAnimationsBufferJob: IJobChunk
 			{
 				ref var dstStateBlob = ref lb.states[l.rtd.dstState.id];
 				var dstStateTime = GetDurationTime(ref dstStateBlob, runtimeParams, l.rtd.dstState.normalizedDuration);
-				dstStateAnimCount = AddMotionForEntity(ref animations, ref dstStateBlob.motion, runtimeParams, 1, dstStateTime);
+				dstStateAnimCount = AddMotionForEntity(ref animations, ref dstStateBlob.motion, runtimeParams, 1, dstStateTime, 0);
 			}
 			
 			var srcStateAnimCount = 0;
@@ -130,7 +130,7 @@ struct FillAnimationsBufferJob: IJobChunk
 			if (Hint.Likely(l.rtd.srcStateSnapshots.Length == 0))
 			{
 				ref var srcStateBlob = ref lb.states[l.rtd.srcState.id];
-				srcStateAnimCount += AddMotionForEntity(ref animations, ref srcStateBlob.motion, runtimeParams, 1, srcStateTime);
+				srcStateAnimCount += AddMotionForEntity(ref animations, ref srcStateBlob.motion, runtimeParams, 1, srcStateTime, 0);
 			}
 			
 			//	Transition interruption motions from state snapshots
@@ -138,7 +138,7 @@ struct FillAnimationsBufferJob: IJobChunk
 			{
 				var stateData = l.rtd.srcStateSnapshots[k];
 				ref var srcStateBlob = ref lb.states[stateData.id];
-				srcStateAnimCount += AddMotionForEntity(ref animations, ref srcStateBlob.motion, runtimeParams, stateData.weight, stateData.normalizedTime);
+				srcStateAnimCount += AddMotionForEntity(ref animations, ref srcStateBlob.motion, runtimeParams, stateData.weight, stateData.normalizedTime, 0);
 			}
 
 			var animStartPtr = (AnimationToProcessComponent*)animations.GetUnsafePtr() + animationCurIndex;
@@ -162,7 +162,8 @@ struct FillAnimationsBufferJob: IJobChunk
 		ref DynamicBuffer<AnimationToProcessComponent> outAnims,
 		ref MotionBlob mb,
 		float weight,
-		float normalizedStateTime
+		float normalizedStateTime,
+		uint localIndex
 	)
 	{
 		var atp = new AnimationToProcessComponent();
@@ -171,7 +172,7 @@ struct FillAnimationsBufferJob: IJobChunk
 		atp.animation = BlobDatabaseSingleton.GetBlobAsset(animationHash, animationDatabase);
 		atp.weight = weight;
 		atp.time = normalizedStateTime;
-		atp.motionId = mb.hash;
+		atp.motionId = mb.hash + localIndex;
 		outAnims.Add(atp);
 	}
 
@@ -184,14 +185,17 @@ struct FillAnimationsBufferJob: IJobChunk
 		in NativeArray<AnimatorControllerParameterComponent> runtimeParams,
 		ref BlobArray<ChildMotionBlob> motions,
 		float weight,
-		float normalizedStateTime
+		float normalizedStateTime,
+		uint localIndex
 	)
 	{
 		for (int i = 0; i < miws.Length; ++i)
 		{
 			var miw = miws[i];
 			ref var m = ref motions[miw.motionIndex];
-			AddMotionForEntity(ref outAnims, ref m.motion, runtimeParams, weight * miw.weight, normalizedStateTime);
+			var finalWeight = weight * miw.weight;
+			if (finalWeight > 0)
+				AddMotionForEntity(ref outAnims, ref m.motion, runtimeParams, finalWeight, normalizedStateTime, (uint)(i + localIndex));
 		}
 	}
 
@@ -203,7 +207,9 @@ struct FillAnimationsBufferJob: IJobChunk
 		ref MotionBlob mb,
 		in NativeArray<AnimatorControllerParameterComponent> runtimeParams,
 		float weight,
-		float normalizedStateTime
+		float normalizedStateTime,
+		//	Local index is used to differentiate same animations from blendtree
+		uint localIndex
 	)
 	{
 		var startLen = outAnims.Length;
@@ -213,14 +219,14 @@ struct FillAnimationsBufferJob: IJobChunk
 		case MotionBlob.Type.None:
 			break;
 		case MotionBlob.Type.AnimationClip:
-			AddAnimationForEntity(ref outAnims, ref mb, weight, normalizedStateTime);
+			AddAnimationForEntity(ref outAnims, ref mb, weight, normalizedStateTime, localIndex);
 			break;
 		}
 
 		var childMotions = ScriptedAnimator.GetChildMotionsList(ref mb, runtimeParams);
 		if (childMotions.IsCreated)
 		{
-			AddMotionsFromBlendtree(childMotions, ref outAnims, runtimeParams, ref mb.blendTree.motions, weight, normalizedStateTime);
+			AddMotionsFromBlendtree(childMotions, ref outAnims, runtimeParams, ref mb.blendTree.motions, weight, normalizedStateTime, localIndex);
 		}
 
 		return outAnims.Length - startLen;

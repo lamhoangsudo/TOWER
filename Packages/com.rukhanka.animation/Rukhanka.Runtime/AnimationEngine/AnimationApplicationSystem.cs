@@ -114,9 +114,6 @@ partial struct AnimationApplicationSystem: ISystem
 			rigDefinitionArr = rigDefinitionComponentLookup,
 			rigToSkinnedMeshRemapTables = rigToSkinnedMeshRemapTables.AsParallelWriter(),
 			newRemapTablesCounter = (int*)UnsafeUtility.AddressOf(ref newRemapTablesCounter),
-		#if RUKHANKA_DEBUG_INFO
-			doLogging = dc.logAnimationCalculationProcesses
-		#endif
 		};
 
 		var rv = fillRigToSkinBonesRemapTableCacheJob.ScheduleParallelByRef(increaseRigRemapTableCapacityJH);

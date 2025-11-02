@@ -1,7 +1,5 @@
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
-using Unity.Mathematics;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -75,6 +73,10 @@ public struct AnimatorControllerEventComponent : IBufferElementData, IEnableable
 	public int layerId;
 	public int stateId;
 	public float timeInState;
+	
+#if RUKHANKA_DEBUG_INFO
+	public FixedString32Bytes stateName;
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

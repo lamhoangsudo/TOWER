@@ -193,10 +193,6 @@ unsafe partial struct FillRigToSkinBonesRemapTableCacheJob: IJobEntity
 	[ReadOnly, NativeDisableUnsafePtrRestriction]
 	public int *newRemapTablesCounter;
 
-#if RUKHANKA_DEBUG_INFO
-	public bool doLogging;
-#endif
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Execute(in AnimatedSkinnedMeshComponent asmc)
@@ -221,13 +217,6 @@ unsafe partial struct FillRigToSkinBonesRemapTableCacheJob: IJobEntity
 		var bb = new BlobBuilder(Allocator.Temp);
 		ref var brt = ref bb.ConstructRoot<BoneRemapTableBlob>();
 
-	#if RUKHANKA_DEBUG_INFO
-		ref var rnd = ref rigDef.rigBlob.Value.name;
-		ref var snd = ref sm.smrInfoBlob.Value.skeletonName;
-		if (doLogging)
-			Debug.Log($"[FillRigToSkinBonesRemapTableCacheJob] Creating rig '{rnd.ToFixedString()}' to skinned mesh '{snd.ToFixedString()}' remap table");
-	#endif
-		
 		var bba = bb.Allocate(ref brt.remapIndices, rigDef.rigBlob.Value.bones.Length);
 		for (int i = 0; i < bba.Length; ++i)
 		{
@@ -243,10 +232,6 @@ unsafe partial struct FillRigToSkinBonesRemapTableCacheJob: IJobEntity
 				if (bnHash == rbHash)
 				{ 
 					bba[i] = j;
-				#if RUKHANKA_DEBUG_INFO
-					if (doLogging)
-						Debug.Log($"[FillRigToSkinBonesRemapTableCacheJob] Remap {rb.name.ToFixedString()}->{bn.name.ToFixedString()} : {i} -> {j}");
-				#endif
 				}
 			}
 		}

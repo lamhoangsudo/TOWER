@@ -1,6 +1,7 @@
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Mathematics;
 using Hash128 = Unity.Entities.Hash128;
 using FixedStringName = Unity.Collections.FixedString512Bytes;
 
@@ -23,12 +24,31 @@ public static class BlobStringExtensions
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-	public static unsafe FixedStringName ToFixedString(ref this BlobString s)
+	public static FixedStringName ToFixedString(ref this BlobString s)
 	{
 		var rv = new FixedStringName();
 		if (s.Length > 0)
 			s.CopyTo(ref rv);
 		return rv;
+	}
+
+////////////////////////////////////////////////////////////////////////////////////
+
+	//	Truncate string if needed
+	public static unsafe ConversionError CopyToWithTruncate<T>(ref this BlobString bs, ref T dest) where T : INativeList<byte>
+	{
+		fixed (BlobString* blobStringPtr = &bs)
+		{
+			var ba = (BlobArray<byte>*)blobStringPtr;
+			byte* srcBuffer = (byte*)ba->GetUnsafePtr();
+			int srcLength = bs.Length;
+			dest.Length = math.min(srcLength, dest.Capacity);
+			byte* destBuffer = (byte*)UnsafeUtility.AddressOf(ref dest.ElementAt(0));
+			int destCapacity = dest.Capacity;
+			var err = Unicode.Utf8ToUtf8(srcBuffer, srcLength, destBuffer, out var destLength, destCapacity);
+			dest.Length = destLength;
+			return err;
+		}
 	}
 }
 }

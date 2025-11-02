@@ -8,14 +8,6 @@ namespace Rukhanka.Hybrid
 {
 public class RukhankaDebugConfiguration: MonoBehaviour
 {
-	[Header("Animator Controller System")]
-	public bool logAnimatorControllerProcesses;
-	public bool logAnimatorControllerEvents;
-
-	[Header("Animation Process System")]
-	public bool logAnimationCalculationProcesses;
-	public bool logAnimationEvents;
-
 	[Header("Bone Visualization")]
 	public bool visualizeAllRigs;
 	public Color boneColorCPURig = new Color(0, 1, 1, 1);
@@ -30,12 +22,6 @@ public class DebugConfigurationBaker: Baker<RukhankaDebugConfiguration>
 	{
 		var dcc = DebugConfigurationComponent.Default();
 		
-		dcc.logAnimatorControllerProcesses = a.logAnimatorControllerProcesses;
-		dcc.logAnimationCalculationProcesses = a.logAnimationCalculationProcesses;
-		
-		dcc.logAnimationEvents = a.logAnimationEvents;
-		dcc.logAnimatorControllerEvents = a.logAnimatorControllerEvents;
-
 		dcc.visualizeAllRigs = a.visualizeAllRigs;
 		dcc.cpuRigColor = new float4(a.boneColorCPURig.r, a.boneColorCPURig.g, a.boneColorCPURig.b, a.boneColorCPURig.a);
 		dcc.gpuRigColor = new float4(a.boneColorGPURig.r, a.boneColorGPURig.g, a.boneColorGPURig.b, a.boneColorGPURig.a);

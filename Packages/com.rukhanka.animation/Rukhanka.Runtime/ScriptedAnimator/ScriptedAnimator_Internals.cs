@@ -43,7 +43,8 @@ public static partial class ScriptedAnimator
 		}
 		if (!found)
 		{
-			i0 = i1 = blendTreeThresholds.Length - 1;
+			i1 = blendTreeThresholds.Length - 1;
+			i0 = i1 - 1;
 		}
 
 		var motion0Threshold = blendTreeThresholds[i0];
@@ -58,13 +59,13 @@ public static partial class ScriptedAnimator
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	static void HandleCentroidCase(ref NativeList<MotionIndexAndWeight> rv, float2 pt, in ReadOnlySpan<float2> blendTreePositions)
+	static void HandleCentroidCase(ref NativeList<MotionIndexAndWeight> rv, float2 pt, in ReadOnlySpan<BlendTree2DMotionElement> blendTreePositions)
 	{
 		if (math.any(pt))
 			return;
 
 		int i = 0;
-		for (; i < blendTreePositions.Length && math.any(blendTreePositions[i]); ++i) { }
+		for (; i < blendTreePositions.Length && math.any(blendTreePositions[i].pos); ++i) { }
 
 		if (i < blendTreePositions.Length)
 		{
@@ -98,7 +99,7 @@ public static partial class ScriptedAnimator
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    internal static NativeList<MotionIndexAndWeight> ComputeBlendTree2DSimpleDirectional(in ReadOnlySpan<float2> blendTreePositions, float2 blendTreeParameter)
+    internal static NativeList<MotionIndexAndWeight> ComputeBlendTree2DSimpleDirectional(in ReadOnlySpan<BlendTree2DMotionElement> blendTreePositions, float2 blendTreeParameter)
     {
 		var rv = new NativeList<MotionIndexAndWeight>(Allocator.Temp);
 
@@ -118,14 +119,14 @@ public static partial class ScriptedAnimator
 		var dotProductsAndWeights = new NativeList<MotionIndexAndWeight>(blendTreePositions.Length, Allocator.Temp);
 		for (int i = 0; i < blendTreePositions.Length; ++i)
 		{
-			var motionDir = blendTreePositions[i];
+			var motionDir = blendTreePositions[i].pos;
 			if (!math.any(motionDir))
 			{
 				centerPtIndex = i;
 				continue;
 			}
 			var angle = math.atan2(motionDir.y, motionDir.x);
-			var miw = new MotionIndexAndWeight() { motionIndex = i, weight = angle };
+			var miw = new MotionIndexAndWeight() { motionIndex = blendTreePositions[i].motionIndex, weight = angle };
 			dotProductsAndWeights.Add(miw);
 		}
 
@@ -155,8 +156,8 @@ public static partial class ScriptedAnimator
 			d1 = dotProductsAndWeights[0];
 		}
 
-		var p0 = blendTreePositions[d0.motionIndex];
-		var p1 = blendTreePositions[d1.motionIndex];
+		var p0 = blendTreePositions[d0.motionIndex].pos;
+		var p1 = blendTreePositions[d1.motionIndex].pos;
 		
 		//	Barycentric coordinates for point pt in triangle <p0,p1,0>
 		var (l0, l1, l2) = CalculateBarycentric(p0, p1, blendTreeParameter);
@@ -187,7 +188,7 @@ public static partial class ScriptedAnimator
 			{
 				if (i != d0.motionIndex && i != d1.motionIndex)
 				{
-					var miw = new MotionIndexAndWeight() { motionIndex = i, weight = evenlyDistributedMotionWeight };
+					var miw = new MotionIndexAndWeight() { motionIndex = blendTreePositions[i].motionIndex, weight = evenlyDistributedMotionWeight };
 					rv.Add(miw);
 				}
 			}
@@ -207,7 +208,7 @@ public static partial class ScriptedAnimator
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	static unsafe NativeList<MotionIndexAndWeight> ComputeBlendTree2DFreeformCartesian(in ReadOnlySpan<float2> blendTreePositions, float2 blendTreeParameter)
+	static unsafe NativeList<MotionIndexAndWeight> ComputeBlendTree2DFreeformCartesian(in ReadOnlySpan<BlendTree2DMotionElement> blendTreePositions, float2 blendTreeParameter)
 	{
 		var p = blendTreeParameter;
 		Span<float> hpArr = stackalloc float[blendTreePositions.Length];
@@ -217,7 +218,7 @@ public static partial class ScriptedAnimator
 		//	Calculate influence factors
 		for (int i = 0; i < blendTreePositions.Length; ++i)
 		{
-			var pi = blendTreePositions[i];
+			var pi = blendTreePositions[i].pos;
 			var pip = p - pi;
 
 			var w = 1.0f;
@@ -225,7 +226,7 @@ public static partial class ScriptedAnimator
 			for (int j = 0; j < blendTreePositions.Length && w > 0; ++j)
 			{
 				if (i == j) continue;
-				var pj = blendTreePositions[j];
+				var pj = blendTreePositions[j].pos;
 				var pipj = pj - pi;
 				var f = math.dot(pip, pipj) / math.lengthsq(pipj);
 				var hj = math.max(1 - f, 0);
@@ -242,7 +243,7 @@ public static partial class ScriptedAnimator
 			var w = hpArr[i] / hpSum;
 			if (w > 0)
 			{
-				var miw = new MotionIndexAndWeight() { motionIndex = i, weight = w };
+				var miw = new MotionIndexAndWeight() { motionIndex = blendTreePositions[i].motionIndex , weight = w };
 				rv.Add(miw);
 			}
 		}
@@ -288,7 +289,7 @@ public static partial class ScriptedAnimator
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	static unsafe NativeList<MotionIndexAndWeight> ComputeBlendTree2DFreeformDirectional(in ReadOnlySpan<float2> blendTreePositions, float2 blendTreeParameter)
+	static unsafe NativeList<MotionIndexAndWeight> ComputeBlendTree2DFreeformDirectional(in ReadOnlySpan<BlendTree2DMotionElement> blendTreePositions, float2 blendTreeParameter)
 	{
 		var p = blendTreeParameter;
 		var lp = math.length(p);
@@ -300,7 +301,7 @@ public static partial class ScriptedAnimator
 		//	Calculate influence factors
 		for (int i = 0; i < blendTreePositions.Length; ++i)
 		{
-			var pi = blendTreePositions[i];
+			var pi = blendTreePositions[i].pos;
 			var lpi = math.length(pi);
 
 			var w = 1.0f;
@@ -308,7 +309,7 @@ public static partial class ScriptedAnimator
 			for (int j = 0; j < blendTreePositions.Length && w > 0; ++j)
 			{
 				if (i == j) continue;
-				var pj = blendTreePositions[j];
+				var pj = blendTreePositions[j].pos;
 				var lpj = math.length(pj);
 
 				var pRcpMiddle = math.rcp((lpj + lpi) * 0.5f);
@@ -334,7 +335,7 @@ public static partial class ScriptedAnimator
 			var w = hpArr[i] / hpSum;
 			if (w > 0)
 			{
-				var miw = new MotionIndexAndWeight() { motionIndex = i, weight = w };
+				var miw = new MotionIndexAndWeight() { motionIndex = blendTreePositions[i].motionIndex, weight = w };
 				rv.Add(miw);
 			}
 		}
@@ -432,11 +433,19 @@ public static partial class ScriptedAnimator
 		var pt = new float2(pX.FloatValue, pY.FloatValue);
 		ref var motions = ref mb.blendTree.motions;
 		
-		Span<float2> bttSpan = stackalloc float2[motions.Length];
+		Span<BlendTree2DMotionElement> bttSpan = stackalloc BlendTree2DMotionElement[motions.Length];
+		var validMotionCount = 0;
 		for (var i = 0; i < motions.Length; ++i)
 		{
-			bttSpan[i] = motions[i].position2D;
+			//	Skip empty motions
+			ref var m = ref motions[i];
+			if (m.motion.type == MotionBlob.Type.None)
+				continue;
+			
+			var btme = new BlendTree2DMotionElement() { pos = m.position2D, motionIndex = i };
+			bttSpan[validMotionCount++] = btme;
 		}
+		bttSpan = bttSpan.Slice(0, validMotionCount);
 		
 		BurstAssert.IsTrue(btType != MotionBlob.Type.None && btType != MotionBlob.Type.AnimationClip, "Not a 2D blend tree type!");
 		var rv = btType switch
