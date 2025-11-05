@@ -30,7 +30,7 @@ public class SingleGridBuildingMode : MonoBehaviour, IBuildingMode
             buildPositionGridOrigin = currentBuildPositionGrid;
             listCurrentGridBuildingSizeContain = GridManager.Instance.GetAllGridPosition(
                 listCurrentGridBuildingSizeContain,
-                BuildingManager.Instance.GetBuildingSize(),
+                BuildingManager.Instance.currentBuildingConfigDataBlob.buildingSizeCell,
                 buildPositionGridOrigin, BuildingManager.Instance.GetCurrentBuildRotationDirection(),
                 out bool checkListCurrentGridBuildingSizeContain
                 );

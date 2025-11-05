@@ -4,6 +4,7 @@ using static Enum;
 using static Enum.PlacementMode;
 using static Enum.BuildingMode;
 using static Enum.BuildRotationDirection;
+using Unity.Mathematics;
 
 
 public class GridManager : MonoBehaviour
@@ -153,80 +154,158 @@ public class GridManager : MonoBehaviour
         };
         return adjustedGridPosition;
     }
-    public List<Vector3> GetAllGridPosition(List<Vector3> vectors, Vector2 buildingSize, Vector3 gridOrginPosition, BuildRotationDirection buildRotationDirection, out bool allGridContainIsValid)
+    public List<Vector3> GetAllGridPosition(List<Vector3> vectors, int3 buildingSize, Vector3 gridOrginPosition, BuildRotationDirection buildRotationDirection, out bool allGridContainIsValid)
     {
         if (vectors.Count != 0) vectors.Clear();
         allGridContainIsValid = true;
-        switch (buildRotationDirection)
+        if (!((buildingSize.x & 1) == 1 && (buildingSize.z & 1) == 1))
         {
-            case up:
-                for (int x = 0; x < buildingSize.x; x++)
-                {
-                    for (int z = 0; z < buildingSize.y; z++)
+            switch (buildRotationDirection)
+            {
+                case up:
+                    for (int x = 0; x < buildingSize.x; x++)
                     {
-                        Vector3 gridPosition = gridOrginPosition + new Vector3(x, 0, z);
-                        if (CheckValidGridPosition(gridPosition))
+                        for (int z = 0; z < buildingSize.z; z++)
                         {
-                            vectors.Add(gridPosition);
-                        }
-                        else
-                        {
-                            allGridContainIsValid = false;
+                            Vector3 gridPosition = gridOrginPosition + new Vector3(x, 0, z);
+                            if (CheckValidGridPosition(gridPosition))
+                            {
+                                vectors.Add(gridPosition);
+                            }
+                            else
+                            {
+                                allGridContainIsValid = false;
+                            }
                         }
                     }
-                }
-                break;
-            case down:
-                for (int x = 0; x < buildingSize.x; x++)
-                {
-                    for (int z = 0; z < buildingSize.y; z++)
+                    break;
+                case down:
+                    for (int x = 0; x < buildingSize.x; x++)
                     {
-                        Vector3 gridPosition = gridOrginPosition + new Vector3(-x, 0, -z);
-                        if (CheckValidGridPosition(gridPosition))
+                        for (int z = 0; z < buildingSize.z; z++)
                         {
-                            vectors.Add(gridPosition);
-                        }
-                        else
-                        {
-                            allGridContainIsValid = false;
+                            Vector3 gridPosition = gridOrginPosition + new Vector3(-x, 0, -z);
+                            if (CheckValidGridPosition(gridPosition))
+                            {
+                                vectors.Add(gridPosition);
+                            }
+                            else
+                            {
+                                allGridContainIsValid = false;
+                            }
                         }
                     }
-                }
-                break;
-            case left:
-                for (int x = 0; x < buildingSize.x; x++)
-                {
-                    for (int z = 0; z < buildingSize.y; z++)
+                    break;
+                case left:
+                    for (int x = 0; x < buildingSize.x; x++)
                     {
-                        Vector3 gridPosition = gridOrginPosition + new Vector3(-z, 0, x);
-                        if (CheckValidGridPosition(gridPosition))
+                        for (int z = 0; z < buildingSize.z; z++)
                         {
-                            vectors.Add(gridPosition);
-                        }
-                        else
-                        {
-                            allGridContainIsValid = false;
+                            Vector3 gridPosition = gridOrginPosition + new Vector3(-z, 0, x);
+                            if (CheckValidGridPosition(gridPosition))
+                            {
+                                vectors.Add(gridPosition);
+                            }
+                            else
+                            {
+                                allGridContainIsValid = false;
+                            }
                         }
                     }
-                }
-                break;
-            case right:
-                for (int x = 0; x < buildingSize.x; x++)
-                {
-                    for (int z = 0; z < buildingSize.y; z++)
+                    break;
+                case right:
+                    for (int x = 0; x < buildingSize.x; x++)
                     {
-                        Vector3 gridPosition = gridOrginPosition + new Vector3(z, 0, -x);
-                        if (CheckValidGridPosition(gridPosition))
+                        for (int z = 0; z < buildingSize.z; z++)
                         {
-                            vectors.Add(gridPosition);
-                        }
-                        else
-                        {
-                            allGridContainIsValid = false;
+                            Vector3 gridPosition = gridOrginPosition + new Vector3(z, 0, -x);
+                            if (CheckValidGridPosition(gridPosition))
+                            {
+                                vectors.Add(gridPosition);
+                            }
+                            else
+                            {
+                                allGridContainIsValid = false;
+                            }
                         }
                     }
+                    break;
+            }
+        }
+        else
+        {
+            float x_2 = buildingSize.x / 2f;
+            float z_2 = buildingSize.z / 2f;
+            for (int x = 0; x < x_2; x++)
+            {
+                if(!allGridContainIsValid)
+                {
+                    break;
                 }
-                break;
+                for (int z = 0; z < z_2; z++)
+                {
+                    Vector3 gridPosition = gridOrginPosition + new Vector3(x, 0, z);
+                    if (CheckValidGridPosition(gridPosition))
+                    {
+                        if (vectors.Contains(gridPosition)) continue;
+                        vectors.Add(gridPosition);
+                    }
+                    else
+                    {
+                        allGridContainIsValid = false;
+                        break;
+                    }
+                }
+                for (int z = 0; z > -z_2; z--)
+                {
+                    Vector3 gridPosition = gridOrginPosition + new Vector3(x, 0, z);
+                    if (CheckValidGridPosition(gridPosition))
+                    {
+                        if (vectors.Contains(gridPosition)) continue;
+                        vectors.Add(gridPosition);
+                    }
+                    else
+                    {
+                        allGridContainIsValid = false;
+                        break;
+                    }
+                }
+            }
+            for (int x = 0; x > -x_2; x--)
+            {
+                if (!allGridContainIsValid)
+                {
+                    break;
+                }
+                for (int z = 0; z < z_2; z++)
+                {
+                    Vector3 gridPosition = gridOrginPosition + new Vector3(x, 0, z);
+                    if (CheckValidGridPosition(gridPosition))
+                    {
+                        if (vectors.Contains(gridPosition)) continue;
+                        vectors.Add(gridPosition);
+                    }
+                    else
+                    {
+                        allGridContainIsValid = false;
+                        break;
+                    }
+                }
+                for (int z = 0; z > -z_2; z--)
+                {
+                    Vector3 gridPosition = gridOrginPosition + new Vector3(x, 0, z);
+                    if (CheckValidGridPosition(gridPosition))
+                    {
+                        if (vectors.Contains(gridPosition)) continue;
+                        vectors.Add(gridPosition);
+                    }
+                    else
+                    {
+                        allGridContainIsValid = false;
+                        break;
+                    }
+                }
+            }
         }
         return vectors;
     }

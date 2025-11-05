@@ -12,7 +12,6 @@ public class GhostBuildingManager : MonoBehaviour
     private Vector3 ghostPosition;
     private Vector3 pointPosition;
     private Vector2 buildScale;
-    private Vector3 rotation_offset;
     private void Start()
     {
         Hide();

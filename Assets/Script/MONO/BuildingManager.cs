@@ -23,7 +23,7 @@ public class BuildingManager : MonoBehaviour
     private float buildDistance;
     private bool isBuildingMode = false;
     private BuildingConfigDataBlob[] buildingConfigDataBlobs;
-    private BuildingConfigDataBlob currentBuildingConfigDataBlob;
+    public BuildingConfigDataBlob currentBuildingConfigDataBlob { get; private set; }
     private BuildRotationDirection buildRotationDirection = up;
     private BuildRotationDirection currentBuildRotationDirection = up;
 
@@ -51,7 +51,6 @@ public class BuildingManager : MonoBehaviour
 
     private void Update()
     {
-        GetCurrentBuildingConfigDataBlob();
         if (Input.GetKeyDown(KeyCode.B))
         {
             isBuildingMode = !isBuildingMode;
@@ -59,6 +58,7 @@ public class BuildingManager : MonoBehaviour
             {
                 placementMode = freestyle;
                 buildingModeType = single_free;
+                GetCurrentBuildingConfigDataBlob();
             }
             else
             {
@@ -131,7 +131,10 @@ public class BuildingManager : MonoBehaviour
 
     private void SetPointBuildingVisual(Vector3 buildPosition, Vector2 scale, Vector3 pointPosition)
     {
-        buildPosition -= CaculcateBuildindOffSetPositionWithRotation();
+        if (!((buildingSize.x & 1) == 1 && (buildingSize.y & 1) == 1))
+        {
+            buildPosition -= CaculcateBuildindOffSetPositionWithRotation();
+        }
         ghostManager.SetPositionAndScale(buildPosition, scale, pointPosition, isCanBuildable);
     }
 

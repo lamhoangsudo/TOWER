@@ -44,7 +44,7 @@ public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
                 endGridOriginPosition = startGridOriginPosition;
                 listGridBuildingSizeContain = GridManager.Instance.GetAllGridPosition(
                     listGridBuildingSizeContain,
-                    BuildingManager.Instance.GetBuildingSize(),
+                    BuildingManager.Instance.currentBuildingConfigDataBlob.buildingSizeCell,
                     startGridOriginPosition,
                     BuildingManager.Instance.GetCurrentBuildRotationDirection(),
                     out bool checkListCurrentGridBuildingSizeContain
