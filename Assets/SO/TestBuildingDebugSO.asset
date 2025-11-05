@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ec09cdc0a9c417747b96a4cfbc7069e2, type: 3}
-  m_Name: Platform_S_SO
+  m_Name: TestBuildingDebugSO
   m_EditorClassIdentifier: 
-  buildingGhostPrefab: {fileID: 6419290680163030882, guid: fd08373157e416d44a6a1e97c92e5da4, type: 3}
-  buildingPrefab: {fileID: 6419290680163030882, guid: e609cd6ef73075241ac7dd0a53cbb06d, type: 3}
-  buildingID: 4
-  snapMaxDistance: 3
-  timeBuildMax: 1
-  snapPointTypeSearch: 1
+  buildingGhostPrefab: {fileID: 4212266870874909952, guid: 8d966adeac90d9d44abb668a9a52e002, type: 3}
+  buildingPrefab: {fileID: 4212266870874909952, guid: 8d966adeac90d9d44abb668a9a52e002, type: 3}
+  buildingID: 1
+  snapMaxDistance: 0
+  timeBuildMax: 0
+  snapPointTypeSearch: 0
   size:
-    x: 1
+    x: 2
     y: 1
-    z: 1
+    z: 2

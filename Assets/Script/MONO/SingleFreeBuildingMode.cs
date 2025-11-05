@@ -8,6 +8,11 @@ public class SingleFreeBuildingMode : MonoBehaviour, IBuildingMode
 
     }
 
+    public void OnInstantiate()
+    {
+        throw new System.NotImplementedException();
+    }
+
     public void OnStart()
     {
 

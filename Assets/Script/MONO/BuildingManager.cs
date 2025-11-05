@@ -6,22 +6,26 @@ using static Enum;
 using static Enum.PlacementMode;
 using static Enum.BuildingMode;
 using static Enum.BuildRotationDirection;
-using UnityEditor.Searcher;
+using static Enum.BuildingID;
+using Unity.Collections;
 
 public class BuildingManager : MonoBehaviour
 {
     public static BuildingManager Instance;
 
+    private EntityManager entityManager;
+    private EntityQuery entityQuery;
+
     [SerializeField] private CinemachineCamera cinemachineCamera;
     [SerializeField] private GhostBuildingManager ghostManager;
-    [SerializeField] private Vector2Int buildingSize = new Vector2Int(1, 1);
-    [SerializeField] private BuildRotationDirection buildRotationDirection = up;
-    [SerializeField] private BuildRotationDirection currentBuildRotationDirection = up;
+    [SerializeField] private BuildingID buildingID;
 
-    private EntityQuery entityQuery;
-    private EntityManager entityManager;
     private float buildDistance;
     private bool isBuildingMode = false;
+    private BuildingConfigDataBlob[] buildingConfigDataBlobs;
+    private BuildingConfigDataBlob currentBuildingConfigDataBlob;
+    private BuildRotationDirection buildRotationDirection = up;
+    private BuildRotationDirection currentBuildRotationDirection = up;
 
     public IBuildingMode buildingMode { get; private set; }
     public PlacementMode placementMode { get; private set; } = PlacementMode.none;
@@ -30,18 +34,24 @@ public class BuildingManager : MonoBehaviour
     public Transform targetTranform { get; private set; }
     public Vector3 buildPosition { get; private set; }
     private Vector3 pointPosition;
+    private Vector2Int buildingSize;
     public bool isCanBuildable { get; private set; } = true;
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
     }
+
     private void Start()
     {
+        entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
         targetTranform = cinemachineCamera.Target.TrackingTarget;
+        SetUpListBuilding();
     }
+
     private void Update()
     {
+        GetCurrentBuildingConfigDataBlob();
         if (Input.GetKeyDown(KeyCode.B))
         {
             isBuildingMode = !isBuildingMode;
@@ -70,7 +80,7 @@ public class BuildingManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.R))
         {
             // TODO: Rotate Building Size
-            if (placementMode == gridstyle)
+            if (placementMode == gridstyle && buildingModeType == single_grid)
             {
                 SetBuildRotationDirection(buildRotationDirection);
             }
@@ -102,6 +112,7 @@ public class BuildingManager : MonoBehaviour
         SetBuildMode();
         SetPointBuildingVisual(buildPosition, buildingSize, pointPosition);
     }
+
     private void SetPlacementMode()
     {
         switch (placementMode)
@@ -117,11 +128,13 @@ public class BuildingManager : MonoBehaviour
                 break;
         }
     }
+
     private void SetPointBuildingVisual(Vector3 buildPosition, Vector2 scale, Vector3 pointPosition)
     {
         buildPosition -= CaculcateBuildindOffSetPositionWithRotation();
         ghostManager.SetPositionAndScale(buildPosition, scale, pointPosition, isCanBuildable);
     }
+
     public Vector3 TrackBuildPosition(UnityEngine.Ray mouseCameraRay)
     {
         RaycastInput raycastInput = new()
@@ -148,6 +161,7 @@ public class BuildingManager : MonoBehaviour
             return cinemachineCamera.transform.position + mouseCameraRay.direction * buildDistance;
         }
     }
+
     private void SetBuildMode()
     {
         switch (buildingModeType)
@@ -173,6 +187,10 @@ public class BuildingManager : MonoBehaviour
                         pointPosition = GridManager.Instance.GetVectorGridPosition(buildPosition);
                         buildPosition = pointPosition + GridManager.Instance.GetAdjustedPositionWithSizeBuilding(buildingSize);
                         buildRotationDirection = currentBuildRotationDirection;
+                    }
+                    else
+                    {
+                        currentBuildRotationDirection = buildRotationDirection;
                     }
                 }
                 break;
@@ -206,18 +224,22 @@ public class BuildingManager : MonoBehaviour
                 break;
         }
     }
+
     public Vector2Int GetBuildingSize()
     {
         return buildingSize;
     }
+
     public BuildRotationDirection GetCurrentBuildRotationDirection()
     {
         return currentBuildRotationDirection;
     }
+
     public float GetBuildRotationDirectionValue()
     {
         return (float)buildRotationDirection;
     }
+
     public void SetBuildRotationDirection(BuildRotationDirection buildRotationDirection)
     {
         switch (buildRotationDirection)
@@ -236,6 +258,7 @@ public class BuildingManager : MonoBehaviour
                 break;
         }
     }
+
     public void SetBuildRotationDirectionReverse(BuildRotationDirection buildRotationDirection)
     {
         switch (buildRotationDirection)
@@ -254,6 +277,7 @@ public class BuildingManager : MonoBehaviour
                 break;
         }
     }
+
     public Vector3 CaculcateBuildindOffSetPositionWithRotation()
     {
         float cell = GridManager.Instance.GetCellSize();
@@ -279,4 +303,27 @@ public class BuildingManager : MonoBehaviour
         return offset;
     }
 
+    public void SetUpListBuilding()
+    {
+        entityQuery = new EntityQueryBuilder(Allocator.Temp).WithAll<EntityBuildSpawnStorage>().Build(entityManager);
+        if(entityQuery.TryGetSingleton<EntityBuildSpawnStorage>(out EntityBuildSpawnStorage entityBuildSpawnStorage))
+        {
+            ref BuildingConfigBlobDatabase buildingConfigBlobDatabase = ref entityBuildSpawnStorage.assetReference.Value;
+            ref BlobArray<BuildingConfigDataBlob> buildingConfigDataBlobs = ref buildingConfigBlobDatabase.buildingConfigArray;
+            this.buildingConfigDataBlobs = buildingConfigDataBlobs.ToArray();
+        }
+    }
+
+    private void GetCurrentBuildingConfigDataBlob()
+    {
+        if (buildingConfigDataBlobs == null || buildingConfigDataBlobs.Length == 0) return;
+        for (int i = 0; i < buildingConfigDataBlobs.Length; i++)
+        {
+            if (buildingConfigDataBlobs[i].buildingID.Equals(buildingID))
+            {
+                currentBuildingConfigDataBlob = buildingConfigDataBlobs[i];
+                buildingSize = new Vector2Int(currentBuildingConfigDataBlob.buildingSizeCell.x, currentBuildingConfigDataBlob.buildingSizeCell.z);
+            }
+        }
+    }
 }

@@ -34,6 +34,7 @@ public static class Enum
     public enum BuildingID
     {
         None,
+        TestBuilding,
         Platform_L,
         Platform_M,
         Platform_S,

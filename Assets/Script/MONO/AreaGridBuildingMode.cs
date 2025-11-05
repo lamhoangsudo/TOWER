@@ -14,9 +14,8 @@ public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
     private int multiplierz;
     private Vector2Int size;
     private Vector3 currentBuildPositionGrid;
-    //Debug
-    public bool allGridContainIsValid;
-    public bool checkValidGrid;
+    public bool allGridContainIsValid { get; private set; }
+    public bool checkValidGrid { get; private set; }
     public void OnEnd()
     {
         if (Input.GetMouseButtonUp(0))
@@ -36,7 +35,9 @@ public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
         }
         if (!(Input.GetMouseButton(0) && isDragging))
         {
-            startPosition = BuildingManager.Instance.TrackBuildPosition(Camera.main.ScreenPointToRay(Input.mousePosition));            currentBuildPositionGrid = GridManager.Instance.GetGridPosition(startPosition, out checkValidGrid);
+            startPosition = BuildingManager.Instance.TrackBuildPosition(Camera.main.ScreenPointToRay(Input.mousePosition));
+            currentBuildPositionGrid = GridManager.Instance.GetGridPosition(startPosition, out bool checkCurrentBuildPositionGrid);
+            checkValidGrid = checkCurrentBuildPositionGrid;
             if (currentBuildPositionGrid != startGridOriginPosition && checkValidGrid)
             {
                 startGridOriginPosition = currentBuildPositionGrid;
@@ -46,8 +47,9 @@ public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
                     BuildingManager.Instance.GetBuildingSize(),
                     startGridOriginPosition,
                     BuildingManager.Instance.GetCurrentBuildRotationDirection(),
-                    out allGridContainIsValid
+                    out bool checkListCurrentGridBuildingSizeContain
                     );
+                allGridContainIsValid = checkListCurrentGridBuildingSizeContain;
             }
         }
     }
@@ -58,20 +60,21 @@ public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
         {
             if (gridPositions.Count != 0) gridPositions.Clear();
             endPosition = BuildingManager.Instance.TrackBuildPosition(Camera.main.ScreenPointToRay(Input.mousePosition));
-            currentBuildPositionGrid = GridManager.Instance.GetGridPosition(endPosition, out checkValidGrid);
-            Vector3 endGridPos = Vector3.zero;
+            currentBuildPositionGrid = GridManager.Instance.GetGridPosition(endPosition, out bool checkCurrentBuildPositionGrid);
+            checkValidGrid = checkCurrentBuildPositionGrid;
             if (currentBuildPositionGrid != endGridOriginPosition && checkValidGrid)
             {
-                endGridPos = currentBuildPositionGrid;
-                Vector3 check = endGridPos - endGridOriginPosition;
+                Vector3 endGridPos = currentBuildPositionGrid;
+                Vector3 checkVector = endGridPos - endGridOriginPosition;
                 if (size != BuildingManager.Instance.GetBuildingSize()) size = BuildingManager.Instance.GetBuildingSize();
-                if (check.x % size.x != 0 || check.z % size.y != 0)
+                if (checkVector.x % size.x != 0 || checkVector.z % size.y != 0)
                 {
                     return;
                 }
                 //else
                 //{
-                endGridOriginPosition = GridManager.Instance.GetGridPosition(endPosition, out checkValidGrid);
+                endGridOriginPosition = GridManager.Instance.GetGridPosition(endPosition, out bool checkEndGridOriginPosition);
+                checkValidGrid = checkEndGridOriginPosition;
                 GetAreaGridBuild();
                 //}
             }
@@ -107,110 +110,9 @@ public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
             }
         }
     }
+
+    public void OnInstantiate()
+    {
+        throw new System.NotImplementedException();
+    }
 }
-/*public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
-{
-    private Vector3 startPosition;
-    private Vector3 endPosition;
-    private Vector3 startGridOriginPosition;
-    public Vector3 endGridOriginPosition { get; private set; }
-
-    private bool isDragging = false;
-    private Vector2Int size;
-    private int multiplierX;
-    private int multiplierZ;
-
-    public List<Vector3> gridPositions { get; private set; } = new();
-    public List<Vector3> listGridBuildingSizeContain { get; private set; } = new();
-
-    public void OnStart()
-    {
-        // Khi nhấn chuột trái: bắt đầu vùng chọn
-        if (Input.GetMouseButtonDown(0))
-        {
-            isDragging = true;
-
-            startPosition = BuildingManager.Instance.TrackBuildPosition(Camera.main.ScreenPointToRay(Input.mousePosition));
-            startGridOriginPosition = GridManager.Instance.GetGridPosition(startPosition);
-            endGridOriginPosition = startGridOriginPosition;
-
-            listGridBuildingSizeContain.Clear();
-            listGridBuildingSizeContain = GridManager.Instance.GetAllGridPosition(
-                listGridBuildingSizeContain,
-                BuildingManager.Instance.GetBuildingSize(),
-                startGridOriginPosition
-            );
-
-            gridPositions.Clear();
-        }
-    }
-
-    public void OnUpdate()
-    {
-        if (!isDragging) return;
-
-        // Khi đang kéo chuột: cập nhật vùng chọn
-        if (Input.GetMouseButton(0))
-        {
-            endPosition = BuildingManager.Instance.TrackBuildPosition(Camera.main.ScreenPointToRay(Input.mousePosition));
-            endGridOriginPosition = GridManager.Instance.GetGridPosition(endPosition);
-
-            size = BuildingManager.Instance.GetBuildingSize();
-            GetAreaGridBuild();
-        }
-
-        // Khi thả chuột: kết thúc
-        if (Input.GetMouseButtonUp(0))
-        {
-            OnEnd();
-        }
-    }
-
-    public void OnEnd()
-    {
-        if (!isDragging) return;
-
-        isDragging = false;
-        gridPositions.Clear();
-        listGridBuildingSizeContain.Clear();
-    }
-
-    private void GetAreaGridBuild()
-    {
-        gridPositions.Clear();
-
-        multiplierX = (int)((endGridOriginPosition.x - startGridOriginPosition.x) / size.x);
-        multiplierZ = (int)((endGridOriginPosition.z - startGridOriginPosition.z) / size.y);
-
-        int stepX = (int)Mathf.Sign(multiplierX);
-        int stepZ = (int)Mathf.Sign(multiplierZ);
-
-        for (int i = 0; i <= Mathf.Abs(multiplierX); i++)
-        {
-            for (int j = 0; j <= Mathf.Abs(multiplierZ); j++)
-            {
-                bool allValid = true;
-
-                foreach (Vector3 gridPos in listGridBuildingSizeContain)
-                {
-                    Vector3 candidate = gridPos + new Vector3(i * size.x * stepX, 0, j * size.y * stepZ);
-                    if (!GridManager.Instance.CheckValidGridPosition(candidate))
-                    {
-                        allValid = false;
-                        break;
-                    }
-                }
-
-                if (allValid)
-                {
-                    foreach (Vector3 gridPos in listGridBuildingSizeContain)
-                    {
-                        Vector3 candidate = gridPos + new Vector3(i * size.x * stepX, 0, j * size.y * stepZ);
-                        gridPositions.Add(candidate);
-                    }
-                }
-            }
-        }
-    }
-}*/
-

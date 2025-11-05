@@ -14,7 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buildingGhostPrefab: {fileID: 515624981522905733, guid: 3943fd61a32008c48a950f7869bae94a, type: 3}
   buildingPrefab: {fileID: 515624981522905733, guid: 9a52f43339e10384da532f126e940fc4, type: 3}
-  buildingID: 1
+  buildingID: 2
   snapMaxDistance: 3
   timeBuildMax: 1
   snapPointTypeSearch: 1
+  size:
+    x: 1
+    y: 1
+    z: 1

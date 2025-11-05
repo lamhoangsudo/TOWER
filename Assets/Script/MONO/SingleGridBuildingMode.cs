@@ -6,11 +6,10 @@ public class SingleGridBuildingMode : MonoBehaviour, IBuildingMode
     private Vector3 buildPosition;
     public Vector3 buildPositionGridOrigin { get; private set; }
     private Vector3 currentBuildPositionGrid;
-    public List<Vector3> listGridBuildingSizeContain { get; private set; } = new List<Vector3>();
-    private List<Vector3> listCurrentGridBuildingSizeContain = new List<Vector3>();
-    //Debug
-    public bool allGridContainIsValid;
-    public bool checkValidGrid;
+    public List<Vector3> listGridBuildingSizeContain { get; private set; } = new();
+    private List<Vector3> listCurrentGridBuildingSizeContain = new();
+    public bool allGridContainIsValid { get; private set; }
+    public bool checkValidGrid { get; private set; }
     public void OnEnd()
     {
 
@@ -24,7 +23,8 @@ public class SingleGridBuildingMode : MonoBehaviour, IBuildingMode
     public void OnUpdate()
     {
         buildPosition = BuildingManager.Instance.TrackBuildPosition(Camera.main.ScreenPointToRay(Input.mousePosition));
-        currentBuildPositionGrid = GridManager.Instance.GetGridPosition(buildPosition, out checkValidGrid);
+        currentBuildPositionGrid = GridManager.Instance.GetGridPosition(buildPosition, out bool checkCurrentBuildPositionGrid);
+        checkValidGrid = checkCurrentBuildPositionGrid;
         if (checkValidGrid)
         {
             buildPositionGridOrigin = currentBuildPositionGrid;
@@ -32,12 +32,22 @@ public class SingleGridBuildingMode : MonoBehaviour, IBuildingMode
                 listCurrentGridBuildingSizeContain,
                 BuildingManager.Instance.GetBuildingSize(),
                 buildPositionGridOrigin, BuildingManager.Instance.GetCurrentBuildRotationDirection(),
-                out allGridContainIsValid
+                out bool checkListCurrentGridBuildingSizeContain
                 );
-            if(allGridContainIsValid)
+            allGridContainIsValid = checkListCurrentGridBuildingSizeContain;
+            if (allGridContainIsValid)
             {
                 listGridBuildingSizeContain = listCurrentGridBuildingSizeContain;
             }
+            if (Input.GetMouseButtonDown(0))
+            {
+                //TODO: Place Building
+            }
         }
+    }
+
+    public void OnInstantiate()
+    {
+        throw new System.NotImplementedException();
     }
 }

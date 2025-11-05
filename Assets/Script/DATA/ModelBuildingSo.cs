@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "ModelBuildingSo", menuName = "Scriptable Objects/ModelBuildingSo")]
@@ -9,4 +10,5 @@ public class ModelBuildingSo : ScriptableObject
     public float snapMaxDistance;
     public float timeBuildMax;
     public Enum.SnapPointType snapPointTypeSearch;
+    public int3 size;
 }
