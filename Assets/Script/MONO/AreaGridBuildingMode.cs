@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
@@ -16,6 +17,9 @@ public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
     private Vector3 currentBuildPositionGrid;
     public bool allGridContainIsValid { get; private set; }
     public bool checkValidGrid { get; private set; }
+
+    public static event EventHandler OnPlaceBuilding;
+
     public void OnEnd()
     {
         if (Input.GetMouseButtonUp(0))
@@ -23,6 +27,7 @@ public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
             isDragging = false;
             if (gridPositions.Count != 0) gridPositions.Clear();
             if (listGridBuildingSizeContain.Count != 0) listGridBuildingSizeContain.Clear();
+            OnInstantiate();
         }
     }
 
@@ -113,6 +118,8 @@ public class AreaGridBuildingMode : MonoBehaviour, IBuildingMode
 
     public void OnInstantiate()
     {
-        throw new System.NotImplementedException();
+        //TODO place building
+        OnPlaceBuilding?.Invoke(this, EventArgs.Empty);
+        Debug.Log("build");
     }
 }

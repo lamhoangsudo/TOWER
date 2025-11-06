@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,6 +11,9 @@ public class SingleGridBuildingMode : MonoBehaviour, IBuildingMode
     private List<Vector3> listCurrentGridBuildingSizeContain = new();
     public bool allGridContainIsValid { get; private set; }
     public bool checkValidGrid { get; private set; }
+
+    public static event EventHandler OnPlaceBuilding;
+
     public void OnEnd()
     {
 
@@ -41,13 +45,15 @@ public class SingleGridBuildingMode : MonoBehaviour, IBuildingMode
             }
             if (Input.GetMouseButtonDown(0))
             {
-                //TODO: Place Building
+                OnInstantiate();
             }
         }
     }
 
     public void OnInstantiate()
     {
-        throw new System.NotImplementedException();
+        //TODO: Place Building
+        OnPlaceBuilding?.Invoke(this, EventArgs.Empty);
+        Debug.Log("place building");
     }
 }
