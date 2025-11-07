@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -21,16 +22,33 @@ public class TurretFireTimeAuthoring : MonoBehaviour
                 cooldownMax = authoring.cooldownMax,
                 indexWeapons = 0,
             });
+
             if (authoring.weaponAuthorings.Length > 0 && authoring.weaponAuthorings != null)
             {
-                DynamicBuffer<WeaponBuffer> weaponBuffers = AddBuffer<WeaponBuffer>(entity);
+                BlobBuilder builder = new(Allocator.Temp);
+                ref var root = ref builder.ConstructRoot<WeaponBlobDatabase>();
+                BlobBuilderArray<WeaponBlobData> blobBuilderArray = builder.Allocate(ref root.weapons, authoring.weaponAuthorings.Length);
+                for (int i = 0; i < blobBuilderArray.Length; i++)
+                {
+                    blobBuilderArray[i] = new WeaponBlobData
+                    {
+                        weapon = GetEntity(authoring.weaponAuthorings[i], TransformUsageFlags.Dynamic),
+                    };
+                }
+                BlobAssetReference<WeaponBlobDatabase> blobAsset = builder.CreateBlobAssetReference<WeaponBlobDatabase>(Allocator.Persistent);
+                AddBlobAsset(ref blobAsset, out var hash);
+                AddComponent(entity, new Weapons
+                {
+                    weaponBlobReference = blobAsset,
+                });
+                /*DynamicBuffer<WeaponBuffer> weaponBuffers = AddBuffer<WeaponBuffer>(entity);
                 foreach (WeaponAuthoring weaponAuthoring in authoring.weaponAuthorings)
                 {
                     weaponBuffers.Add(new WeaponBuffer
                     {
                         weaponBuffer = GetEntity(weaponAuthoring.gameObject, TransformUsageFlags.Dynamic)
                     });
-                }
+                }*/
             }
         }
     }
@@ -46,10 +64,21 @@ public struct TurretFireTime : IComponentData
     public float cooldown;
     public int indexWeapons;
 }
-[InternalBufferCapacity(6)] 
+/*[InternalBufferCapacity(6)]
 public struct WeaponBuffer : IBufferElementData
 {
     public Entity weaponBuffer;
+}*/
+public struct Weapons : IComponentData
+{
+    public BlobAssetReference<WeaponBlobDatabase> weaponBlobReference;
 }
-
+public struct WeaponBlobDatabase
+{
+    public BlobArray<WeaponBlobData> weapons;
+}
+public struct WeaponBlobData
+{
+    public Entity weapon;
+}
 

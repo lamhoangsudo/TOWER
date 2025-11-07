@@ -35,8 +35,6 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
                 slideSamples[i] = authoring.slideCurve != null ? authoring.slideCurve.Evaluate(t) : 0f;
                 rotationSamples[i] = authoring.rotationCurve != null ? authoring.rotationCurve.Evaluate(t) : 0f;
             }
-
-            // Build blob asset
             using BlobBuilder builder = new(Allocator.Temp);
             ref BarrelAnimatorCurveBlob root = ref builder.ConstructRoot<BarrelAnimatorCurveBlob>();
             BlobBuilderArray<float> slideArray = builder.Allocate(ref root.slideCurve, sampleCount);
