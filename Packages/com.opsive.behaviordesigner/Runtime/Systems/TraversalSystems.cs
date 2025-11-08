@@ -172,6 +172,12 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
     [UpdateAfter(typeof(EvaluationSystem))]
     public partial struct DetermineEvaluationSystem : ISystem
     {
+        [Tooltip("Should the group stay active? An inactive tree does not run.")]
+        public bool Active { get; private set; }
+        [Tooltip("Should the group be evaluated? This bool indicates if the entire tree should be evaluated instead of the reevaluation" +
+                 "concept for conditional aborts. The tree will be reevaluated if any of the leaf tasks have a status of running.")]
+        public bool Evaluate { get; private set; }
+
         private bool m_JobScheduled;
         private JobHandle m_Dependency;
 
@@ -187,12 +193,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
         private EntityCommandBuffer m_EntityCommandBuffer4096;
 
         private NativeArray<bool> m_Results;
-
-        [Tooltip("Should the group stay active? An inactive tree does not run.")]
-        public bool Active { get; private set; }
-        [Tooltip("Should the group be evaluated? This bool indicates if the entire tree should be evaluated instead of the reevaluation" +
-                 "concept for conditional aborts. The tree will be reevaluated if any of the leaf tasks have a status of running.")]
-        public bool Evaluate { get; private set; }
 
         /// <summary>
         /// The system has been created.
@@ -366,7 +366,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
             }
         }
 
-
         /// <summary>
         /// Job which determine if the system should stay active. If any behavior tree should stay active then the entire system must remain active.
         /// </summary>
@@ -530,13 +529,12 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
                 }
 
                 var taskComponent = taskComponents[branchComponent.ActiveIndex];
-                var taskComponentBuffer = taskComponents;
-                var isParentTask = EvaluationUtility.IsParentTask(ref taskComponentBuffer, branchComponent.ActiveIndex);
+                var isParentTask = EvaluationUtility.IsParentTask(ref taskComponents, branchComponent.ActiveIndex);
                 // The branch can evaluate if the active task is an outer node (action or conditional) and is not running OR
                 // the task is an inner node (composite or decorator), is running, and is not a parallel task. Parent tasks cannot run without an active child.
                 if ((!isParentTask && taskComponent.Status != TaskStatus.Running && taskComponent.ParentIndex != ushort.MaxValue) ||
                     (isParentTask && (taskComponent.Status == TaskStatus.Queued || taskComponent.Status == TaskStatus.Running) &&
-                        !EvaluationUtility.IsParallelTask(ref taskComponentBuffer, branchComponent.ActiveIndex))) {
+                        !EvaluationUtility.IsParallelTask(ref taskComponents, branchComponent.ActiveIndex))) {
 
                     if (evaluationType == EvaluationType.EntireTree) {
                         // Compute active task bit positions.
@@ -584,9 +582,8 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
 
                         if (shouldEvaluate) {
                             evaluate = true;
-                            var branchComponentBuffer = branchComponents;
                             branchComponent.LastActiveIndex = branchComponent.ActiveIndex;
-                            branchComponentBuffer[i] = branchComponent;
+                            branchComponents.ElementAt(i) = branchComponent;
                         }
                     } else {
                         evaluate = true;

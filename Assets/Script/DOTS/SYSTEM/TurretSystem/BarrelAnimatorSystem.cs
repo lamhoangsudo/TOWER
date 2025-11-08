@@ -10,7 +10,7 @@ partial struct BarrelAnimatorSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<BarrelAnimator, Weapon, BarrelTipEntityBuffer, PointShotEntityBuffer, WeaponFireTime>().Build());
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<BarrelAnimator, Weapon, BarrelTipEntityBuffer, WeaponFireTime>().Build());
     }
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
@@ -55,10 +55,10 @@ partial struct BarrelAnimatorSystem : ISystem
             ref BarrelAnimator barrelAnimator,
             in Weapon weapon,
             DynamicBuffer<BarrelTipEntityBuffer> tipBuffers,
-            DynamicBuffer<PointShotEntityBuffer> pointShotBuffers,
             in WeaponFireTime weaponFireTime
             )
         {
+            ref BlobArray<PointShotEntityBlobData> pointShotBuffers = ref barrelAnimator.pointShotBlob.Value.pointShotEntityBlobDataArray;
             switch (weapon.firingPattern)
             {
                 case Enum.WeaponFiringPattern.MissileLauncher:
@@ -72,7 +72,7 @@ partial struct BarrelAnimatorSystem : ISystem
                         baseTransformWritter.Position = basePos;
                     }
                     BarrelTipEntityBuffer tip = tipBuffers[weaponFireTime.barrelTipIndex];
-                    PointShotEntityBuffer pointShotEntityBuffer = pointShotBuffers[weaponFireTime.pointShootIndex];
+                    PointShotEntityBlobData pointShotEntityBlobDataIndividual = pointShotBuffers[weaponFireTime.pointShootIndex];
                     LocalTransform tipTransformWritter = _LocalTransformLookUp[tip.barrelTipEntity];
                     if (tip.tipInitialPosition.Equals(float3.zero) && tip.tipInitialRotation.Equals(float3.zero))
                     {
@@ -100,7 +100,7 @@ partial struct BarrelAnimatorSystem : ISystem
                     }
                     if (!barrelAnimator.flashSpawned)
                     {
-                        Entity pointShoot = pointShotEntityBuffer.pointShoot;
+                        Entity pointShoot = pointShotEntityBlobDataIndividual.pointShoot;
                         LocalTransform spawnLocalTransform = _LocalTransformLookUp[pointShoot];
                         Random random = barrelAnimator.random;
                         Entity entityEffect = barrelAnimator.muzzleFlashEntity;
@@ -156,7 +156,7 @@ partial struct BarrelAnimatorSystem : ISystem
                     for (int index = 0; index < tipBuffers.Length; index++)
                     {
                         BarrelTipEntityBuffer tipSimultaneous = tipBuffers[index];
-                        PointShotEntityBuffer pointShotEntityBufferSimultaneous = pointShotBuffers[index];
+                        PointShotEntityBlobData pointShotEntityBlodDataSimultaneous = pointShotBuffers[index];
                         LocalTransform tipTransformSimultaneousWritter = _LocalTransformLookUp[tipSimultaneous.barrelTipEntity];
                         if (tipSimultaneous.tipInitialPosition.Equals(float3.zero) && tipSimultaneous.tipInitialRotation.Equals(float3.zero))
                         {
@@ -184,7 +184,7 @@ partial struct BarrelAnimatorSystem : ISystem
                         }
                         if (!barrelAnimator.flashSpawned)
                         {
-                            Entity pointShoot = pointShotEntityBufferSimultaneous.pointShoot;
+                            Entity pointShoot = pointShotEntityBlodDataSimultaneous.pointShoot;
                             LocalTransform spawnLocalTransform = _LocalTransformLookUp[pointShoot];
                             Random random = barrelAnimator.random;
                             Entity entityEffect = barrelAnimator.muzzleFlashEntity;
@@ -229,8 +229,8 @@ partial struct BarrelAnimatorSystem : ISystem
                     if (barrelAnimator.animationPlaying)
                     {
                         BarrelTipEntityBuffer tipSimultaneous = tipBuffers[0];
-                        PointShotEntityBuffer pointShotEntityBufferSimultaneous = pointShotBuffers[0];
-                        Entity pointShoot = pointShotEntityBufferSimultaneous.pointShoot;
+                        PointShotEntityBlobData pointShotEntityBlobDataGatling = pointShotBuffers[0];
+                        Entity pointShoot = pointShotEntityBlobDataGatling.pointShoot;
                         LocalTransform spawnLocalTransform = _LocalTransformLookUp[pointShoot];
                         Random random = barrelAnimator.random;
                         Entity entityEffect = barrelAnimator.muzzleFlashEntity;
@@ -285,7 +285,7 @@ partial struct BarrelAnimatorSystem : ISystem
     {
         float elapsed = _ElapsedTime - barrelAnimator.lastFireTime;
         progress = math.clamp(elapsed / barrelAnimator.animationDuration, 0f, 1f);
-        ref BarrelAnimatorCurveBlob blob = ref barrelAnimator.curveBlob.Value;
+        ref BarrelAnimatorCurveBlobDatabase blob = ref barrelAnimator.curveBlob.Value;
         int sampleCount = blob.sampleCount;
         float sampleT = progress * (sampleCount - 1);
         int idx0 = (int)math.floor(sampleT);

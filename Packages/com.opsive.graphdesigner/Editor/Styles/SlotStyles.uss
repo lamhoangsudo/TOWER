@@ -9,14 +9,15 @@ VerticalSlot
 
 HorizontalSlot
 {
+    position: absolute;
     align-items: center;
-    width: 10px;
-    height: 10px;
+    align-self: center;
+    width: 14px;
+    height: 34px;
 }
 
 #vertical-output-slot
 {
-    position: absolute;
     bottom: 2px;
     margin-bottom:-3px;
     padding-top:4px
@@ -37,31 +38,47 @@ HorizontalSlot
 
 #horizontal-output-slot
 {
-    align-self: center;
+    right: 0px;
+    margin-right:-2px;
+    padding-right:3px
 }
 
 #horizontal-input-slot
 {
-    align-self: center;
+    padding-left: 3px;
+    margin-left: -2px;
 }
 
 #horizontal-slot-container
 {
     width: 8px;
-    height: 8px;
+    height: 26px;
     align-items: center;
+    margin-top: 4px;
 }
 
-.input-slot-container
+.vertical-input-slot-container
 {
     border-width: 0px 1px 1px 1px;
     border-radius: 0px 0px 4px 4px;
 }
 
-.output-slot-container
+.vertical-output-slot-container
 {
     border-width: 1px 1px 0px 1px;
     border-radius: 4px 4px 0px 0px;
+}
+
+.horizontal-input-slot-container
+{
+    border-width: 1px 1px 1px 0px;
+    border-radius: 0px 4px 4px 0px;
+}
+
+.horizontal-output-slot-container
+{
+    border-width: 1px 0px 1px 1px;
+    border-radius: 4px 0px 0px 4px;
 }
 
 .valid-slot

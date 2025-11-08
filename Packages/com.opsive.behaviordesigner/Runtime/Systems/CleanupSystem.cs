@@ -8,7 +8,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
 {
     using Opsive.BehaviorDesigner.Runtime.Components;
     using Opsive.BehaviorDesigner.Runtime.Groups;
-    using Opsive.GraphDesigner.Runtime;
     using Unity.Burst;
     using Unity.Burst.Intrinsics;
     using Unity.Collections;
@@ -17,7 +16,9 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
     /// <summary>
     /// Resets the evaluation status.
     /// </summary>
+    [DisableAutoCreation]
     [UpdateInGroup(typeof(BehaviorTreeSystemGroup), OrderLast = true)]
+    [BurstCompile]
     public partial struct EvaluationCleanupSystem : ISystem
     {
         private EntityQuery m_EvaluateCleanupQuery;
@@ -93,7 +94,9 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
     /// <summary>
     /// Resets the InterruptedFlag enabled value.
     /// </summary>
+    [DisableAutoCreation]
     [UpdateInGroup(typeof(BehaviorTreeSystemGroup), OrderLast = true)]
+    [BurstCompile]
     public partial struct InterruptedCleanupSystem : ISystem
     {
         private EntityQuery m_InterruptedCleanupQuery;

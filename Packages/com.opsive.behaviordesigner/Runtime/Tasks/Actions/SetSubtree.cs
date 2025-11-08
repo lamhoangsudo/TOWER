@@ -16,6 +16,8 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     {
         [Tooltip("The subtree that should be set.")]
         [SerializeField] protected Subtree m_Subtree;
+        [Tooltip("Should the behavior tree be started after the subtree is set?")]
+        [SerializeField] protected bool m_StartBehavior = true;
 
         private TaskStatus m_Status;
 
@@ -56,6 +58,10 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions
 
             m_ResolvedBehaviorTree.Subgraph = m_Subtree;
             m_Status = TaskStatus.Success;
+
+            if (m_StartBehavior) {
+                m_ResolvedBehaviorTree.StartBehavior();
+            }
         }
     }
 }

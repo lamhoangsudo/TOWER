@@ -6,7 +6,6 @@
 /// ---------------------------------------------
 namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.UnityObjects
 {
-    using Opsive.GraphDesigner.Runtime;
     using Opsive.GraphDesigner.Runtime.Variables;
     using System.Collections.Generic;
     using UnityEngine;

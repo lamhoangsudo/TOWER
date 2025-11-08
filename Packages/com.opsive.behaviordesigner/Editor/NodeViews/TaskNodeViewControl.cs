@@ -66,6 +66,8 @@ namespace Opsive.BehaviorDesigner.Editor.Controls.NodeViews
         /// <param name="node">The node that the control represents.</param>
         public override void AddNodeView(GraphWindow graphWindow, VisualElement parent, object node)
         {
+            graphWindow.rootVisualElement.styleSheets.Add(Shared.Editor.Utility.EditorUtility.LoadAsset<StyleSheet>("9c6834c10d404ac4b95be745f4411f96")); // TaskStyles.uss
+
             m_Node = node as ILogicNode;
             m_GraphWindow = graphWindow;
             m_BehaviorTree = m_GraphWindow.Graph as BehaviorTree;

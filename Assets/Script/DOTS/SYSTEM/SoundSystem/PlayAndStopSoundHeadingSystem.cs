@@ -7,12 +7,10 @@ using System.Collections.Generic;
 public partial class PlayAndStopSoundHeadingSystem : SystemBase
 {
     private Dictionary<Entity, EventInstance> _SoundHeadingEventInstanceDictionary = new();
-    [BurstCompile]
     protected override void OnCreate()
     {
 
     }
-
     protected override void OnUpdate()
     {
         foreach ((RefRW<SFX_Heading> sfx_Heading, RefRO<LocalToWorld> localToWorld, Entity entity) in SystemAPI.Query<RefRW<SFX_Heading>, RefRO<LocalToWorld>>().WithEntityAccess())
@@ -38,8 +36,6 @@ public partial class PlayAndStopSoundHeadingSystem : SystemBase
             }
         }
     }
-
-    [BurstCompile]
     protected override void OnDestroy()
     {
 

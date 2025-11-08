@@ -9,7 +9,7 @@ public partial struct WeaponSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<WeaponFireTime, BarrelAnimator, BarrelTipEntityBuffer, PointShotEntityBuffer>().Build());
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<WeaponFireTime, BarrelAnimator>().Build());
     }
 
     [BurstCompile]
@@ -35,12 +35,12 @@ public partial struct WeaponSystem : ISystem
         public float ElapsedTime;
         public void Execute(ref Weapon weapon, 
             ref WeaponFireTime weaponFireTime, 
-            ref BarrelAnimator barrelAnimator, 
-            DynamicBuffer<BarrelTipEntityBuffer> barrelTipEntityBuffers, 
-            DynamicBuffer<PointShotEntityBuffer> pointShotEntityBuffers)
+            ref BarrelAnimator barrelAnimator,
+            DynamicBuffer<BarrelTipEntityBuffer> barrelTipEntityBuffer)
         {
             if (!weapon.startFire) return;
             if (weapon.targetEntity == Entity.Null) return;
+            ref BlobArray<PointShotEntityBlobData> pointShotEntityBlodArray = ref barrelAnimator.pointShotBlob.Value.pointShotEntityBlobDataArray;
             switch (weapon.firingPattern)
             {
                 case Enum.WeaponFiringPattern.Individual:
@@ -51,7 +51,7 @@ public partial struct WeaponSystem : ISystem
                         weapon.startFire = false;
                         break;
                     }
-                    if (barrelTipEntityBuffers.Length != pointShotEntityBuffers.Length) break;
+                    if (barrelTipEntityBuffer.Length != pointShotEntityBlodArray.Length) break;
                     weaponFireTime.burstDelay += DeltaTime;
                     if (weaponFireTime.burstDelay < weaponFireTime.burstDelayMax) break;
                     if (barrelAnimator.animationPlaying == false)
@@ -62,13 +62,13 @@ public partial struct WeaponSystem : ISystem
                         weaponFireTime.pointShootIndex++;
                         weaponFireTime.burstCount++;
                         weaponFireTime.burstCount = math.clamp(weaponFireTime.burstCount, 0, weaponFireTime.burstCountMax);
-                        if (weaponFireTime.barrelTipIndex >= barrelTipEntityBuffers.Length) weaponFireTime.barrelTipIndex = 0;
-                        if (weaponFireTime.pointShootIndex >= pointShotEntityBuffers.Length) weaponFireTime.pointShootIndex = 0;
+                        if (weaponFireTime.barrelTipIndex >= barrelTipEntityBuffer.Length) weaponFireTime.barrelTipIndex = 0;
+                        if (weaponFireTime.pointShootIndex >= pointShotEntityBlodArray.Length) weaponFireTime.pointShootIndex = 0;
                     }
                     break;
                 case Enum.WeaponFiringPattern.Simultaneous:
-                    if (barrelTipEntityBuffers.Length <= 1) break;
-                    if (barrelTipEntityBuffers.Length != pointShotEntityBuffers.Length) break;
+                    if (barrelTipEntityBuffer.Length <= 1) break;
+                    if (barrelTipEntityBuffer.Length != pointShotEntityBlodArray.Length) break;
                     if (weaponFireTime.burstCount >= weaponFireTime.burstCountMax)
                     {
                         weaponFireTime.burstCount = 0;
@@ -85,13 +85,13 @@ public partial struct WeaponSystem : ISystem
                         barrelAnimator.animationPlaying = true;
                         barrelAnimator.lastFireTime = ElapsedTime;
                     }
-                    weaponFireTime.burstCount += barrelTipEntityBuffers.Length;
+                    weaponFireTime.burstCount += barrelTipEntityBuffer.Length;
                     weaponFireTime.burstCount = math.clamp(weaponFireTime.burstCount, 0, weaponFireTime.burstCountMax);
 
-                    weaponFireTime.burstCount += barrelTipEntityBuffers.Length;
+                    weaponFireTime.burstCount += barrelTipEntityBuffer.Length;
                     break;
                 case Enum.WeaponFiringPattern.MissileLauncher:
-                    if (barrelTipEntityBuffers.Length > 1) break;
+                    if (barrelTipEntityBuffer.Length > 1) break;
                     if (weaponFireTime.burstCount >= weaponFireTime.burstCountMax && !barrelAnimator.animationPlaying)
                     {
                         weaponFireTime.burstCount = 0;
@@ -110,7 +110,7 @@ public partial struct WeaponSystem : ISystem
                             weaponFireTime.pointShootIndex++;
                             weaponFireTime.burstCount++;
                             weaponFireTime.burstCount = math.clamp(weaponFireTime.burstCount, 0, weaponFireTime.burstCountMax);
-                            if (weaponFireTime.pointShootIndex >= pointShotEntityBuffers.Length) weaponFireTime.pointShootIndex = 0;
+                            if (weaponFireTime.pointShootIndex >= pointShotEntityBlodArray.Length) weaponFireTime.pointShootIndex = 0;
                         }
                     }
                     break;

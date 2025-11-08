@@ -76,11 +76,12 @@ namespace Opsive.BehaviorDesigner.Runtime
                     return;
                 }
 
+                var active = IsActive();
                 ClearTree();
                 m_Subtree = value as Subtree;
                 m_SubtreeOverride = false;
                 InheritSubtree(false);
-                if (IsActive() && !IsPaused()) {
+                if (active && !IsPaused()) {
                     StartBehavior();
                 }
 #if UNITY_EDITOR
@@ -555,6 +556,11 @@ namespace Opsive.BehaviorDesigner.Runtime
             var traversalTaskSystemGroup = world.GetOrCreateSystemManaged<TraversalTaskSystemGroup>();
             var reevaluateTaskSystemGroup = world.GetOrCreateSystemManaged<ReevaluateTaskSystemGroup>();
             var interruptTaskSystemGroup = world.GetOrCreateSystemManaged<InterruptTaskSystemGroup>();
+
+            // Add the necessary cleanup systems.
+            var behaviorTreeSystemGroup = world.GetOrCreateSystemManaged<BehaviorTreeSystemGroup>();
+            behaviorTreeSystemGroup.AddSystemToUpdateList(world.GetOrCreateSystem<EvaluationCleanupSystem>());
+            behaviorTreeSystemGroup.AddSystemToUpdateList(world.GetOrCreateSystem<InterruptedCleanupSystem>());
 
             var taskComponents = world.EntityManager.GetBuffer<TaskComponent>(entity);
             var taskOffset = (ushort)(eventTask.ConnectedIndex - taskComponents.Length);
@@ -1110,7 +1116,7 @@ namespace Opsive.BehaviorDesigner.Runtime
                         continue;
                     }
                     pausableTask.Pause(world, entity);
-                } else if (m_Data.LogicNodes[i] is Task task) {
+                } else if (tasks[i] is Task task) {
                     task.OnEnd();
                 }
             }
@@ -1201,8 +1207,6 @@ namespace Opsive.BehaviorDesigner.Runtime
         /// <summary>
         /// Clears all of the tree components.
         /// </summary>
-        /// <param name="world">The world that the entity exists in.</param>
-        /// <param name="entity">The entity that contains the behavior tree.</param>
         private void ClearTree()
         {
             ClearTree(m_World, m_Entity);
@@ -1245,8 +1249,8 @@ namespace Opsive.BehaviorDesigner.Runtime
                             world.EntityManager.RemoveComponent(entity, reevaluateTask.ReevaluateFlag);
                         }
                     }
-                } else if (m_Data.LogicNodes[i] is Task monoTask) {
-                    monoTask.ClearBufferElement(world, entity);
+                } else if (m_Data.LogicNodes[i] is Task task) {
+                    task.ClearBufferElement(world, entity);
                     if (m_Data.LogicNodes[i] is IConditional) {
                         if (world.EntityManager.HasComponent(entity, typeof(TaskObjectReevaluateFlag))) {
                             world.EntityManager.RemoveComponent(entity, typeof(TaskObjectReevaluateFlag));

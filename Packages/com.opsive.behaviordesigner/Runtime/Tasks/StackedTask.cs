@@ -183,7 +183,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks
                 m_TaskEnded = new bool[m_Tasks.Length];
                 for (int i = 0; i < m_Tasks.Length; ++i) {
                     if (m_Tasks[i] == null) {
-                        continue;
+                        m_Tasks[i] = new UnknownTask();
                     }
                     if (m_Tasks[i] is TaskDelegateBase taskDelegate) {
                         taskDelegate.Initialize(behaviorTree, runtimeIndex, this is IConditional);
@@ -226,10 +226,6 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks
             }
 
             while (m_ActiveIndex < m_Tasks.Length) {
-                if (m_Tasks[m_ActiveIndex] == null) {
-                    continue;
-                }
-
                 // Call start when the local task is started, not when the StackedTask starts.
                 if (!m_TaskStarted[m_ActiveIndex]) {
                     m_Tasks[m_ActiveIndex].OnStart();

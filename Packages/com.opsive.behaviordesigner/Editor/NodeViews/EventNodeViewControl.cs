@@ -48,6 +48,8 @@ namespace Opsive.BehaviorDesigner.Editor.Controls.NodeViews
         /// <param name="node">The node that the control represents.</param>
         public override void AddNodeView(GraphWindow graphWindow, VisualElement parent, object node)
         {
+            graphWindow.rootVisualElement.styleSheets.Add(Shared.Editor.Utility.EditorUtility.LoadAsset<StyleSheet>("9c6834c10d404ac4b95be745f4411f96")); // TaskStyles.uss
+
             m_Node = node as IEventNode;
             m_GraphWindow = graphWindow;
             m_BehaviorTree = m_GraphWindow.Graph as BehaviorTree;
@@ -86,6 +88,10 @@ namespace Opsive.BehaviorDesigner.Editor.Controls.NodeViews
             }
 
             var connectedNode = m_GraphWindow.Graph.LogicNodes[m_Node.ConnectedIndex];
+            // The tree may not be initialized.
+            if (connectedNode.RuntimeIndex == ushort.MaxValue) {
+                return;
+            }
             var taskComponents = m_BehaviorTree.World.EntityManager.GetBuffer<TaskComponent>(m_BehaviorTree.Entity);
             var taskComponent = taskComponents[connectedNode.RuntimeIndex];
             if (taskComponent.Status == TaskStatus.Success) {

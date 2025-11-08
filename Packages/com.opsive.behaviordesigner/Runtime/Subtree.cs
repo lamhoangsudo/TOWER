@@ -12,7 +12,7 @@ namespace Opsive.BehaviorDesigner.Runtime
     using UnityEngine;
 
     /// <summary>
-    /// The behavior tree stored on a Scriptable Object.
+    /// The behavior tree stored within a Scriptable Object.
     /// </summary>
     [CreateAssetMenu(fileName = "Subtree", menuName = "Opsive/Behavior Designer/Subtree", order = 1)]
     public class Subtree : ScriptableObject, IGraph, ISharedVariableContainer

@@ -7,12 +7,10 @@ using Unity.Transforms;
 public partial class PlayAndStopSoundElevationSystem : SystemBase
 {
     private Dictionary<Entity, EventInstance> _SoundElevationEventInstanceDictionary = new();
-    [BurstCompile]
     protected override void OnCreate()
     {
 
     }
-
     protected override void OnUpdate()
     {
         foreach ((RefRW<SFX_Elevation> sfx_Elevation, RefRO<LocalToWorld> localToWorld, Entity entity) in SystemAPI.Query<RefRW<SFX_Elevation>, RefRO<LocalToWorld>>().WithEntityAccess())
@@ -38,8 +36,6 @@ public partial class PlayAndStopSoundElevationSystem : SystemBase
             }
         }
     }
-
-    [BurstCompile]
     protected override void OnDestroy()
     {
 

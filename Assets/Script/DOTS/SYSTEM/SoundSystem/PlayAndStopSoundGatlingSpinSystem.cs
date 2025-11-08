@@ -7,7 +7,6 @@ using System.Collections.Generic;
 public partial class PlayAndStopSoundGatlingSpinSystem : SystemBase
 {
     private Dictionary<Entity, EventInstance> _SoundGatlingSpinEventInstanceDictionary = new();
-    [BurstCompile]
     protected override void OnCreate()
     {
 
@@ -37,8 +36,6 @@ public partial class PlayAndStopSoundGatlingSpinSystem : SystemBase
             }
         }
     }
-
-    [BurstCompile]
     protected override void OnDestroy()
     {
 
