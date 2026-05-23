@@ -1,32 +1,35 @@
 using Unity.Burst;
-using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
+
+/// <summary>
+/// Spawn projectile entity khi BarrelFireEffectSystem set ProjectTileSpawnShoot.isSpawner = true.
+/// Đọc spawn position từ LocalToWorld của point shoot entity.
+/// </summary>
+[BurstCompile]
+[UpdateAfter(typeof(BarrelFireEffectSystem))]
 partial struct ProjectTileSpawnSystem : ISystem
 {
-    private EntityQuery queryProjectTileSpawnChuck;
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        queryProjectTileSpawnChuck = SystemAPI.QueryBuilder().WithAll<ProjectTileSpawnShoot, LocalToWorld>().Build();
-        state.RequireForUpdate(queryProjectTileSpawnChuck);
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<ProjectTileSpawnShoot, LocalToWorld>().Build());
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         EntityCommandBuffer ecb = new(Allocator.TempJob);
-        ProjectTileSpawnChuck projectTileSpawnChuck = new()
+
+        ProjectTileSpawnJob job = new()
         {
             ecb = ecb.AsParallelWriter(),
-            localToWorldHandle = SystemAPI.GetComponentTypeHandle<LocalToWorld>(),
-            projectTileSpawnShootHandle = SystemAPI.GetComponentTypeHandle<ProjectTileSpawnShoot>(),
         };
-        JobHandle jobHandle = projectTileSpawnChuck.ScheduleParallel(queryProjectTileSpawnChuck, state.Dependency);
-        jobHandle.Complete();
+        job.ScheduleParallel();
+        state.Dependency.Complete();
+
         ecb.Playback(state.EntityManager);
         ecb.Dispose();
     }
@@ -35,63 +38,53 @@ partial struct ProjectTileSpawnSystem : ISystem
     public void OnDestroy(ref SystemState state)
     {
     }
-    [BurstCompile]
-    public partial struct ProjectTileSpawnChuck : IJobChunk
+}
+
+[BurstCompile]
+public partial struct ProjectTileSpawnJob : IJobEntity
+{
+    public EntityCommandBuffer.ParallelWriter ecb;
+
+    public void Execute(
+        ref ProjectTileSpawnShoot spawnShoot,
+        in LocalToWorld localToWorld,
+        [ChunkIndexInQuery] int sortkey)
     {
-        public ComponentTypeHandle<ProjectTileSpawnShoot> projectTileSpawnShootHandle;
-        public ComponentTypeHandle<LocalToWorld> localToWorldHandle;
-        public EntityCommandBuffer.ParallelWriter ecb;
-        public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
+        if (!spawnShoot.isSpawner) return;
+
+        // Build projectile data
+        ProjecTile projectileData = new()
         {
-            NativeArray<ProjectTileSpawnShoot> projectTileSpawnShoots = chunk.GetNativeArray(ref projectTileSpawnShootHandle);
-            NativeArray<LocalToWorld> localToWorlds = chunk.GetNativeArray(ref localToWorldHandle);
-            for (int i = 0; i < chunk.Count; i++)
-            {
-                ProjectTileSpawnShoot projectTileSpawnShoot = projectTileSpawnShoots[i];
-                LocalToWorld localToWorld = localToWorlds[i];
-                if (!projectTileSpawnShoot.isSpawner) continue;
-                ProjecTile projectTileSpawnWriter = new();
-                LocalTransform projectTileSpawnLocalTransformWriter = new()
-                {
-                    Position = localToWorld.Position,
-                    Rotation = localToWorld.Rotation,
-                    Scale = 1f,
-                };
-                projectTileSpawnWriter.projecTileLifetimeMax = projectTileSpawnShoot.projectileLifetimeMax;
-                projectTileSpawnWriter.projecTileCurrentLifetime = projectTileSpawnShoot.projectileLifetimeMax;
-                switch (projectTileSpawnShoot.firingPattern)
-                {
-                    case Enum.WeaponFiringPattern.MissileLauncher:
-                        projectTileSpawnWriter.projectTileType = Enum.ProjectTileType.Missile;
-                        break;
-                    default:
-                        projectTileSpawnWriter.projectTileType = Enum.ProjectTileType.Bullet;
-                        break;
-                }
-                switch (projectTileSpawnWriter.projectTileType)
-                {
-                    case Enum.ProjectTileType.Bullet:
-                        projectTileSpawnWriter.projecTileMaxSpeed = projectTileSpawnShoot.projectileMaxSpeed;
-                        projectTileSpawnWriter.projecTileCurrentSpeed = projectTileSpawnShoot.projectileMaxSpeed;
-                        projectTileSpawnWriter.targetDistance = math.distance(localToWorld.Position, projectTileSpawnShoot.targetPosition);
-                        projectTileSpawnWriter.projectileExplosion = projectTileSpawnShoot.entityProjectTileExplosion;
-                        break;
-                    case Enum.ProjectTileType.Missile:
-                        projectTileSpawnWriter.homingTarget = projectTileSpawnShoot.homingTarget;
-                        projectTileSpawnWriter.homingSpeed = 10f;
-                        projectTileSpawnWriter.projecTileAcceleration = projectTileSpawnShoot.projectileAcceleration;
-                        projectTileSpawnWriter.projecTileCurrentSpeed = projectTileSpawnShoot.projectileStartSpeed;
-                        projectTileSpawnWriter.projecTileMaxSpeed = projectTileSpawnShoot.projectileMaxSpeed;
-                        projectTileSpawnWriter.targetDistance = math.distance(localToWorld.Position, projectTileSpawnShoot.targetPosition);
-                        projectTileSpawnWriter.projectileExplosion = projectTileSpawnShoot.entityProjectTileExplosion;
-                        break;
-                }
-                projectTileSpawnShoot.isSpawner = false;
-                projectTileSpawnShoots[i] = projectTileSpawnShoot;
-                Entity entityProjectTileSpawn = ecb.Instantiate(unfilteredChunkIndex, projectTileSpawnShoot.entityProjectTilePrefab);
-                ecb.SetComponent<ProjecTile>(unfilteredChunkIndex, entityProjectTileSpawn, projectTileSpawnWriter);
-                ecb.SetComponent<LocalTransform>(unfilteredChunkIndex, entityProjectTileSpawn, projectTileSpawnLocalTransformWriter);
-            }
+            projecTileLifetimeMax = spawnShoot.projectileLifetimeMax,
+            projecTileCurrentLifetime = spawnShoot.projectileLifetimeMax,
+            projectileExplosion = spawnShoot.entityProjectTileExplosion,
+            targetDistance = math.distance(localToWorld.Position, spawnShoot.targetPosition),
+        };
+
+        // Set type-specific data
+        switch (spawnShoot.firingPattern)
+        {
+            case Enum.WeaponFiringPattern.MissileLauncher:
+                projectileData.projectTileType = Enum.ProjectTileType.Missile;
+                projectileData.homingTarget = spawnShoot.homingTarget;
+                projectileData.homingSpeed = 10f;
+                projectileData.projecTileAcceleration = spawnShoot.projectileAcceleration;
+                projectileData.projecTileCurrentSpeed = spawnShoot.projectileStartSpeed;
+                projectileData.projecTileMaxSpeed = spawnShoot.projectileMaxSpeed;
+                break;
+            default:
+                projectileData.projectTileType = Enum.ProjectTileType.Bullet;
+                projectileData.projecTileMaxSpeed = spawnShoot.projectileMaxSpeed;
+                projectileData.projecTileCurrentSpeed = spawnShoot.projectileMaxSpeed;
+                break;
         }
+
+        // Spawn
+        Entity projectileEntity = ecb.Instantiate(sortkey, spawnShoot.entityProjectTilePrefab);
+        ecb.SetComponent(sortkey, projectileEntity, projectileData);
+        ecb.SetComponent(sortkey, projectileEntity, LocalTransform.FromPositionRotation(localToWorld.Position, localToWorld.Rotation));
+
+        // Reset trigger
+        spawnShoot.isSpawner = false;
     }
 }

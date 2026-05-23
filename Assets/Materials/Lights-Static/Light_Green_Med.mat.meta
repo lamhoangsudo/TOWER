@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 01cb9d2145f024c4bab2c4e292f477fd
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.1.1
+  assetPath: Assets/Materials/Lights-Static/Light_Green_Med.mat
+  uploadId: 869512

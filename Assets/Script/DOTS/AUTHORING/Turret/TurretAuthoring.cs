@@ -1,9 +1,9 @@
-using NUnit.Framework;
 using Unity.Entities;
 using UnityEngine;
 
 public class TurretAuthoring : MonoBehaviour
 {
+    [Header("Rotation Settings")]
     public float headingRotationSpeed;
     public float headingRotationAcceleration;
     public float minHeadingLimit;
@@ -15,22 +15,31 @@ public class TurretAuthoring : MonoBehaviour
     public float maxElevationLimit;
     public bool elevationLimited;
 
+    [Header("Pivot References")]
     public GameObject headingPivot;
     public GameObject elevationPivot;
 
+    [Header("Targeting")]
     public bool useTargetPrediction;
-    public bool autoFire;
     public float targetAquiredAngle;
     public bool resetOrientation;
+
+    [Header("Firing")]
+    public bool autoFire;
+
     public Entity turretEntity { get; private set; }
+
     [Header("Debug")]
     public GameObject Target;
+
     public class TurretAuthoringBaker : Baker<TurretAuthoring>
     {
         public override void Bake(TurretAuthoring authoring)
         {
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
-            AddComponent(entity, new Turret
+
+            // Component 1: Rotation
+            AddComponent(entity, new TurretRotation
             {
                 headingRotationSpeed = authoring.headingRotationSpeed,
                 headingRotationAcceleration = authoring.headingRotationAcceleration,
@@ -44,56 +53,31 @@ public class TurretAuthoring : MonoBehaviour
                 elevationLimited = authoring.elevationLimited,
                 headingPivot = GetEntity(authoring.headingPivot, TransformUsageFlags.Dynamic),
                 elevationPivot = GetEntity(authoring.elevationPivot, TransformUsageFlags.Dynamic),
-                useTargetPrediction = authoring.useTargetPrediction,
-                autoFire = authoring.autoFire,
-                targetAquiredAngle = authoring.targetAquiredAngle,
-                resetOrientation = authoring.resetOrientation,
-                IsElevationRotationSFX = false,
                 IsHeadingRotationSFX = false,
-                random = new Unity.Mathematics.Random((uint)entity.Index),
-                isElevationRotationTarget = false,
-                isHeadingRotationTarget = false,
-                target = GetEntity(authoring.Target, TransformUsageFlags.Dynamic),
+                IsElevationRotationSFX = false,
             });
+
+            // Component 2: Targeting
+            AddComponent(entity, new TurretTargeting
+            {
+                target = GetEntity(authoring.Target, TransformUsageFlags.Dynamic),
+                useTargetPrediction = authoring.useTargetPrediction,
+                resetOrientation = authoring.resetOrientation,
+                targetAcquiredAngle = authoring.targetAquiredAngle,
+                isHeadingRotationTarget = false,
+                isElevationRotationTarget = false,
+            });
+
+            // Component 3: Firing
+            AddComponent(entity, new TurretFiring
+            {
+                autoFire = authoring.autoFire,
+                random = new Unity.Mathematics.Random((uint)entity.Index),
+            });
+
             authoring.turretEntity = entity;
         }
     }
-}
-public struct Turret : IComponentData
-{
-    public float headingRotationSpeed;
-    public float headingRotationAcceleration;
-    public float minHeadingLimit;
-    public float maxHeadingLimit;
-    public bool headingLimited;
-    public float elevationRotationSpeed;
-    public float elevationRotationAcceleration;
-    public float minElevationLimit;
-    public float maxElevationLimit;
-    public bool elevationLimited;
-    public bool isHeadingRotationTarget;
-    public bool isElevationRotationTarget;
-
-    public Entity headingPivot;
-    public Entity elevationPivot;
-
-    public float currentHeading;
-    public float currentElevation;
-    public float currentHeadingSpeed;
-    public float currentElevationSpeed;
-
-    public Entity target;
-    public bool useTargetPrediction;
-    public bool autoFire;
-    public float targetAquiredAngle; // 0.5
-    public bool resetOrientation;
-
-    public float headingSpeedFactor;
-    public float elevationSpeedFactor;
-
-    public bool IsHeadingRotationSFX;
-    public bool IsElevationRotationSFX;
-    public Unity.Mathematics.Random random; // Used for sound pitch variation
 }
 
 

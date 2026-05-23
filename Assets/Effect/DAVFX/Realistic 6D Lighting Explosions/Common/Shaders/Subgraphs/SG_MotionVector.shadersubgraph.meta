@@ -12,6 +12,6 @@ AssetOrigin:
   serializedVersion: 1
   productId: 291615
   packageName: Realistic 6D Lighting Explosions Pack
-  packageVersion: 2.1.0
-  assetPath: Assets/DAVFX/Realistic 6D Lighting Explosions/Common/Shaders/Subgraphs/SG_MotionVector.shadersubgraph
-  uploadId: 775730
+  packageVersion: 2.2.1
+  assetPath: Assets/Effect/DAVFX/Realistic 6D Lighting Explosions/Common/Shaders/Subgraphs/SG_MotionVector.shadersubgraph
+  uploadId: 864172

@@ -476,10 +476,8 @@ MonoBehaviour:
   VirtualChannelSettings: []
   RealChannelSettings: []
   Plugins: []
-  MasterBanks:
-  - Master
-  Banks:
-  - Turret_SFX
+  MasterBanks: []
+  Banks: []
   BanksToLoad: []
   LiveUpdatePort: 9264
   EnableMemoryTracking: 0
@@ -489,9 +487,9 @@ MonoBehaviour:
   StopEventsOutsideMaxDistance: 0
   BoltUnitOptionsBuildPending: 0
   EnableErrorCallback: 0
-  SharedLibraryUpdateStage: 0
+  SharedLibraryUpdateStage: 1
   SharedLibraryTimeSinceStart: 0
-  CurrentVersion: 131856
+  CurrentVersion: 131859
   HideSetupWizard: 1
   LastEventReferenceScanVersion: 131848
   Platforms:

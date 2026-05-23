@@ -15,18 +15,16 @@ partial struct TurretHeadingElevationSoundSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        #region new code
         TurretHeadingSoundJob turretHeadingSoundJob = new()
         {
-            turretLookup = SystemAPI.GetComponentLookup<Turret>(isReadOnly: true),
+            rotationLookup = SystemAPI.GetComponentLookup<TurretRotation>(isReadOnly: true),
         };
         turretHeadingSoundJob.ScheduleParallel();
         TurretElevationSoundJob turretElevationSoundJob = new()
         {
-            turretLookup = SystemAPI.GetComponentLookup<Turret>(isReadOnly: true),
+            rotationLookup = SystemAPI.GetComponentLookup<TurretRotation>(isReadOnly: true),
         };
         turretElevationSoundJob.ScheduleParallel();
-        #endregion
     }
     [BurstCompile]
     public void OnDestroy(ref SystemState state)
@@ -37,14 +35,14 @@ partial struct TurretHeadingElevationSoundSystem : ISystem
 [BurstCompile]
 public partial struct TurretHeadingSoundJob : IJobEntity
 {
-    [ReadOnly] public ComponentLookup<Turret> turretLookup;
+    [ReadOnly] public ComponentLookup<TurretRotation> rotationLookup;
     public void Execute(ref SFX_Heading SFX_Heading)
     {
-        Turret turret = turretLookup[SFX_Heading.turretEntity];
-        if (turret.IsHeadingRotationSFX)
+        TurretRotation rotation = rotationLookup[SFX_Heading.turretEntity];
+        if (rotation.IsHeadingRotationSFX)
         {
             if (!SFX_Heading.isPlaying) SFX_Heading.isPlaying = true;
-            SFX_Heading.headingSpeedFactor = turret.headingSpeedFactor;
+            SFX_Heading.headingSpeedFactor = rotation.headingSpeedFactor;
         }
         else
         {
@@ -58,14 +56,14 @@ public partial struct TurretHeadingSoundJob : IJobEntity
 [BurstCompile]
 public partial struct TurretElevationSoundJob : IJobEntity
 {
-    [ReadOnly] public ComponentLookup<Turret> turretLookup;
+    [ReadOnly] public ComponentLookup<TurretRotation> rotationLookup;
     public void Execute(ref SFX_Elevation SFX_Elevation)
     {
-        Turret turret = turretLookup[SFX_Elevation.turretEntity];
-        if (turret.IsElevationRotationSFX)
+        TurretRotation rotation = rotationLookup[SFX_Elevation.turretEntity];
+        if (rotation.IsElevationRotationSFX)
         {
             if (!SFX_Elevation.isPlaying) SFX_Elevation.isPlaying = true;
-            SFX_Elevation.elevationSpeedFactor = turret.elevationSpeedFactor;
+            SFX_Elevation.elevationSpeedFactor = rotation.elevationSpeedFactor;
         }
         else
         {

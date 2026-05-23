@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -19,13 +18,14 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
     public float sfxPitch;
     public float sfxVolume;
     public GameObject audioGatlingEffect;
+
     public class BarrelAnimatorAuthoringBaker : Baker<BarrelAnimatorAuthoring>
     {
         public override void Bake(BarrelAnimatorAuthoring authoring)
         {
-            var entity = GetEntity(TransformUsageFlags.Dynamic);
-            
-            // Sample AnimationCurve to array
+            Entity entity = GetEntity(TransformUsageFlags.Dynamic);
+
+            // === Bake AnimationCurve → BlobAsset ===
             const int sampleCount = 50;
             float[] slideSamples = new float[sampleCount];
             float[] rotationSamples = new float[sampleCount];
@@ -35,17 +35,26 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
                 slideSamples[i] = authoring.slideCurve != null ? authoring.slideCurve.Evaluate(t) : 0f;
                 rotationSamples[i] = authoring.rotationCurve != null ? authoring.rotationCurve.Evaluate(t) : 0f;
             }
-            using BlobBuilder builder = new(Allocator.Temp);
-            ref BarrelAnimatorCurveBlobDatabase rootBarrelAnimatorCurveBlobDatabase = ref builder.ConstructRoot<BarrelAnimatorCurveBlobDatabase>();
-            ref PointShotEntityBlobDatabase rootPointShotEntityBlobDatabase = ref builder.ConstructRoot<PointShotEntityBlobDatabase>();
-            BlobBuilderArray<float> slideArray = builder.Allocate(ref rootBarrelAnimatorCurveBlobDatabase.slideCurve, sampleCount);
-            BlobBuilderArray<float> rotationArray = builder.Allocate(ref rootBarrelAnimatorCurveBlobDatabase.rotationCurve, sampleCount);
-            BlobBuilderArray<PointShotEntityBlobData> pointShotArray = builder.Allocate(ref rootPointShotEntityBlobDatabase.pointShotEntityBlobDataArray, authoring.pointShoot.Length);
+
+            // Curve BlobAsset
+            BlobBuilder curveBuilder = new(Allocator.Temp);
+            ref BarrelAnimatorCurveBlobDatabase curveRoot = ref curveBuilder.ConstructRoot<BarrelAnimatorCurveBlobDatabase>();
+            BlobBuilderArray<float> slideArray = curveBuilder.Allocate(ref curveRoot.slideCurve, sampleCount);
+            BlobBuilderArray<float> rotationArray = curveBuilder.Allocate(ref curveRoot.rotationCurve, sampleCount);
             for (int i = 0; i < sampleCount; i++)
             {
                 slideArray[i] = slideSamples[i];
                 rotationArray[i] = rotationSamples[i];
             }
+            curveRoot.sampleCount = sampleCount;
+            BlobAssetReference<BarrelAnimatorCurveBlobDatabase> curveAsset = curveBuilder.CreateBlobAssetReference<BarrelAnimatorCurveBlobDatabase>(Allocator.Persistent);
+            AddBlobAsset(ref curveAsset, out var _);
+            curveBuilder.Dispose();
+
+            // PointShot BlobAsset
+            BlobBuilder pointShotBuilder = new(Allocator.Temp);
+            ref PointShotEntityBlobDatabase pointShotRoot = ref pointShotBuilder.ConstructRoot<PointShotEntityBlobDatabase>();
+            BlobBuilderArray<PointShotEntityBlobData> pointShotArray = pointShotBuilder.Allocate(ref pointShotRoot.pointShotEntityBlobDataArray, authoring.pointShoot.Length);
             for (int i = 0; i < authoring.pointShoot.Length; i++)
             {
                 pointShotArray[i] = new PointShotEntityBlobData
@@ -53,33 +62,61 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
                     pointShoot = GetEntity(authoring.pointShoot[i], TransformUsageFlags.Dynamic)
                 };
             }
-            rootBarrelAnimatorCurveBlobDatabase.sampleCount = sampleCount;
-            BlobAssetReference<BarrelAnimatorCurveBlobDatabase> barrelAnimatorCurveAsset = builder.CreateBlobAssetReference<BarrelAnimatorCurveBlobDatabase>(Allocator.Persistent);
-            BlobAssetReference<PointShotEntityBlobDatabase> pointShotAsset = builder.CreateBlobAssetReference<PointShotEntityBlobDatabase>(Allocator.Persistent);
-            AddBlobAsset(ref barrelAnimatorCurveAsset, out var _);
+            BlobAssetReference<PointShotEntityBlobDatabase> pointShotAsset = pointShotBuilder.CreateBlobAssetReference<PointShotEntityBlobDatabase>(Allocator.Persistent);
             AddBlobAsset(ref pointShotAsset, out var _);
-            AddComponent(entity, new BarrelAnimator
+            pointShotBuilder.Dispose();
+
+            // === Component 1: BarrelAnimation (core animation) ===
+            AddComponent(entity, new BarrelAnimation
             {
                 barrelBaseEntity = GetEntity(authoring.barrelBaseEntity, TransformUsageFlags.Dynamic),
                 animationDuration = authoring.animationDuration,
                 baseSlideDistance = authoring.baseSlideDistance,
-                muzzleFlashEntity = GetEntity(authoring.muzzleFlashEntity, TransformUsageFlags.Dynamic),
                 tipSlideAmountDistance = authoring.tipSlideAmountDistance,
                 tipRotateDegrees = authoring.tipRotateDegrees,
-                curveBlob = barrelAnimatorCurveAsset,
-                pointShotBlob = pointShotAsset,
+                lastFireTime = 0f,
+                animationPlaying = false,
+                tipRotationAtFire = 0f,
+                curveBlob = curveAsset,
+            });
+
+            // === Component 2: BarrelVFX (muzzle flash + point shots) ===
+            AddComponent(entity, new BarrelVFX
+            {
+                muzzleFlashEntity = GetEntity(authoring.muzzleFlashEntity, TransformUsageFlags.Dynamic),
                 flashSpawned = false,
+                pointShotBlob = pointShotAsset,
+            });
+
+            // === Component 3: BarrelSFX (sound) ===
+            AddComponent(entity, new BarrelSFX
+            {
                 sfxPitch = authoring.sfxPitch,
                 sfxVolume = authoring.sfxVolume,
                 random = new Unity.Mathematics.Random((uint)entity.Index),
-                audioGatlingEffect = GetEntity(authoring.audioGatlingEffect, TransformUsageFlags.Dynamic),
             });
+
+            // === Component 4: GatlingSpin (optional — chỉ khi có audioGatlingEffect) ===
+            if (authoring.audioGatlingEffect != null)
+            {
+                AddComponent(entity, new GatlingSpin
+                {
+                    gatlingRotationSpeed = 0f,
+                    currentGatlingRotation = 0f,
+                    gatlingRotationSpeedChange = 0f,
+                    accumulatedGatlingAngle = 0f,
+                    audioGatlingEffect = GetEntity(authoring.audioGatlingEffect, TransformUsageFlags.Dynamic),
+                });
+            }
+
+            // === Buffer: BarrelTipEntityBuffer ===
             DynamicBuffer<BarrelTipEntityBuffer> buffer = AddBuffer<BarrelTipEntityBuffer>(entity);
             int tipCount = authoring.barrelTipEntity.Length;
             for (int i = 0; i < tipCount; i++)
             {
                 Entity barrelTipEntity = GetEntity(authoring.barrelTipEntity[i], TransformUsageFlags.Dynamic);
-                buffer.Add(new BarrelTipEntityBuffer { 
+                buffer.Add(new BarrelTipEntityBuffer
+                {
                     barrelTipEntity = barrelTipEntity,
                     tipInitialPosition = float3.zero,
                     tipInitialRotation = float3.zero
@@ -88,48 +125,26 @@ public class BarrelAnimatorAuthoring : MonoBehaviour
         }
     }
 }
-public struct BarrelAnimator : IComponentData
-{
-    public Entity barrelBaseEntity;
-    public Entity muzzleFlashEntity;
-    public Entity audioGatlingEffect;
 
-    public float animationDuration;
-    public float baseSlideDistance;
-    public float tipSlideAmountDistance;
-    public float tipRotateDegrees;
-    public float gatlingRotationSpeed;
-    public float curentGatlingRotation;
-    public float gatlingRotationSpeedChange;
-    public float accumulatedGatlingAngle;
+// === Shared structs (giữ nguyên vì nhiều systems dùng) ===
 
-    public float lastFireTime;
-    public bool animationPlaying;
-
-    public float tipRotationAtFire;
-
-    public BlobAssetReference<BarrelAnimatorCurveBlobDatabase> curveBlob;
-    public BlobAssetReference<PointShotEntityBlobDatabase> pointShotBlob;
-
-    public bool flashSpawned;
-    public float sfxPitch;
-    public float sfxVolume;
-    public Unity.Mathematics.Random random;
-}
 public struct BarrelAnimatorCurveBlobDatabase
 {
     public BlobArray<float> slideCurve;
     public BlobArray<float> rotationCurve;
     public int sampleCount;
 }
+
 public struct PointShotEntityBlobDatabase
 {
     public BlobArray<PointShotEntityBlobData> pointShotEntityBlobDataArray;
 }
+
 public struct PointShotEntityBlobData
 {
     public Entity pointShoot;
 }
+
 [InternalBufferCapacity(10)]
 public struct BarrelTipEntityBuffer : IBufferElementData
 {
@@ -137,5 +152,3 @@ public struct BarrelTipEntityBuffer : IBufferElementData
     public float3 tipInitialPosition;
     public float3 tipInitialRotation;
 }
-
-

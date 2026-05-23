@@ -2,7 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.VFX;
-[UpdateAfter(typeof(BarrelAnimatorSystem))]
+[UpdateAfter(typeof(BarrelFireEffectSystem))]
 public class EffectWeaponShootAuthoring : MonoBehaviour
 {
     public Light lightEffect;

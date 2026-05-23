@@ -9,6 +9,7 @@ public class TurretFireTimeAuthoring : MonoBehaviour
     public float burstDelayMax;
     public float cooldownMax;
     public WeaponAuthoring[] weaponAuthorings;
+
     public class TurretFireTimeAuthoringBaker : Baker<TurretFireTimeAuthoring>
     {
         public override void Bake(TurretFireTimeAuthoring authoring)
@@ -23,10 +24,10 @@ public class TurretFireTimeAuthoring : MonoBehaviour
                 indexWeapons = 0,
             });
 
-            if (authoring.weaponAuthorings.Length > 0 && authoring.weaponAuthorings != null)
+            if (authoring.weaponAuthorings != null && authoring.weaponAuthorings.Length > 0)
             {
                 BlobBuilder builder = new(Allocator.Temp);
-                ref var root = ref builder.ConstructRoot<WeaponBlobDatabase>();
+                ref WeaponBlobDatabase root = ref builder.ConstructRoot<WeaponBlobDatabase>();
                 BlobBuilderArray<WeaponBlobData> blobBuilderArray = builder.Allocate(ref root.weapons, authoring.weaponAuthorings.Length);
                 for (int i = 0; i < blobBuilderArray.Length; i++)
                 {
@@ -37,22 +38,21 @@ public class TurretFireTimeAuthoring : MonoBehaviour
                 }
                 BlobAssetReference<WeaponBlobDatabase> blobAsset = builder.CreateBlobAssetReference<WeaponBlobDatabase>(Allocator.Persistent);
                 AddBlobAsset(ref blobAsset, out var hash);
+                builder.Dispose();
+
                 AddComponent(entity, new Weapons
                 {
                     weaponBlobReference = blobAsset,
                 });
-                /*DynamicBuffer<WeaponBuffer> weaponBuffers = AddBuffer<WeaponBuffer>(entity);
-                foreach (WeaponAuthoring weaponAuthoring in authoring.weaponAuthorings)
-                {
-                    weaponBuffers.Add(new WeaponBuffer
-                    {
-                        weaponBuffer = GetEntity(weaponAuthoring.gameObject, TransformUsageFlags.Dynamic)
-                    });
-                }*/
             }
         }
     }
 }
+
+/// <summary>
+/// Turret-level firing schedule: cooldown, burst pattern, weapon index cycling.
+/// Gắn trên turret entity. TurretFireSystem đọc component này.
+/// </summary>
 public struct TurretFireTime : IComponentData
 {
     public Enum.TurretFiringPattern firingPattern;
@@ -64,21 +64,21 @@ public struct TurretFireTime : IComponentData
     public float cooldown;
     public int indexWeapons;
 }
-/*[InternalBufferCapacity(6)]
-public struct WeaponBuffer : IBufferElementData
-{
-    public Entity weaponBuffer;
-}*/
+
+/// <summary>
+/// Chứa BlobAsset reference đến danh sách weapon entities của turret.
+/// </summary>
 public struct Weapons : IComponentData
 {
     public BlobAssetReference<WeaponBlobDatabase> weaponBlobReference;
 }
+
 public struct WeaponBlobDatabase
 {
     public BlobArray<WeaponBlobData> weapons;
 }
+
 public struct WeaponBlobData
 {
     public Entity weapon;
 }
-

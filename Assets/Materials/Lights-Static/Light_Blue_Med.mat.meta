@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1f76634d22110b44bb3b88d3463cb622
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 319891
+  packageName: Modular Turret System
+  packageVersion: 1.1.1
+  assetPath: Assets/Materials/Lights-Static/Light_Blue_Med.mat
+  uploadId: 869512

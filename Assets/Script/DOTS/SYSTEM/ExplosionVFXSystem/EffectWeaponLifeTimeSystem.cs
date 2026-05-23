@@ -4,7 +4,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.VFX;
-[UpdateAfter(typeof(BarrelAnimatorSystem))]
+[UpdateAfter(typeof(BarrelFireEffectSystem))]
 public partial struct EffectWeaponLifeTimeSystem : ISystem
 {
     [BurstCompile]

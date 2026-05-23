@@ -3,7 +3,7 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
 using System.Collections.Generic;
-[UpdateAfter(typeof(BarrelAnimatorSystem))]
+[UpdateAfter(typeof(BarrelFireEffectSystem))]
 public partial class PlayAndStopSoundGatlingSpinSystem : SystemBase
 {
     private Dictionary<Entity, EventInstance> _SoundGatlingSpinEventInstanceDictionary = new();

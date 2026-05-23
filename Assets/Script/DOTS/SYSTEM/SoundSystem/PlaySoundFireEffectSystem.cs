@@ -3,7 +3,7 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
-[UpdateAfter(typeof(BarrelAnimatorSystem))]
+[UpdateAfter(typeof(BarrelFireEffectSystem))]
 partial struct PlaySoundFireEffectSystem : ISystem
 {
     [BurstCompile]

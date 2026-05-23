@@ -1619,7 +1619,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -1635,10 +1635,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 0
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -2346,7 +2342,7 @@ MonoBehaviour:
   - {fileID: 8926484042661618756}
   m_ExposedName: Smoke Color
   m_Exposed: 1
-  m_Order: 26
+  m_Order: 25
   m_Category: Smoke
   m_Min:
     m_Type:
@@ -2427,7 +2423,7 @@ MonoBehaviour:
   - {fileID: 8926484042661619008}
   m_ExposedName: Particles Texture
   m_Exposed: 1
-  m_Order: 38
+  m_Order: 37
   m_Category: Particles
   m_Min:
     m_Type:
@@ -2598,7 +2594,7 @@ MonoBehaviour:
   - {fileID: 8926484042661619131}
   m_ExposedName: Glow Color
   m_Exposed: 1
-  m_Order: 40
+  m_Order: 39
   m_Category: Glow
   m_Min:
     m_Type:
@@ -6587,7 +6583,7 @@ MonoBehaviour:
   - {fileID: 8926484042661621507}
   m_ExposedName: Radial Flashes Texture Rows and Columns
   m_Exposed: 1
-  m_Order: 27
+  m_Order: 26
   m_Category: Radial Muzzle Flashes
   m_Min:
     m_Type:
@@ -7010,7 +7006,7 @@ MonoBehaviour:
   - {fileID: 8926484042661621761}
   m_ExposedName: Particles Texture Rows and Columns
   m_Exposed: 1
-  m_Order: 43
+  m_Order: 42
   m_Category: Particles
   m_Min:
     m_Type:
@@ -7202,7 +7198,7 @@ MonoBehaviour:
   - {fileID: 8926484042661621768}
   m_ExposedName: Radial Flashes Color
   m_Exposed: 1
-  m_Order: 36
+  m_Order: 35
   m_Category: Radial Muzzle Flashes
   m_Min:
     m_Type:
@@ -7283,7 +7279,7 @@ MonoBehaviour:
   - {fileID: 8926484042661621775}
   m_ExposedName: Particles Big Color
   m_Exposed: 1
-  m_Order: 52
+  m_Order: 51
   m_Category: Particles
   m_Min:
     m_Type:
@@ -7364,7 +7360,7 @@ MonoBehaviour:
   - {fileID: 8926484042661621777}
   m_ExposedName: Particles Small Color
   m_Exposed: 1
-  m_Order: 50
+  m_Order: 49
   m_Category: Particles
   m_Min:
     m_Type:
@@ -7746,7 +7742,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622043}
   m_ExposedName: Use Distortion
   m_Exposed: 1
-  m_Order: 48
+  m_Order: 47
   m_Category: Distortion
   m_Min:
     m_Type:
@@ -7861,7 +7857,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622048}
   m_ExposedName: Distortion Amount
   m_Exposed: 1
-  m_Order: 55
+  m_Order: 54
   m_Category: Distortion
   m_Min:
     m_Type:
@@ -7942,7 +7938,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622050}
   m_ExposedName: Radial Flashes Highlights Color
   m_Exposed: 1
-  m_Order: 37
+  m_Order: 36
   m_Category: Radial Muzzle Flashes
   m_Min:
     m_Type:
@@ -10150,7 +10146,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622771}
   m_ExposedName: Radial Flashes Amount
   m_Exposed: 1
-  m_Order: 34
+  m_Order: 33
   m_Category: Radial Muzzle Flashes
   m_Min:
     m_Type:
@@ -10233,7 +10229,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622790}
   m_ExposedName: Radial Flashes Animation Curve
   m_Exposed: 1
-  m_Order: 41
+  m_Order: 40
   m_Category: Radial Muzzle Flashes
   m_Min:
     m_Type:
@@ -10314,7 +10310,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622792}
   m_ExposedName: Particles Scale Multiplier
   m_Exposed: 1
-  m_Order: 53
+  m_Order: 52
   m_Category: Particles
   m_Min:
     m_Type:
@@ -10472,7 +10468,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622796}
   m_ExposedName: Particles Velocity Multiplier
   m_Exposed: 1
-  m_Order: 54
+  m_Order: 53
   m_Category: Particles
   m_Min:
     m_Type:
@@ -10562,7 +10558,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622800}
   m_ExposedName: Glow Scale Min Max
   m_Exposed: 1
-  m_Order: 45
+  m_Order: 44
   m_Category: Glow
   m_Min:
     m_Type:
@@ -10711,7 +10707,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622804}
   m_ExposedName: Smoke Scale Min Max
   m_Exposed: 1
-  m_Order: 30
+  m_Order: 29
   m_Category: Smoke
   m_Min:
     m_Type:
@@ -10860,7 +10856,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622810}
   m_ExposedName: Particles Small Amount
   m_Exposed: 1
-  m_Order: 49
+  m_Order: 48
   m_Category: Particles
   m_Min:
     m_Type:
@@ -11009,7 +11005,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622814}
   m_ExposedName: Particles Big Amount
   m_Exposed: 1
-  m_Order: 51
+  m_Order: 50
   m_Category: Particles
   m_Min:
     m_Type:
@@ -11158,7 +11154,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622822}
   m_ExposedName: Smoke Velocity Min Max
   m_Exposed: 1
-  m_Order: 32
+  m_Order: 31
   m_Category: Smoke
   m_Min:
     m_Type:
@@ -11748,7 +11744,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622900}
   m_ExposedName: Radial Flashes Lifetime Min Max
   m_Exposed: 1
-  m_Order: 31
+  m_Order: 30
   m_Category: Radial Muzzle Flashes
   m_Min:
     m_Type:
@@ -11897,7 +11893,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622917}
   m_ExposedName: Radial Flashes Scale Curve
   m_Exposed: 1
-  m_Order: 42
+  m_Order: 41
   m_Category: Radial Muzzle Flashes
   m_Min:
     m_Type:
@@ -12127,7 +12123,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622930}
   m_ExposedName: Distortion Lifetime Min Max
   m_Exposed: 1
-  m_Order: 56
+  m_Order: 55
   m_Category: Distortion
   m_Min:
     m_Type:
@@ -12276,7 +12272,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622934}
   m_ExposedName: Glow Lifetime Min Max
   m_Exposed: 1
-  m_Order: 44
+  m_Order: 43
   m_Category: Glow
   m_Min:
     m_Type:
@@ -12425,7 +12421,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622938}
   m_ExposedName: Particles Small Lifetime Min Max
   m_Exposed: 1
-  m_Order: 46
+  m_Order: 45
   m_Category: Particles
   m_Min:
     m_Type:
@@ -12574,7 +12570,7 @@ MonoBehaviour:
   - {fileID: 8926484042661622942}
   m_ExposedName: Particles Big Lifetime Min Max
   m_Exposed: 1
-  m_Order: 47
+  m_Order: 46
   m_Category: Particles
   m_Min:
     m_Type:
@@ -13307,8 +13303,8 @@ MonoBehaviour:
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 8926484042661623490}
-  - {fileID: 8926484042661623491}
+  - {fileID: 8926484042661623492}
+  - {fileID: 8926484042661623493}
   - {fileID: 8926484042661622998}
   m_OutputSlots:
   - {fileID: 8926484042661622999}
@@ -13536,7 +13532,7 @@ MonoBehaviour:
   - {fileID: 8926484042661623003}
   m_ExposedName: Use Particles
   m_Exposed: 1
-  m_Order: 28
+  m_Order: 27
   m_Category: Particles
   m_Min:
     m_Type:
@@ -13707,7 +13703,7 @@ MonoBehaviour:
   - {fileID: 8926484042661623007}
   m_ExposedName: Use Glow
   m_Exposed: 1
-  m_Order: 35
+  m_Order: 34
   m_Category: Glow
   m_Min:
     m_Type:
@@ -15339,7 +15335,7 @@ MonoBehaviour:
   - {fileID: 8926484042661623327}
   m_ExposedName: Radial Flashes Scale Multiplier
   m_Exposed: 1
-  m_Order: 39
+  m_Order: 38
   m_Category: Radial Muzzle Flashes
   m_Min:
     m_Type:
@@ -16045,7 +16041,7 @@ MonoBehaviour:
   - {fileID: 8926484042661623377}
   m_ExposedName: Camera Fade Distance
   m_Exposed: 1
-  m_Order: 57
+  m_Order: 56
   m_Category: Camera Fade
   m_Min:
     m_Type:
@@ -16162,7 +16158,7 @@ MonoBehaviour:
   - {fileID: 8926484042661623379}
   m_ExposedName: Camera Fade Start Offset
   m_Exposed: 1
-  m_Order: 58
+  m_Order: 57
   m_Category: Camera Fade
   m_Min:
     m_Type:
@@ -17296,7 +17292,7 @@ MonoBehaviour:
   - {fileID: 8926484042661623420}
   m_ExposedName: Smoke Upward Force Min Max
   m_Exposed: 1
-  m_Order: 33
+  m_Order: 32
   m_Category: Smoke
   m_Min:
     m_Type:
@@ -17594,7 +17590,7 @@ MonoBehaviour:
   - {fileID: 8926484042661623428}
   m_ExposedName: Smoke Contrast
   m_Exposed: 1
-  m_Order: 29
+  m_Order: 28
   m_Category: Smoke
   m_Min:
     m_Type:
@@ -18795,7 +18791,7 @@ MonoBehaviour:
   - {fileID: 8926484042661623489}
   m_ExposedName: Point Lights Intensity
   m_Exposed: 1
-  m_Order: 25
+  m_Order: 24
   m_Category: Lighting
   m_Min:
     m_Type:
@@ -18862,7 +18858,7 @@ MonoBehaviour:
   m_LinkedSlots:
   - {fileID: 8926484042661623487}
   - {fileID: 8926484042661623484}
---- !u!114 &8926484042661623490
+--- !u!114 &8926484042661623492
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -18880,7 +18876,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661623490}
+  m_MasterSlot: {fileID: 8926484042661623492}
   m_MasterData:
     m_Owner: {fileID: 8926484042661622995}
     m_Value:
@@ -18896,7 +18892,7 @@ MonoBehaviour:
         PublicKeyToken=b77a5c561934e089
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &8926484042661623491
+--- !u!114 &8926484042661623493
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -18914,7 +18910,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661623491}
+  m_MasterSlot: {fileID: 8926484042661623493}
   m_MasterData:
     m_Owner: {fileID: 8926484042661622995}
     m_Value:
