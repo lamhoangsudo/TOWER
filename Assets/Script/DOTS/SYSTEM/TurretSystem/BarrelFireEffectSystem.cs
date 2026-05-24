@@ -30,7 +30,7 @@ partial struct BarrelFireEffectSystem : ISystem
             effectWeaponShootLookup = SystemAPI.GetComponentLookup<EffectWeaponShoot>(isReadOnly: false),
             parentLookup = SystemAPI.GetComponentLookup<Parent>(isReadOnly: false),
             soundWeaponEffectShootLookup = SystemAPI.GetComponentLookup<SoundWeaponEffectShoot>(isReadOnly: false),
-            projectTileSpawnShootLookup = SystemAPI.GetComponentLookup<ProjectTileSpawnShoot>(isReadOnly: false),
+            projectileSpawnShootLookup = SystemAPI.GetComponentLookup<ProjectileSpawnShoot>(isReadOnly: false),
             ecb = ecb.AsParallelWriter(),
         };
         JobHandle jobHandle = job.ScheduleParallel(state.Dependency);
@@ -52,7 +52,7 @@ public partial struct BarrelFireEffectJob : IJobEntity
     [ReadOnly] public ComponentLookup<EffectWeaponShoot> effectWeaponShootLookup;
     [ReadOnly] public ComponentLookup<Parent> parentLookup;
     [ReadOnly] public ComponentLookup<SoundWeaponEffectShoot> soundWeaponEffectShootLookup;
-    [ReadOnly] public ComponentLookup<ProjectTileSpawnShoot> projectTileSpawnShootLookup;
+    [ReadOnly] public ComponentLookup<ProjectileSpawnShoot> projectileSpawnShootLookup;
     public EntityCommandBuffer.ParallelWriter ecb;
 
     public void Execute(
@@ -143,9 +143,9 @@ public partial struct BarrelFireEffectJob : IJobEntity
         }
 
         // Projectile spawn trigger
-        if (projectTileSpawnShootLookup.HasComponent(pointShoot))
+        if (projectileSpawnShootLookup.HasComponent(pointShoot))
         {
-            ProjectTileSpawnShoot spawnTrigger = projectTileSpawnShootLookup[pointShoot];
+            ProjectileSpawnShoot spawnTrigger = projectileSpawnShootLookup[pointShoot];
             if (weapon.targetEntity != Entity.Null && localTransformLookup.HasComponent(weapon.targetEntity))
             {
                 spawnTrigger.targetPosition = localTransformLookup[weapon.targetEntity].Position;
@@ -155,8 +155,8 @@ public partial struct BarrelFireEffectJob : IJobEntity
                 spawnTrigger.homingTarget = weapon.targetEntity;
             }
             spawnTrigger.firingPattern = weapon.firingPattern;
-            spawnTrigger.entityProjectTilePrefab = weapon.projectilePrefab;
-            spawnTrigger.entityProjectTileExplosion = weapon.explosionPrefab;
+            spawnTrigger.entityProjectilePrefab = weapon.projectilePrefab;
+            spawnTrigger.entityProjectileExplosion = weapon.explosionPrefab;
             spawnTrigger.projectileLifetimeMax = weapon.projectileMaxLifetime;
             spawnTrigger.projectileStartSpeed = weapon.projectileStartSpeed;
             spawnTrigger.projectileMaxSpeed = weapon.projectileMaxSpeed;

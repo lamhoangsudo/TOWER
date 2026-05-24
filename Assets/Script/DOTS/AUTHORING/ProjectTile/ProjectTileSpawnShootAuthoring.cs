@@ -2,25 +2,25 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class ProjectTileSpawnShootAuthoring : MonoBehaviour
+public class ProjectileSpawnShootAuthoring : MonoBehaviour
 {
-    public class ProjectTileSpawnShootAuthoringBaker : Baker<ProjectTileSpawnShootAuthoring>
+    public class ProjectileSpawnShootAuthoringBaker : Baker<ProjectileSpawnShootAuthoring>
     {
-        public override void Bake(ProjectTileSpawnShootAuthoring authoring)
+        public override void Bake(ProjectileSpawnShootAuthoring authoring)
         {
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
-            AddComponent(entity, new ProjectTileSpawnShoot
+            AddComponent(entity, new ProjectileSpawnShoot
             {
             });
         }
     }
 }
-public struct ProjectTileSpawnShoot : IComponentData
+public struct ProjectileSpawnShoot : IComponentData
 {
     public Enum.WeaponFiringPattern firingPattern;
     public bool isSpawner;
-    public Entity entityProjectTilePrefab;
-    public Entity entityProjectTileExplosion;
+    public Entity entityProjectilePrefab;
+    public Entity entityProjectileExplosion;
     public float projectileStartSpeed;
     public float projectileLifetimeMax;
     public float projectileAcceleration;
@@ -28,5 +28,3 @@ public struct ProjectTileSpawnShoot : IComponentData
     public float3 targetPosition;
     public Entity homingTarget;
 }
-
-

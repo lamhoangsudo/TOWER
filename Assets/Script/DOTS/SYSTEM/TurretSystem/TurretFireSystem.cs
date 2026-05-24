@@ -44,7 +44,8 @@ partial struct TurretFireSystem : ISystem
         public float deltaTime;
         private bool shouldFire;
         public EntityCommandBuffer.ParallelWriter ecb;
-        [ReadOnly] public ComponentLookup<Weapon> componentLookupWeapon;
+        // Không đánh dấu [ReadOnly] vì logic đọc + write qua ECB — tránh misleading
+        [NativeDisableParallelForRestriction] public ComponentLookup<Weapon> componentLookupWeapon;
         [ReadOnly] public ComponentLookup<WeaponFireTime> componentLookupWeaponFireTime;
         public void Execute(in TurretTargeting targeting, in TurretFiring firing, ref Weapons weapons, ref TurretFireTime turretFireTime, [ChunkIndexInQuery] int sortkey)
         {

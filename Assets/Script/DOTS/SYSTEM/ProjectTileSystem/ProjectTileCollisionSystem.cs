@@ -7,38 +7,37 @@ using Unity.Transforms;
 
 /// <summary>
 /// Raycast collision detection cho projectiles.
-/// Raycast mỗi frame theo hướng di chuyển.
+/// Dùng previousPosition → currentPosition để tránh tunneling.
 /// Hit enemy → spawn explosion + destroy projectile.
 /// Hit ground (missile) → spawn explosion + destroy.
+/// Dùng EndSimulationEntityCommandBufferSystem để tránh sync point.
 /// </summary>
 [BurstCompile]
-[UpdateAfter(typeof(ProjectTileMovementSystem))]
-partial struct ProjectTileCollisionSystem : ISystem
+[UpdateAfter(typeof(ProjectileMovementSystem))]
+[UpdateInGroup(typeof(SimulationSystemGroup))]
+partial struct ProjectileCollisionSystem : ISystem
 {
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<ProjecTile, LocalTransform>().Build());
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<Projectile, LocalTransform>().Build());
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         CollisionWorld collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
-        EntityCommandBuffer ecb = new(Allocator.TempJob);
+        var ecbSingleton = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
+        var ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
-        ProjectTileCollisionJob job = new()
+        ProjectileCollisionJob job = new()
         {
             collisionWorld = collisionWorld,
-            ecb = ecb.AsParallelWriter(),
+            ecb = ecb,
             DeltaTime = SystemAPI.Time.DeltaTime,
             enemyLookup = SystemAPI.GetComponentLookup<Enemy>(isReadOnly: true),
         };
-        job.ScheduleParallel();
-        state.Dependency.Complete();
-
-        ecb.Playback(state.EntityManager);
-        ecb.Dispose();
+        state.Dependency = job.ScheduleParallel(state.Dependency);
     }
 
     [BurstCompile]
@@ -48,7 +47,7 @@ partial struct ProjectTileCollisionSystem : ISystem
 }
 
 [BurstCompile]
-public partial struct ProjectTileCollisionJob : IJobEntity
+public partial struct ProjectileCollisionJob : IJobEntity
 {
     [ReadOnly] public CollisionWorld collisionWorld;
     [ReadOnly] public ComponentLookup<Enemy> enemyLookup;
@@ -57,19 +56,26 @@ public partial struct ProjectTileCollisionJob : IJobEntity
 
     public void Execute(
         Entity entity,
-        in ProjecTile projectile,
+        in Projectile projectile,
         in LocalTransform localTransform,
         [ChunkIndexInQuery] int sortkey)
     {
-        // Raycast forward theo tốc độ hiện tại
-        float rayLength = projectile.projecTileCurrentSpeed * DeltaTime * 2f; // x2 để bù frame timing
-        float3 rayStart = localTransform.Position;
-        float3 rayEnd = rayStart + localTransform.Forward() * rayLength;
+        // Anti-tunneling: raycast từ previousPosition → currentPosition
+        float3 rayStart = projectile.previousPosition;
+        float3 rayEnd = localTransform.Position;
+
+        // Nếu previousPosition chưa được set (frame đầu tiên), fallback sang forward ray
+        if (math.lengthsq(rayStart - rayEnd) < 1e-6f)
+        {
+            float rayLength = projectile.projectileCurrentSpeed * DeltaTime * 2f;
+            rayStart = localTransform.Position;
+            rayEnd = rayStart + localTransform.Forward() * rayLength;
+        }
 
         CollisionFilter filter;
-        switch (projectile.projectTileType)
+        switch (projectile.projectileType)
         {
-            case Enum.ProjectTileType.Bullet:
+            case Enum.ProjectileType.Bullet:
                 filter = new CollisionFilter
                 {
                     BelongsTo = ~0u,
@@ -77,7 +83,7 @@ public partial struct ProjectTileCollisionJob : IJobEntity
                     GroupIndex = 0,
                 };
                 break;
-            case Enum.ProjectTileType.Missile:
+            case Enum.ProjectileType.Missile:
                 filter = new CollisionFilter
                 {
                     BelongsTo = ~0u,

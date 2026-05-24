@@ -8,18 +8,18 @@ using Unity.Transforms;
 /// Di chuyển projectile: Bullet bay thẳng, Missile có homing + acceleration.
 /// </summary>
 [BurstCompile]
-partial struct ProjectTileMovementSystem : ISystem
+partial struct ProjectileMovementSystem : ISystem
 {
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<LocalTransform, ProjecTile>().Build());
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<LocalTransform, Projectile>().Build());
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        ProjectTileMovementJob job = new()
+        ProjectileMovementJob job = new()
         {
             DeltaTime = SystemAPI.Time.DeltaTime,
             localToWorldLookup = SystemAPI.GetComponentLookup<LocalToWorld>(isReadOnly: true),
@@ -34,26 +34,29 @@ partial struct ProjectTileMovementSystem : ISystem
 }
 
 [BurstCompile]
-public partial struct ProjectTileMovementJob : IJobEntity
+public partial struct ProjectileMovementJob : IJobEntity
 {
     public float DeltaTime;
     [ReadOnly] public ComponentLookup<LocalToWorld> localToWorldLookup;
 
-    public void Execute(ref LocalTransform localTransform, ref ProjecTile projectile)
+    public void Execute(ref LocalTransform localTransform, ref Projectile projectile)
     {
-        switch (projectile.projectTileType)
+        // Lưu vị trí trước khi di chuyển — dùng cho anti-tunneling raycast
+        projectile.previousPosition = localTransform.Position;
+
+        switch (projectile.projectileType)
         {
-            case Enum.ProjectTileType.Bullet:
-                localTransform.Position += projectile.projecTileCurrentSpeed * DeltaTime * localTransform.Forward();
+            case Enum.ProjectileType.Bullet:
+                localTransform.Position += projectile.projectileCurrentSpeed * DeltaTime * localTransform.Forward();
                 break;
 
-            case Enum.ProjectTileType.Missile:
+            case Enum.ProjectileType.Missile:
                 // Acceleration
-                projectile.projecTileCurrentSpeed += projectile.projecTileAcceleration * DeltaTime;
-                projectile.projecTileCurrentSpeed = math.clamp(projectile.projecTileCurrentSpeed, 0f, projectile.projecTileMaxSpeed);
+                projectile.projectileCurrentSpeed += projectile.projectileAcceleration * DeltaTime;
+                projectile.projectileCurrentSpeed = math.clamp(projectile.projectileCurrentSpeed, 0f, projectile.projectileMaxSpeed);
 
                 // Movement
-                localTransform.Position += projectile.projecTileCurrentSpeed * DeltaTime * localTransform.Forward();
+                localTransform.Position += projectile.projectileCurrentSpeed * DeltaTime * localTransform.Forward();
 
                 // Homing
                 if (projectile.homingTarget != Entity.Null && localToWorldLookup.HasComponent(projectile.homingTarget))

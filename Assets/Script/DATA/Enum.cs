@@ -20,7 +20,7 @@ public static class Enum
         Gatling,
         MissileLauncher
     }
-    public enum ProjectTileType
+    public enum ProjectileType
     {
         Bullet,
         Missile,

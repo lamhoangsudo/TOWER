@@ -54,4 +54,25 @@ public static class FmodSoundManager
     {
         instance.setParameterByName(name, parameterValue, true);    
     }
+
+    /// <summary>
+    /// Release event instance — gọi khi entity/turret bị destroy để tránh memory leak FMOD.
+    /// </summary>
+    public static void ReleaseEventInstance(EventInstance instance)
+    {
+        instance.getPlaybackState(out PLAYBACK_STATE state);
+        if (state == PLAYBACK_STATE.PLAYING || state == PLAYBACK_STATE.STARTING)
+        {
+            instance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+        instance.release();
+    }
+
+    /// <summary>
+    /// Check if an EventInstance is valid (has been created and not yet released).
+    /// </summary>
+    public static bool IsInstanceValid(EventInstance instance)
+    {
+        return instance.isValid();
+    }
 }
