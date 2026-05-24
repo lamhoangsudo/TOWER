@@ -24,35 +24,22 @@ public class TurretFireTimeAuthoring : MonoBehaviour
                 indexWeapons = 0,
             });
 
+            // Dùng DynamicBuffer — entity references được remap đúng trong mọi trường hợp
             if (authoring.weaponAuthorings != null && authoring.weaponAuthorings.Length > 0)
             {
-                BlobBuilder builder = new(Allocator.Temp);
-                ref WeaponBlobDatabase root = ref builder.ConstructRoot<WeaponBlobDatabase>();
-                BlobBuilderArray<WeaponBlobData> blobBuilderArray = builder.Allocate(ref root.weapons, authoring.weaponAuthorings.Length);
-                for (int i = 0; i < blobBuilderArray.Length; i++)
+                DynamicBuffer<WeaponEntityBuffer> buffer = AddBuffer<WeaponEntityBuffer>(entity);
+                for (int i = 0; i < authoring.weaponAuthorings.Length; i++)
                 {
-                    blobBuilderArray[i] = new WeaponBlobData
+                    buffer.Add(new WeaponEntityBuffer
                     {
-                        weapon = GetEntity(authoring.weaponAuthorings[i], TransformUsageFlags.Dynamic),
-                    };
+                        weaponEntity = GetEntity(authoring.weaponAuthorings[i], TransformUsageFlags.Dynamic),
+                    });
                 }
-                BlobAssetReference<WeaponBlobDatabase> blobAsset = builder.CreateBlobAssetReference<WeaponBlobDatabase>(Allocator.Persistent);
-                AddBlobAsset(ref blobAsset, out var hash);
-                builder.Dispose();
-
-                AddComponent(entity, new Weapons
-                {
-                    weaponBlobReference = blobAsset,
-                });
             }
         }
     }
 }
 
-/// <summary>
-/// Turret-level firing schedule: cooldown, burst pattern, weapon index cycling.
-/// Gắn trên turret entity. TurretFireSystem đọc component này.
-/// </summary>
 public struct TurretFireTime : IComponentData
 {
     public Enum.TurretFiringPattern firingPattern;
@@ -65,20 +52,8 @@ public struct TurretFireTime : IComponentData
     public int indexWeapons;
 }
 
-/// <summary>
-/// Chứa BlobAsset reference đến danh sách weapon entities của turret.
-/// </summary>
-public struct Weapons : IComponentData
+[InternalBufferCapacity(4)]
+public struct WeaponEntityBuffer : IBufferElementData
 {
-    public BlobAssetReference<WeaponBlobDatabase> weaponBlobReference;
-}
-
-public struct WeaponBlobDatabase
-{
-    public BlobArray<WeaponBlobData> weapons;
-}
-
-public struct WeaponBlobData
-{
-    public Entity weapon;
+    public Entity weaponEntity;
 }
