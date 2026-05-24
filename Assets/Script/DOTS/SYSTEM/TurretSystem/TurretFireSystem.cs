@@ -36,17 +36,17 @@ partial struct TurretFireSystem : ISystem
     [BurstCompile]
     public void OnDestroy(ref SystemState state)
     {
-
     }
+
     [BurstCompile]
     public partial struct TurretFireJob : IJobEntity
     {
         public float deltaTime;
         private bool shouldFire;
         public EntityCommandBuffer.ParallelWriter ecb;
-        // Không đánh dấu [ReadOnly] vì logic đọc + write qua ECB — tránh misleading
         [NativeDisableParallelForRestriction] public ComponentLookup<Weapon> componentLookupWeapon;
         [ReadOnly] public ComponentLookup<WeaponFireTime> componentLookupWeaponFireTime;
+
         public void Execute(in TurretTargeting targeting, in TurretFiring firing, ref Weapons weapons, ref TurretFireTime turretFireTime, [ChunkIndexInQuery] int sortkey)
         {
             if (turretFireTime.burstCount == 0) turretFireTime.cooldown -= deltaTime;
@@ -59,22 +59,25 @@ partial struct TurretFireSystem : ISystem
             switch (turretFireTime.firingPattern)
             {
                 case Enum.TurretFiringPattern.Simultaneous:
-                    Simultaneous(turretFireTime, ref weaponBlobDataArray, deltaTime, weaponWritter, componentLookupWeapon, shouldFire, targeting, ecb, sortkey);
+                    Simultaneous(ref turretFireTime, ref weaponBlobDataArray, deltaTime, weaponWritter, componentLookupWeapon, shouldFire, targeting, ecb, sortkey);
                     break;
                 case Enum.TurretFiringPattern.Individual:
-                    Individual(turretFireTime, ref weaponBlobDataArray, deltaTime, weaponWritter, componentLookupWeapon, shouldFire, targeting, ecb, sortkey);
+                    Individual(ref turretFireTime, ref weaponBlobDataArray, deltaTime, weaponWritter, componentLookupWeapon, shouldFire, targeting, ecb, sortkey);
                     break;
                 case Enum.TurretFiringPattern.Gatling:
-                    Gatling(turretFireTime, componentLookupWeaponFireTime, ref weaponBlobDataArray, deltaTime, weaponWritter, componentLookupWeapon, shouldFire, targeting, ecb, sortkey);
+                    Gatling(ref turretFireTime, componentLookupWeaponFireTime, ref weaponBlobDataArray, deltaTime, weaponWritter, componentLookupWeapon, shouldFire, targeting, ecb, sortkey);
                     break;
             }
-            return;
         }
-        private void Gatling(TurretFireTime turretFireTime, ComponentLookup<WeaponFireTime> componentLookupWeaponFireTime, ref BlobArray<WeaponBlobData> weaponBlobDataArray, float deltaTime, Weapon weaponWritter, ComponentLookup<Weapon> componentLookupWeapon, bool shouldFire, TurretTargeting targeting, EntityCommandBuffer.ParallelWriter ecb, int sortkey)
+
+        private void Gatling(ref TurretFireTime turretFireTime, ComponentLookup<WeaponFireTime> componentLookupWeaponFireTime, ref BlobArray<WeaponBlobData> weaponBlobDataArray, float deltaTime, Weapon weaponWritter, ComponentLookup<Weapon> componentLookupWeapon, bool shouldFire, TurretTargeting targeting, EntityCommandBuffer.ParallelWriter ecb, int sortkey)
         {
             if (turretFireTime.burstCount >= turretFireTime.burstCountMax)
             {
-                turretFireTime.cooldown = turretFireTime.cooldownMax + componentLookupWeaponFireTime[weaponBlobDataArray[0].weapon].timeOverHeatMax;
+                if (componentLookupWeaponFireTime.HasComponent(weaponBlobDataArray[0].weapon))
+                    turretFireTime.cooldown = turretFireTime.cooldownMax + componentLookupWeaponFireTime[weaponBlobDataArray[0].weapon].timeOverHeatMax;
+                else
+                    turretFireTime.cooldown = turretFireTime.cooldownMax;
                 turretFireTime.burstCount = 0;
             }
             else
@@ -84,6 +87,7 @@ partial struct TurretFireSystem : ISystem
                 for (int i = 0; i < weaponBlobDataArray.Length; i++)
                 {
                     Entity weapon = weaponBlobDataArray[i].weapon;
+                    if (!componentLookupWeapon.HasComponent(weapon)) continue;
                     weaponWritter = componentLookupWeapon[weapon];
                     if (weaponWritter.startFire == shouldFire) continue;
                     turretFireTime.burstCount++;
@@ -94,7 +98,8 @@ partial struct TurretFireSystem : ISystem
             }
             turretFireTime.burstDelay = 0f;
         }
-        private void Individual(TurretFireTime turretFireTime, ref BlobArray<WeaponBlobData> weaponBlobDataArray, float deltaTime, Weapon weaponWritter, ComponentLookup<Weapon> componentLookupWeapon, bool shouldFire, TurretTargeting targeting, EntityCommandBuffer.ParallelWriter ecb, int sortkey)
+
+        private void Individual(ref TurretFireTime turretFireTime, ref BlobArray<WeaponBlobData> weaponBlobDataArray, float deltaTime, Weapon weaponWritter, ComponentLookup<Weapon> componentLookupWeapon, bool shouldFire, TurretTargeting targeting, EntityCommandBuffer.ParallelWriter ecb, int sortkey)
         {
             if (turretFireTime.burstCount >= turretFireTime.burstCountMax)
             {
@@ -104,18 +109,29 @@ partial struct TurretFireSystem : ISystem
             }
             turretFireTime.burstDelay += deltaTime;
             if (turretFireTime.burstDelay < turretFireTime.burstDelayMax) return;
-            weaponWritter = componentLookupWeapon[weaponBlobDataArray[turretFireTime.indexWeapons].weapon];
+
+            int currentIndex = turretFireTime.indexWeapons;
+            if (currentIndex >= weaponBlobDataArray.Length) currentIndex = 0;
+            Entity weaponEntity = weaponBlobDataArray[currentIndex].weapon;
+
+            if (!componentLookupWeapon.HasComponent(weaponEntity)) return;
+
+            weaponWritter = componentLookupWeapon[weaponEntity];
+
             if (weaponWritter.startFire == shouldFire) return;
+
+            weaponWritter.startFire = shouldFire;
+            if (weaponWritter.targetEntity == Entity.Null || weaponWritter.targetEntity != targeting.target) weaponWritter.targetEntity = targeting.target;
+            ecb.SetComponent<Weapon>(sortkey, weaponEntity, weaponWritter);
+
             turretFireTime.indexWeapons++;
             if (turretFireTime.indexWeapons >= weaponBlobDataArray.Length) turretFireTime.indexWeapons = 0;
             turretFireTime.burstCount++;
             turretFireTime.burstCount = math.clamp(turretFireTime.burstCount, 0, turretFireTime.burstCountMax);
             turretFireTime.burstDelay = 0f;
-            weaponWritter.startFire = shouldFire;
-            if (weaponWritter.targetEntity == Entity.Null || weaponWritter.targetEntity != targeting.target) weaponWritter.targetEntity = targeting.target;
-            ecb.SetComponent<Weapon>(sortkey, weaponBlobDataArray[turretFireTime.indexWeapons].weapon, weaponWritter);
         }
-        private void Simultaneous(TurretFireTime turretFireTime, ref BlobArray<WeaponBlobData> weaponBlobDataArray, float deltaTime, Weapon weaponWritter, ComponentLookup<Weapon> componentLookupWeapon, bool shouldFire, TurretTargeting targeting, EntityCommandBuffer.ParallelWriter ecb, int sortkey)
+
+        private void Simultaneous(ref TurretFireTime turretFireTime, ref BlobArray<WeaponBlobData> weaponBlobDataArray, float deltaTime, Weapon weaponWritter, ComponentLookup<Weapon> componentLookupWeapon, bool shouldFire, TurretTargeting targeting, EntityCommandBuffer.ParallelWriter ecb, int sortkey)
         {
             if (weaponBlobDataArray.Length <= 1) return;
             if (turretFireTime.burstCount >= turretFireTime.burstCountMax)
@@ -129,6 +145,7 @@ partial struct TurretFireSystem : ISystem
             for (int i = 0; i < weaponBlobDataArray.Length; i++)
             {
                 Entity weapon = weaponBlobDataArray[i].weapon;
+                if (!componentLookupWeapon.HasComponent(weapon)) continue;
                 weaponWritter = componentLookupWeapon[weapon];
                 if (weaponWritter.startFire == shouldFire) continue;
                 turretFireTime.burstCount = math.clamp(turretFireTime.burstCount, 0, turretFireTime.burstCountMax);

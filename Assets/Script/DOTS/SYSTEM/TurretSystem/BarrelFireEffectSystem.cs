@@ -49,10 +49,10 @@ partial struct BarrelFireEffectSystem : ISystem
 public partial struct BarrelFireEffectJob : IJobEntity
 {
     [ReadOnly] public ComponentLookup<LocalTransform> localTransformLookup;
-    [ReadOnly] public ComponentLookup<EffectWeaponShoot> effectWeaponShootLookup;
-    [ReadOnly] public ComponentLookup<Parent> parentLookup;
-    [ReadOnly] public ComponentLookup<SoundWeaponEffectShoot> soundWeaponEffectShootLookup;
-    [ReadOnly] public ComponentLookup<ProjectileSpawnShoot> projectileSpawnShootLookup;
+    [NativeDisableParallelForRestriction] public ComponentLookup<EffectWeaponShoot> effectWeaponShootLookup;
+    [NativeDisableParallelForRestriction] public ComponentLookup<Parent> parentLookup;
+    [NativeDisableParallelForRestriction] public ComponentLookup<SoundWeaponEffectShoot> soundWeaponEffectShootLookup;
+    [NativeDisableParallelForRestriction] public ComponentLookup<ProjectileSpawnShoot> projectileSpawnShootLookup;
     public EntityCommandBuffer.ParallelWriter ecb;
 
     public void Execute(

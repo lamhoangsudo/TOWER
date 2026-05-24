@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6036916119428695026}
   - component: {fileID: 5218029975342875723}
   - component: {fileID: 2661673623025477054}
+  - component: {fileID: 2793183930199292194}
   m_Layer: 0
   m_Name: Gun_S01ECS
   m_TagString: Untagged
@@ -77,13 +78,10 @@ MonoBehaviour:
   muzzleFlashEntity: {fileID: 3011034505861265419}
   pointShoot:
   - {fileID: 3130289406839061550}
-  animationDuration: 0.1
+  animationDuration: 0.2
   baseSlideDistance: 0.1
   tipSlideAmountDistance: 0.3
   tipRotateDegrees: 0
-  lastFireTime: 0
-  animationPlaying: 0
-  tipRotationAtFire: 0
   slideCurve:
     serializedVersion: 2
     m_Curve:
@@ -156,9 +154,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 602626577bea6304baf1c8710a2fd3b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  burstDelayMax: 0.01
+  burstDelayMax: 0
   burstCountMax: 1
   timeOverHeatMax: 0
+--- !u!114 &2793183930199292194
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2551423239659318228}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Entities.Hybrid::Unity.Entities.Hybrid.Baking.LinkedEntityGroupAuthoring
 --- !u!1 &3130289406839061550
 GameObject:
   m_ObjectHideFlags: 0

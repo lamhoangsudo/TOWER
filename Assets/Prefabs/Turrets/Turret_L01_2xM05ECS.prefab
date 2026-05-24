@@ -62,7 +62,7 @@ MonoBehaviour:
   headingPivot: {fileID: 5795755249984692401}
   elevationPivot: {fileID: 5795755250427119394}
   useTargetPrediction: 0
-  targetAquiredAngle: 0.1
+  targetAquiredAngle: 2
   resetOrientation: 1
   autoFire: 1
   Target: {fileID: 0}

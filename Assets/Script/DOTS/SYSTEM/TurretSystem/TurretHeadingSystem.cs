@@ -93,7 +93,7 @@ public partial struct TurretHeadingJob : IJobEntity
         rotation.currentHeading = heading;
         rotation.currentHeadingSpeed = speed;
         rotation.headingSpeedFactor = math.abs(speed) / rotation.headingRotationSpeed;
-        rotation.IsHeadingRotationSFX = rotation.headingSpeedFactor > 0.05f;
+        rotation.IsHeadingRotationSFX = rotation.headingSpeedFactor > 0.15f;
 
         // Apply transform
         LocalTransform pivotTransform = pivotTransformLookup[rotation.headingPivot];

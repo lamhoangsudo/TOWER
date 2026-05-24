@@ -94,7 +94,7 @@ public partial struct TurretElevationJob : IJobEntity
         rotation.currentElevation = elevation;
         rotation.currentElevationSpeed = speed;
         rotation.elevationSpeedFactor = math.abs(speed) / rotation.elevationRotationSpeed;
-        rotation.IsElevationRotationSFX = rotation.elevationSpeedFactor > 0.05f;
+        rotation.IsElevationRotationSFX = rotation.elevationSpeedFactor > 0.15f;
 
         // Apply transform
         LocalTransform pivotTransform = pivotTransformLookup[rotation.elevationPivot];
