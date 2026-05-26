@@ -92,6 +92,8 @@ VFXRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_StaticBatchInfo:
@@ -111,9 +113,11 @@ VFXRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
 --- !u!1 &8600694648037937677
 GameObject:
   m_ObjectHideFlags: 0
@@ -175,10 +179,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   soundEventReferenceExplosionSFX:
     Guid:
-      Data1: 866628839
-      Data2: 1236748971
-      Data3: -727770971
-      Data4: 337352054
-    Path: event:/TurretEvent_SFX/Explosion/explosion
+      Data1: -2071631377
+      Data2: 1250277326
+      Data3: 462798995
+      Data4: -709615294
+    Path: event:/Event/Impact/Explosion
   volume: 1
   pitch: 1

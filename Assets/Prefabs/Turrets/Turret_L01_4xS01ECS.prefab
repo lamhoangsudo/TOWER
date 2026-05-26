@@ -79,9 +79,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firingPattern: 0
-  burstCountMax: 2
-  burstDelayMax: 0.01
-  cooldownMax: 0.1
+  burstCountMax: 4
+  burstDelayMax: 0.25
+  cooldownMax: 2
   weaponAuthorings:
   - {fileID: 8636048361280447530}
   - {fileID: 1206139999703493019}

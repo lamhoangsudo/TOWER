@@ -216,11 +216,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   soundEventReferenceSoundWeaponEffectShoot:
     Guid:
-      Data1: 861663198
-      Data2: 1150204608
-      Data3: -1458222438
-      Data4: -298278414
-    Path: event:/TurretEvent_SFX/WeaponShot/WeaponShot4
+      Data1: -295073346
+      Data2: 1256091080
+      Data3: 1942035340
+      Data4: -670041764
+    Path: event:/Event/Weapons/Fire_Bullet
 --- !u!114 &2498967852801051822
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -285,6 +285,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MuzzleFlash1_S_YellowECS
       objectReference: {fileID: 0}
+    - target: {fileID: 9207145456585211361, guid: 5764a60aa515a324799b3cae604c294b, type: 3}
+      propertyPath: visualEffect
+      value: 
+      objectReference: {fileID: 6613586854518481489, guid: 668245afb8de80345abdaf76f6bb092c, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

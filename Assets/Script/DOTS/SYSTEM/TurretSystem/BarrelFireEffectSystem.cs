@@ -17,7 +17,7 @@ partial struct BarrelFireEffectSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<BarrelAnimation, BarrelVFX, BarrelSFX, Weapon, BarrelTipEntityBuffer, WeaponFireTime>().Build());
+        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<BarrelAnimation, BarrelVFX, BarrelSFX, Weapon, BarrelTipEntityBuffer, PointShotEntityBuffer, WeaponFireTime>().Build());
     }
 
     [BurstCompile]
@@ -62,12 +62,16 @@ public partial struct BarrelFireEffectJob : IJobEntity
         ref BarrelSFX barrelSFX,
         in Weapon weapon,
         DynamicBuffer<BarrelTipEntityBuffer> tipBuffers,
+        DynamicBuffer<PointShotEntityBuffer> pointShotBuffers,
         in WeaponFireTime weaponFireTime)
     {
-        if (!barrelAnimation.animationPlaying) return;
+        if (!barrelAnimation.animationPlaying)
+        {
+            // Reset flag khi animation không chạy — cho phép trigger lại lần bắn tiếp
+            if (barrelVFX.flashSpawned) barrelVFX.flashSpawned = false;
+            return;
+        }
         if (barrelVFX.flashSpawned) return;
-
-        ref BlobArray<PointShotEntityBlobData> pointShotBuffers = ref barrelVFX.pointShotBlob.Value.pointShotEntityBlobDataArray;
 
         switch (weapon.firingPattern)
         {
@@ -96,7 +100,7 @@ public partial struct BarrelFireEffectJob : IJobEntity
         ref BarrelSFX barrelSFX,
         Weapon weapon,
         BarrelTipEntityBuffer tip,
-        PointShotEntityBlobData pointShotData)
+        PointShotEntityBuffer pointShotData)
     {
         Entity pointShoot = pointShotData.pointShoot;
         if (!localTransformLookup.HasComponent(pointShoot)) return;

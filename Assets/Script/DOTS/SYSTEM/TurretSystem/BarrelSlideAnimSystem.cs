@@ -53,6 +53,7 @@ public partial struct BarrelSlideAnimJob : IJobEntity
     public void Execute(
         [ChunkIndexInQuery] int sortkey,
         ref BarrelAnimation barrelAnimation,
+        ref BarrelVFX barrelVFX,
         in Weapon weapon,
         DynamicBuffer<BarrelTipEntityBuffer> tipBuffers,
         in WeaponFireTime weaponFireTime)
@@ -101,6 +102,7 @@ public partial struct BarrelSlideAnimJob : IJobEntity
         if (progress >= 1f)
         {
             barrelAnimation.animationPlaying = false;
+            barrelVFX.flashSpawned = false; // Reset để lần bắn tiếp có thể trigger effects
         }
     }
 
